@@ -364,7 +364,11 @@ class SectorsDataValidator:
             return
 
         # Required fields
-        for req in ["symbol", "date", "close"]:
+        symbol_val = data.get("symbol") or data.get("ticker")
+        if not symbol_val:
+            result.add_error("symbol", "Missing required price field: symbol/ticker", data)
+
+        for req in ["date", "close"]:
             if req not in data or data[req] is None:
                 result.add_error(req, f"Missing required price field: {req}", data)
 

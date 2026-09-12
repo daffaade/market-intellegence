@@ -203,7 +203,8 @@ class SectorsDataNormalizer:
         if any(n in key_lower for n in [
             "price", "open", "high", "low", "close", "pe", "pb", "ps", "pcf", "peg",
             "market_cap", "revenue", "income", "assets", "liabilities", "equity",
-            "volume", "amount", "value", "dividend", "forecast", "estimate", "expense", "num"
+            "volume", "amount", "value", "dividend", "forecast", "estimate", "expense",
+            "num", "split", "splits"
         ]):
             # Set precision based on field type
             if any(p in key_lower for p in ["price", "close", "open", "high", "low"]):
