@@ -1,0 +1,13 @@
+Sectors API
+    ↓
+Data Validation
+    ↓
+Data Normalization
+    ↓
+Data Storage = temporary local
+    ↓
+Historical Data Handling
+    ↓
+Data Caching
+    ↓
+Dataset for Intelligence Engine

@@ -1,0 +1,294 @@
+{
+  "BBCA:valuation": {
+    "symbol": "BBCA",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 13.1094,
+      "intrinsic_value": 13694,
+      "sample_historical_valuation": {
+        "pb": 4.7177,
+        "pe": 25.6154,
+        "ps": 11.9285,
+        "pcf": 30.8908,
+        "peg": 0.8643,
+        "year": 2022,
+        "pb_peer_avg": 0.9759,
+        "pe_peer_avg": 15.1293,
+        "ps_peer_avg": 4.4186,
+        "enterprise_to_ebitda": null,
+        "enterprise_to_revenue": null
+      }
+    },
+    "created_at": 1789221840.300232,
+    "created_at_iso": "2026-09-12T14:04:00.300232+00:00",
+    "expires_at": 1789308240.300232,
+    "expires_at_iso": "2026-09-13T14:04:00.300232+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA:peer": {
+    "symbol": "BBCA",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 2.9446,
+      "pe_ttm": 13.7023,
+      "symbol": "BBCA.JK",
+      "market_cap": 796326004237500,
+      "net_income": 57537287000000,
+      "company_name": "PT Bank Central Asia Tbk.",
+      "employee_num": 27937,
+      "total_assets": 1586830000000000,
+      "total_equity": 281687555000000,
+      "pretax_income": 71260876000000,
+      "total_revenue": 112006326000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 10.5,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 18,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 30,
+          "maxpoint": 30
+        },
+        {
+          "name": "financials",
+          "point": 1.5,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 6,
+          "maxpoint": 11
+        },
+        {
+          "updated_at": "2026-09-09"
+        }
+      ],
+      "yearly_mcap_chg": -0.184375,
+      "operating_expense": 36734403000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 1305140000000000,
+      "int_income_breakdown": [
+        {
+          "class": "Loans & Deposits",
+          "amount": 67446394000000,
+          "category": "Loans"
+        },
+        {
+          "class": "Marketable Securities",
+          "amount": 24163987000000,
+          "category": "Investment securities"
+        },
+        {
+          "class": "Marketable Securities",
+          "amount": 727466000000,
+          "category": "Securities purchased under agreements to resell"
+        },
+        {
+          "class": "Finance Receivable",
+          "amount": 3625497000000,
+          "category": "Consumer financing receivables and finance lease receivables"
+        },
+        {
+          "class": "Interbank Placement",
+          "amount": 633824000000,
+          "category": "Placements with Bank Indonesia and other banks"
+        },
+        {
+          "class": "Finance Receivable",
+          "amount": 525723000000,
+          "category": "Bill receivable"
+        },
+        {
+          "class": "Sharia Income",
+          "amount": 948274000000,
+          "category": "Sharia Income"
+        },
+        {
+          "class": "Other Income",
+          "amount": 841487000000,
+          "category": "Others"
+        }
+      ],
+      "operating_expense_breakdown": [
+        {
+          "class": "Salaries & Benefits",
+          "amount": 17780770000000,
+          "category": "Personnel expenses"
+        },
+        {
+          "class": "General & Admin",
+          "amount": 16780115000000,
+          "category": "General and administrative"
+        },
+        {
+          "class": "Other expenses",
+          "amount": 2173518000000,
+          "category": "Others (expense)"
+        }
+      ]
+    },
+    "created_at": 1789221840.3002675,
+    "created_at_iso": "2026-09-12T14:04:00.300267+00:00",
+    "expires_at": 1789308240.3002675,
+    "expires_at_iso": "2026-09-13T14:04:00.300267+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA:future_forecast": {
+    "symbol": "BBCA",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 518.5,
+      "estimate_year": 2026,
+      "revenue_estimate": 126170000000000
+    },
+    "created_at": 1789221840.3002872,
+    "created_at_iso": "2026-09-12T14:04:00.300287+00:00",
+    "expires_at": 1789308240.3002872,
+    "expires_at_iso": "2026-09-13T14:04:00.300287+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA:institutional_transactions": {
+    "symbol": "BBCA",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "Vanguard",
+        "change_amount": 61979185
+      },
+      "sample_seller": {
+        "name": "Fidelity Management & Research Company LLC",
+        "change_amount": -490522692
+      }
+    },
+    "created_at": 1789221840.3002963,
+    "created_at_iso": "2026-09-12T14:04:00.300296+00:00",
+    "expires_at": 1789308240.3002963,
+    "expires_at_iso": "2026-09-13T14:04:00.300296+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA:executive_shareholdings": {
+    "symbol": "BBCA",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Armand Wahyudi Hartono",
+      "position": "Vice President Director",
+      "share_amount": 4256065,
+      "share_percentage": 3e-05
+    },
+    "created_at": 1789221840.3003023,
+    "created_at_iso": "2026-09-12T14:04:00.300302+00:00",
+    "expires_at": 1789826640.3003023,
+    "expires_at_iso": "2026-09-19T14:04:00.300302+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:major_shareholders": {
+    "symbol": "BBCA",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Dwimuria Investama Andalan",
+      "share_value": 428391933750000,
+      "share_amount": 67729950000,
+      "share_percentage": 0.54942
+    },
+    "created_at": 1789221840.3003082,
+    "created_at_iso": "2026-09-12T14:04:00.300308+00:00",
+    "expires_at": 1789826640.3003082,
+    "expires_at_iso": "2026-09-19T14:04:00.300308+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:shareholder_composition": {
+    "symbol": "BBCA",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_whale_investor": "Anthoni Salim",
+      "sample_conglomerate_group": "Djarum Group"
+    },
+    "created_at": 1789221840.3003147,
+    "created_at_iso": "2026-09-12T14:04:00.300315+00:00",
+    "expires_at": 1789826640.3003147,
+    "expires_at_iso": "2026-09-19T14:04:00.300315+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:dividend": {
+    "symbol": "BBCA",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-12-08",
+            "total": 98,
+            "yield": 0.003257
+          },
+          {
+            "date": "2020-04-21",
+            "total": 455,
+            "yield": 0.01512
+          }
+        ],
+        "total_yield": 0.018376,
+        "total_dividend": 553
+      }
+    },
+    "created_at": 1789221840.3003197,
+    "created_at_iso": "2026-09-12T14:04:00.300320+00:00",
+    "expires_at": 1789308240.3003197,
+    "expires_at_iso": "2026-09-13T14:04:00.300320+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA:executives": {
+    "symbol": "BBCA",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Gregory Hendra Lembong",
+      "position": "President Director"
+    },
+    "created_at": 1789221840.3003252,
+    "created_at_iso": "2026-09-12T14:04:00.300325+00:00",
+    "expires_at": 1789826640.3003252,
+    "expires_at_iso": "2026-09-19T14:04:00.300325+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:historical_price": {
+    "symbol": "BBCA",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "BBCA.JK",
+      "date": "2026-08-13",
+      "close": 6375,
+      "open": 6350,
+      "high": 6375,
+      "low": 6250,
+      "volume": 83208000,
+      "market_cap": 778019659312500
+    },
+    "created_at": 1789221840.3003304,
+    "created_at_iso": "2026-09-12T14:04:00.300330+00:00",
+    "expires_at": 1789222740.3003304,
+    "expires_at_iso": "2026-09-12T14:19:00.300330+00:00",
+    "ttl_seconds": 900
+  }
+}
