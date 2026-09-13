@@ -1,0 +1,915 @@
+{
+  "BBCA": {
+    "symbol": "BBCA",
+    "data": {
+      "company_data": {
+        "symbol": "BBCA",
+        "yfinance_symbol": "BBCA.JK",
+        "company_name": "PT Bank Central Asia Tbk.",
+        "sector": "Financial Services",
+        "industry": "Banks - Regional",
+        "currency": "IDR",
+        "summary": "PT Bank Central Asia Tbk provides commercial banking and other financial services. The company offers time deposits, e- deposits, spinning, Dana Lander accounts, customer accounts, gold stage; loans, such as business, investment credit, securities collateral, multipurpose business, trade finance, business place loans; credit cards; and investment, including mutual funds, and bond and secondary SBN. The company also provides collection account opening, remittance, trade finance, tresuries and custodians, transaction banking, electronic banking, cash management, bank assurance, credit facilities, bank guarantees, export-import facilities, and foreign exchange facilities. In addition, the company offers investment financing, working capital financing, multipurpose financing, operating leases, and other financing activities; Sharia banking; securities brokerage dealer and underwriter for issuance of securities; general or loss insurance; life insurance; and venture capital services. PT Bank Central Asia Tbk was founded in 1955 and is headquartered in Jakarta, Indonesia. PT Bank Central Asia Tbk is a subsidiary of PT Dwimuria Investama Andalan.",
+        "source_primary": "Sectors API",
+        "source_supporting": "yFinance API"
+      },
+      "valuation_data": {
+        "forward_pe": 13.1094,
+        "trailing_pe": 13.405,
+        "intrinsic_value": 13694,
+        "price_to_book": 2.87,
+        "enterprise_to_revenue": 6.87,
+        "enterprise_to_ebitda": null,
+        "peg_ratio": 1.58,
+        "enterprise_value": 751206959939584,
+        "sample_historical_valuation": {
+          "pb": 4.7177,
+          "pe": 25.6154,
+          "ps": 11.9285,
+          "pcf": 30.8908,
+          "peg": 0.8643,
+          "year": 2022,
+          "pb_peer_avg": 0.9759,
+          "pe_peer_avg": 15.1293,
+          "ps_peer_avg": 4.4186,
+          "enterprise_to_ebitda": null,
+          "enterprise_to_revenue": null
+        },
+        "fifty_two_week_high": 8750,
+        "fifty_two_week_low": 4820,
+        "source_resolution": "Sectors API prioritized for forward_pe & intrinsic_value; yFinance cover-additional metrics"
+      },
+      "peer_data": {
+        "peer_company_name": "PT Bank Central Asia Tbk.",
+        "market_cap": 796326004237500,
+        "pe_ttm": 13.7023,
+        "total_assets": 1586830000000000,
+        "total_liabilities": 1305140000000000,
+        "total_equity": 281687555000000,
+        "total_revenue": 112006326000000,
+        "net_income": 57537287000000,
+        "sector": "Financial Services",
+        "industry": "Banks - Regional"
+      },
+      "forecast_data": {
+        "estimate_year": 2026,
+        "eps_estimate": 518.5,
+        "revenue_estimate": 126170000000000,
+        "target_mean_price": 8220.04,
+        "target_high_price": 10100,
+        "target_low_price": 6000,
+        "target_median_price": 8200,
+        "eps_growth": 0.0681,
+        "revenue_growth": 0.0045,
+        "recommendation_key": null
+      },
+      "ownership_data": {
+        "major_shareholder_name": "PT Dwimuria Investama Andalan",
+        "major_shareholder_percentage": 0.54942,
+        "major_shareholder_shares": 67729950000,
+        "major_shareholder_value": 428391933750000,
+        "whale_investor": "Anthoni Salim",
+        "conglomerate_group": "Djarum Group",
+        "insiders_percent_held": 0.60814,
+        "institutions_percent_held": 0.19046,
+        "breakdown": {}
+      },
+      "institutional_data": {
+        "transaction_date": "2026-08-31",
+        "sample_buyer": {
+          "name": "Vanguard",
+          "change_amount": 61979185
+        },
+        "sample_seller": {
+          "name": "Fidelity Management & Research Company LLC",
+          "change_amount": -490522692
+        },
+        "top_holder_name": "Gamma Investing LLC",
+        "top_holder_shares": 11522,
+        "top_holder_value": 72876650,
+        "top_holder_pct_held": 0.0,
+        "top_holder_pct_change": -0.8411
+      },
+      "insider_data": {
+        "executive_name": "Armand Wahyudi Hartono",
+        "position": "Vice President Director",
+        "share_percentage": 3e-05,
+        "share_amount": 4256065,
+        "age": 51,
+        "exercised_value": 0,
+        "unexercised_value": 0
+      },
+      "historical_data": {
+        "date": "2026-08-14",
+        "open": 6300,
+        "high": 6350,
+        "low": 6275,
+        "close": 6350,
+        "volume": 56953500,
+        "dividends": 0,
+        "stock_splits": 0,
+        "source": "Sectors API (Primary) + yFinance (Extended)"
+      },
+      "dividend_data": {
+        "year": "2020",
+        "total_dividend": 553,
+        "breakdown": [
+          {
+            "date": "2020-12-08",
+            "total": 98,
+            "yield": 0.003257
+          },
+          {
+            "date": "2020-04-21",
+            "total": 455,
+            "yield": 0.01512
+          }
+        ],
+        "dividend_yield": 0.0602,
+        "payout_ratio": 0.7542,
+        "trailing_annual_dividend_rate": 281,
+        "trailing_annual_dividend_yield": 0.043735,
+        "five_year_avg_dividend_yield": 0.0283,
+        "ex_dividend_date": "2026-08-31",
+        "recent_dividends": [
+          {
+            "date": "2025-03-21",
+            "amount": 250
+          },
+          {
+            "date": "2025-12-03",
+            "amount": 55
+          },
+          {
+            "date": "2026-03-30",
+            "amount": 281
+          },
+          {
+            "date": "2026-06-17",
+            "amount": 20
+          },
+          {
+            "date": "2026-08-31",
+            "amount": 25
+          }
+        ]
+      },
+      "financial_data": {
+        "total_assets": 1586830000000000,
+        "total_liabilities": 1305140000000000,
+        "total_equity": 281687555000000,
+        "total_revenue": 112006326000000,
+        "net_income": 57537287000000,
+        "eps_estimate": 518.5,
+        "revenue_estimate": 126170000000000
+      },
+      "market_data": {
+        "symbol": "BBCA",
+        "latest_price": 6350,
+        "open": 6300,
+        "high": 6350,
+        "low": 6275,
+        "close": 6350,
+        "volume": 56953500,
+        "market_cap": 796326004237500,
+        "currency": "IDR",
+        "fifty_two_week_high": 8750,
+        "fifty_two_week_low": 4820,
+        "as_of_date": "2026-08-14"
+      }
+    },
+    "created_at": 1789292951.6151574,
+    "created_at_iso": "2026-09-13T09:49:11.615157+00:00",
+    "expires_at": 1789379351.6151574,
+    "expires_at_iso": "2026-09-14T09:49:11.615157+00:00",
+    "ttl_seconds": 86400,
+    "discrepancies": []
+  },
+  "TLKM": {
+    "symbol": "TLKM",
+    "data": {
+      "company_data": {
+        "symbol": "TLKM",
+        "yfinance_symbol": "TLKM.JK",
+        "company_name": "PT Telkom Indonesia (Persero) Tbk",
+        "sector": "Communication Services",
+        "industry": "Telecom Services",
+        "currency": "IDR",
+        "summary": "Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk provides information and communications technology, and telecommunications network services worldwide. The company operates through Mobile, Consumer, Enterprise, Wholesale and International Business, and Other segments. The Mobile segment offers mobile voice, SMS, mobile broadband, and value added services. The Consumer segment provides fixed wireline, pay TV, and internet services; and other telecommunication services to home customers. The Enterprise segment offers end-to-end solution to corporate and institutions. The Wholesale and International Business segment provides interconnection services, broadband access, information technology services, data, and internet services to other licensed operator and institutions. The Other segment offers digital content products, big data, business-to-business commerce, and financial services to individual and corporate customers. The company also engages in leasing of towers, and provision of digital support and other telecommunication services; provision of consultation service of hardware, software, data center, and internet exchange, as well as multimedia portal services; business management consulting; property development and management; trading service related to telecommunication, information, multimedia technology, entertainment, and investment services; and digital content exchange hub services. The company was founded in 1884 and is headquartered in Bandung, Indonesia. Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk operates as a subsidiary of PT Danantara Asset Management (Persero).",
+        "source_primary": "Sectors API",
+        "source_supporting": "yFinance API"
+      },
+      "valuation_data": {
+        "forward_pe": 9.9575,
+        "trailing_pe": 14.5773,
+        "intrinsic_value": 9361,
+        "price_to_book": 1.91,
+        "enterprise_to_revenue": 1.99,
+        "enterprise_to_ebitda": 4.639,
+        "peg_ratio": 3.15,
+        "enterprise_value": 297227440357376,
+        "sample_historical_valuation": {
+          "pb": 2.4888,
+          "pe": 17.9002,
+          "ps": 2.5218,
+          "pcf": 5.0643,
+          "peg": -1.1061,
+          "year": 2022,
+          "pb_peer_avg": 1.4353,
+          "pe_peer_avg": 23.4503,
+          "ps_peer_avg": 5.3766,
+          "enterprise_to_ebitda": 9.720868992758394,
+          "enterprise_to_revenue": 2.61
+        },
+        "fifty_two_week_high": 3990,
+        "fifty_two_week_low": 2350,
+        "source_resolution": "Sectors API prioritized for forward_pe & intrinsic_value; yFinance cover-additional metrics"
+      },
+      "peer_data": {
+        "peer_company_name": "PT Telkom Indonesia (Persero) Tbk",
+        "market_cap": 263505496156000,
+        "pe_ttm": 15.0902,
+        "total_assets": 287759000000000,
+        "total_liabilities": 137222000000000,
+        "total_equity": 150537000000000,
+        "total_revenue": 146742000000000,
+        "net_income": 17814000000000,
+        "sector": "Communication Services",
+        "industry": "Telecom Services"
+      },
+      "forecast_data": {
+        "estimate_year": 2027,
+        "eps_estimate": 239.55,
+        "revenue_estimate": 165170000000000,
+        "target_mean_price": 3440.91,
+        "target_high_price": 4150,
+        "target_low_price": 2300,
+        "target_median_price": 3500,
+        "eps_growth": 0.2217,
+        "revenue_growth": 0.0244,
+        "recommendation_key": null
+      },
+      "ownership_data": {
+        "major_shareholder_name": "PT Danantara Asset Management",
+        "major_shareholder_percentage": 0.5157,
+        "major_shareholder_shares": 51086330024,
+        "major_shareholder_value": 132824458062400,
+        "whale_investor": null,
+        "conglomerate_group": null,
+        "insiders_percent_held": 0.55438,
+        "institutions_percent_held": 0.21438,
+        "breakdown": {}
+      },
+      "institutional_data": {
+        "transaction_date": "2026-02-28",
+        "sample_buyer": {
+          "name": "T. Rowe Price",
+          "change_amount": 48575899
+        },
+        "sample_seller": {
+          "name": "BlackRock Fund Advisors",
+          "change_amount": -32433931
+        },
+        "top_holder_name": "Pacer Advisors, Inc.",
+        "top_holder_shares": 27848164,
+        "top_holder_value": 72405226400,
+        "top_holder_pct_held": 0.0003,
+        "top_holder_pct_change": 0.8247
+      },
+      "insider_data": {
+        "executive_name": "Ms. Dian Siswarini",
+        "position": "President Director",
+        "share_percentage": 0.0,
+        "share_amount": 0,
+        "age": 56,
+        "exercised_value": 0,
+        "unexercised_value": 0
+      },
+      "historical_data": {
+        "date": "2026-08-14",
+        "open": 2600,
+        "high": 2630,
+        "low": 2590,
+        "close": 2620,
+        "volume": 80799200,
+        "dividends": 0,
+        "stock_splits": 0,
+        "source": "Sectors API (Primary) + yFinance (Extended)"
+      },
+      "dividend_data": {
+        "year": "2020",
+        "total_dividend": 154.07,
+        "breakdown": [
+          {
+            "date": "2020-06-30",
+            "total": 154.068,
+            "yield": 0.048189
+          }
+        ],
+        "dividend_yield": 0.0858,
+        "payout_ratio": 1.2516,
+        "trailing_annual_dividend_rate": 223.17,
+        "trailing_annual_dividend_yield": 0.084856,
+        "five_year_avg_dividend_yield": 0.0536,
+        "ex_dividend_date": "2026-06-18",
+        "recent_dividends": [
+          {
+            "date": "2022-06-08",
+            "amount": 149.97
+          },
+          {
+            "date": "2023-06-12",
+            "amount": 167.6
+          },
+          {
+            "date": "2024-05-16",
+            "amount": 178.5
+          },
+          {
+            "date": "2025-06-11",
+            "amount": 212.47
+          },
+          {
+            "date": "2026-06-18",
+            "amount": 223.17
+          }
+        ]
+      },
+      "financial_data": {
+        "total_assets": 287759000000000,
+        "total_liabilities": 137222000000000,
+        "total_equity": 150537000000000,
+        "total_revenue": 146742000000000,
+        "net_income": 17814000000000,
+        "eps_estimate": 239.55,
+        "revenue_estimate": 165170000000000
+      },
+      "market_data": {
+        "symbol": "TLKM",
+        "latest_price": 2620,
+        "open": 2600,
+        "high": 2630,
+        "low": 2590,
+        "close": 2620,
+        "volume": 80799200,
+        "market_cap": 263505496156000,
+        "currency": "IDR",
+        "fifty_two_week_high": 3990,
+        "fifty_two_week_low": 2350,
+        "as_of_date": "2026-08-14"
+      }
+    },
+    "created_at": 1789293010.3320067,
+    "created_at_iso": "2026-09-13T09:50:10.332007+00:00",
+    "expires_at": 1789379410.3320067,
+    "expires_at_iso": "2026-09-14T09:50:10.332007+00:00",
+    "ttl_seconds": 86400,
+    "discrepancies": []
+  },
+  "BMRI": {
+    "symbol": "BMRI",
+    "data": {
+      "company_data": {
+        "symbol": "BMRI",
+        "yfinance_symbol": "BMRI.JK",
+        "company_name": "PT Bank Mandiri (Persero) Tbk",
+        "sector": "Financial Services",
+        "industry": "Banks - Regional",
+        "currency": "IDR",
+        "summary": "PT Bank Mandiri (Persero) Tbk provides various banking products and services to individuals and businesses in Indonesia, Singapore, Malaysia, Hong Kong, Timor Leste, Shanghai, England, and the Cayman Islands. It offers savings and current accounts, multicurrency, payroll, NOW, and foreign currency savings accounts; personal, mortgage, micro enterprise, small and medium enterprises, working capital, and investment loans; corporate, credit, and debit cards; and e-banking services. The company also provides life, health, and accident insurance products, as well as investment products; cash management, bill collection, payment, trade finance, money transfer, remittance, and wealth management services; and treasury services, including cash transaction, hedging, and investment products. It operates branch offices, sub-branch offices, and overseas branch offices; and ATM facilities. The company was founded in 1998 and is headquartered in Jakarta, Indonesia.",
+        "source_primary": "Sectors API",
+        "source_supporting": "yFinance API"
+      },
+      "valuation_data": {
+        "forward_pe": 6.5714,
+        "trailing_pe": 6.5316,
+        "intrinsic_value": 1181,
+        "price_to_book": 1.43,
+        "enterprise_to_revenue": 3.9,
+        "enterprise_to_ebitda": null,
+        "peg_ratio": 4.02,
+        "enterprise_value": 559405531660288,
+        "sample_historical_valuation": {
+          "pb": 1.8178,
+          "pe": 11.1374,
+          "ps": 3.6522,
+          "pcf": 4.5523,
+          "peg": 0.2375,
+          "year": 2022,
+          "pb_peer_avg": 0.9759,
+          "pe_peer_avg": 15.1293,
+          "ps_peer_avg": 4.4186,
+          "enterprise_to_ebitda": null,
+          "enterprise_to_revenue": null
+        },
+        "fifty_two_week_high": 5375,
+        "fifty_two_week_low": 3650,
+        "source_resolution": "Sectors API prioritized for forward_pe & intrinsic_value; yFinance cover-additional metrics"
+      },
+      "peer_data": {
+        "peer_company_name": "PT Bank Mandiri (Persero) Tbk",
+        "market_cap": 405635999982440,
+        "pe_ttm": 5.7953,
+        "total_assets": 2829950000000000,
+        "total_liabilities": 2502550000000000,
+        "total_equity": 327401998000000,
+        "total_revenue": 134313864000000,
+        "net_income": 56293950000000,
+        "sector": "Financial Services",
+        "industry": "Banks - Regional"
+      },
+      "forecast_data": {
+        "estimate_year": 2027,
+        "eps_estimate": 737.84,
+        "revenue_estimate": 190590000000000,
+        "target_mean_price": 5254.38,
+        "target_high_price": 6800,
+        "target_low_price": 3600,
+        "target_median_price": 5325,
+        "eps_growth": 0.0555,
+        "revenue_growth": -0.107,
+        "recommendation_key": null
+      },
+      "ownership_data": {
+        "major_shareholder_name": "PT Danantara Asset Management (Persero)",
+        "major_shareholder_percentage": 0.5148,
+        "major_shareholder_shares": 48048000001,
+        "major_shareholder_value": 209489280004360,
+        "whale_investor": null,
+        "conglomerate_group": null,
+        "insiders_percent_held": 0.54688,
+        "institutions_percent_held": 0.27045,
+        "breakdown": {}
+      },
+      "institutional_data": {
+        "transaction_date": "2026-08-31",
+        "sample_buyer": {
+          "name": "BlackRock Fund Advisors",
+          "change_amount": 18379517
+        },
+        "sample_seller": {
+          "name": "Harris Associates L.P.",
+          "change_amount": -902426000
+        },
+        "top_holder_name": "VANGUARD STAR FUNDS-Vanguard Total International Stock Index Fund",
+        "top_holder_shares": 635208050,
+        "top_holder_value": 2769507098000,
+        "top_holder_pct_held": 0.0069,
+        "top_holder_pct_change": -0.0009
+      },
+      "insider_data": {
+        "executive_name": "Eka Fitria",
+        "position": "Director",
+        "share_percentage": 5e-05,
+        "share_amount": 4293600,
+        "age": 55,
+        "exercised_value": 0,
+        "unexercised_value": 0
+      },
+      "historical_data": {
+        "date": "2026-08-14",
+        "open": 4140,
+        "high": 4170,
+        "low": 4100,
+        "close": 4170,
+        "volume": 75934800,
+        "dividends": 0,
+        "stock_splits": 0,
+        "source": "Sectors API (Primary) + yFinance (Extended)"
+      },
+      "dividend_data": {
+        "year": "2020",
+        "total_dividend": 353.34,
+        "breakdown": [
+          {
+            "date": "2020-02-28",
+            "total": 353.342,
+            "yield": 0.060217
+          }
+        ],
+        "dividend_yield": 0.1245,
+        "payout_ratio": 0.7147,
+        "trailing_annual_dividend_rate": 376.96,
+        "trailing_annual_dividend_yield": 0.086261,
+        "five_year_avg_dividend_yield": 0.0565,
+        "ex_dividend_date": "2026-09-16",
+        "recent_dividends": [
+          {
+            "date": "2023-03-27",
+            "amount": 264.67
+          },
+          {
+            "date": "2024-03-20",
+            "amount": 353.96
+          },
+          {
+            "date": "2025-04-14",
+            "amount": 466.18
+          },
+          {
+            "date": "2026-01-06",
+            "amount": 100
+          },
+          {
+            "date": "2026-05-11",
+            "amount": 376.96
+          }
+        ]
+      },
+      "financial_data": {
+        "total_assets": 2829950000000000,
+        "total_liabilities": 2502550000000000,
+        "total_equity": 327401998000000,
+        "total_revenue": 134313864000000,
+        "net_income": 56293950000000,
+        "eps_estimate": 737.84,
+        "revenue_estimate": 190590000000000
+      },
+      "market_data": {
+        "symbol": "BMRI",
+        "latest_price": 4170,
+        "open": 4140,
+        "high": 4170,
+        "low": 4100,
+        "close": 4170,
+        "volume": 75934800,
+        "market_cap": 405635999982440,
+        "currency": "IDR",
+        "fifty_two_week_high": 5375,
+        "fifty_two_week_low": 3650,
+        "as_of_date": "2026-08-14"
+      }
+    },
+    "created_at": 1789293013.9509344,
+    "created_at_iso": "2026-09-13T09:50:13.950934+00:00",
+    "expires_at": 1789379413.9509344,
+    "expires_at_iso": "2026-09-14T09:50:13.950934+00:00",
+    "ttl_seconds": 86400,
+    "discrepancies": []
+  },
+  "BBRI": {
+    "symbol": "BBRI",
+    "data": {
+      "company_data": {
+        "symbol": "BBRI",
+        "yfinance_symbol": "BBRI.JK",
+        "company_name": "PT Bank Rakyat Indonesia (Persero) Tbk",
+        "sector": "Financial Services",
+        "industry": "Banks - Regional",
+        "currency": "IDR",
+        "summary": "PT Bank Rakyat Indonesia (Persero) Tbk provides various banking products and services in Indonesia and internationally. The company offers savings and current accounts; time, foreign currency time, and on-call deposits; mortgage, working capital, investment, franchise, and cash collateral loans, as well as supply and value chain financing and bank guarantees; and microphone, small and medium, and program loans. It also provides bill payment, deposit, online transaction, remittance, money transfer, business, financial, institutional, treasury and global, custodian, trustee, and cash management services. In addition, the company offers investment products and services; trade finance and services, and transaction banking services, including import and export, standby L/C, money changer, BRI RTE online system services, as well as letters of credit; credit cards; and wealth management, merchant, and digital banking services. Further, it provides life and general insurance, securities underwriting and brokerage, and venture capital services. PT Bank Rakyat Indonesia (Persero) Tbk was founded in 1895 and is headquartered in Jakarta, Indonesia. PT Bank Rakyat Indonesia (Persero) Tbk operates as a subsidiary of PT Danantara Asset Management (Persero).",
+        "source_primary": "Sectors API",
+        "source_supporting": "yFinance API"
+      },
+      "valuation_data": {
+        "forward_pe": 7.4286,
+        "trailing_pe": 8.032,
+        "intrinsic_value": 289,
+        "price_to_book": 1.53,
+        "enterprise_to_revenue": 4.87,
+        "enterprise_to_ebitda": null,
+        "peg_ratio": 1.27,
+        "enterprise_value": 715230300602368,
+        "sample_historical_valuation": {
+          "pb": 2.4431,
+          "pe": 14.4852,
+          "ps": 4.4759,
+          "pcf": 7.6017,
+          "peg": 0.2238,
+          "year": 2022,
+          "pb_peer_avg": 0.9759,
+          "pe_peer_avg": 15.1293,
+          "ps_peer_avg": 4.4186,
+          "enterprise_to_ebitda": null,
+          "enterprise_to_revenue": null
+        },
+        "fifty_two_week_high": 4270,
+        "fifty_two_week_low": 2540,
+        "source_resolution": "Sectors API prioritized for forward_pe & intrinsic_value; yFinance cover-additional metrics"
+      },
+      "peer_data": {
+        "peer_company_name": "PT Bank Rakyat Indonesia (Persero) Tbk",
+        "market_cap": 513148467627540,
+        "pe_ttm": 8.2338,
+        "total_assets": 2135370000000000,
+        "total_liabilities": 1804430000000000,
+        "total_equity": 330941434000000,
+        "total_revenue": 181304342000000,
+        "net_income": 56652384000000,
+        "sector": "Financial Services",
+        "industry": "Banks - Regional"
+      },
+      "forecast_data": {
+        "estimate_year": 2026,
+        "eps_estimate": 461.53,
+        "revenue_estimate": 224850000000000,
+        "target_mean_price": 3763.55,
+        "target_high_price": 4900,
+        "target_low_price": 2860,
+        "target_median_price": 3795,
+        "eps_growth": -0.0307,
+        "revenue_growth": 0.0668,
+        "recommendation_key": null
+      },
+      "ownership_data": {
+        "major_shareholder_name": "PT Danantara Asset Management",
+        "major_shareholder_percentage": 0.52656,
+        "major_shareholder_shares": 79804867107,
+        "major_shareholder_value": 260961915439890,
+        "whale_investor": null,
+        "conglomerate_group": null,
+        "insiders_percent_held": 0.56543,
+        "institutions_percent_held": 0.19278,
+        "breakdown": {}
+      },
+      "institutional_data": {
+        "transaction_date": "2026-08-31",
+        "sample_buyer": {
+          "name": "ARGA Investment Management, LP",
+          "change_amount": 48466985
+        },
+        "sample_seller": {
+          "name": "BlackRock Fund Advisors",
+          "change_amount": -45851496
+        },
+        "top_holder_name": "Boston Common Asset Management, LLC",
+        "top_holder_shares": 25610,
+        "top_holder_value": 83744700,
+        "top_holder_pct_held": 0.0,
+        "top_holder_pct_change": 0.0
+      },
+      "insider_data": {
+        "executive_name": "Kartika Wirjoatmodjo",
+        "position": "President Commissioner",
+        "share_percentage": 1e-05,
+        "share_amount": 1678000,
+        "age": null,
+        "exercised_value": 0,
+        "unexercised_value": 0
+      },
+      "historical_data": {
+        "date": "2026-08-14",
+        "open": 3110,
+        "high": 3150,
+        "low": 3090,
+        "close": 3120,
+        "volume": 118492200,
+        "dividends": 0,
+        "stock_splits": 0,
+        "source": "Sectors API (Primary) + yFinance (Extended)"
+      },
+      "dividend_data": {
+        "year": "2020",
+        "total_dividend": 168.2,
+        "breakdown": [
+          {
+            "date": "2020-02-27",
+            "total": 168.202,
+            "yield": 0.043422
+          }
+        ],
+        "dividend_yield": 0.1278,
+        "payout_ratio": 0.8501,
+        "trailing_annual_dividend_rate": 209,
+        "trailing_annual_dividend_yield": 0.062952,
+        "five_year_avg_dividend_yield": 0.0649,
+        "ex_dividend_date": "2026-04-21",
+        "recent_dividends": [
+          {
+            "date": "2024-03-14",
+            "amount": 235
+          },
+          {
+            "date": "2024-12-27",
+            "amount": 135
+          },
+          {
+            "date": "2025-04-11",
+            "amount": 208.4
+          },
+          {
+            "date": "2025-12-30",
+            "amount": 137
+          },
+          {
+            "date": "2026-04-21",
+            "amount": 209
+          }
+        ]
+      },
+      "financial_data": {
+        "total_assets": 2135370000000000,
+        "total_liabilities": 1804430000000000,
+        "total_equity": 330941434000000,
+        "total_revenue": 181304342000000,
+        "net_income": 56652384000000,
+        "eps_estimate": 461.53,
+        "revenue_estimate": 224850000000000
+      },
+      "market_data": {
+        "symbol": "BBRI",
+        "latest_price": 3120,
+        "open": 3110,
+        "high": 3150,
+        "low": 3090,
+        "close": 3120,
+        "volume": 118492200,
+        "market_cap": 513148467627540,
+        "currency": "IDR",
+        "fifty_two_week_high": 4270,
+        "fifty_two_week_low": 2540,
+        "as_of_date": "2026-08-14"
+      }
+    },
+    "created_at": 1789294448.731756,
+    "created_at_iso": "2026-09-13T10:14:08.731756+00:00",
+    "expires_at": 1789380848.731756,
+    "expires_at_iso": "2026-09-14T10:14:08.731756+00:00",
+    "ttl_seconds": 86400,
+    "discrepancies": []
+  },
+  "BUMI": {
+    "symbol": "BUMI",
+    "data": {
+      "company_data": {
+        "symbol": "BUMI",
+        "yfinance_symbol": "BUMI.JK",
+        "company_name": "Bumi Resources Tbk",
+        "sector": "Energy",
+        "industry": "Thermal Coal",
+        "currency": "IDR",
+        "summary": "PT Bumi Resources Tbk, together with its subsidiaries, engages in the mining activities in Indonesia. The company operates through three segments: Holding Company, Coal, and Minerals. It engages in the exploration, exploitation, mining, and sale of coal deposits; and explores gold and silver properties. The company also exports its products. The company also exports its products. The company was formerly known as PT Bumi Modern Tbk. and changed its name to PT Bumi Resources Tbk in September 2000. PT Bumi Resources Tbk was founded in 1973 and is headquartered in Jakarta Selatan, Indonesia.",
+        "source_primary": "Sectors API",
+        "source_supporting": "yFinance API"
+      },
+      "valuation_data": {
+        "forward_pe": 211999.98,
+        "trailing_pe": 36.8696,
+        "intrinsic_value": -156,
+        "price_to_book": 53000.0,
+        "enterprise_to_revenue": 48788.84,
+        "enterprise_to_ebitda": 422755.03,
+        "peg_ratio": 0.1,
+        "enterprise_value": 78724938596352,
+        "sample_historical_valuation": {
+          "pb": 1.3604,
+          "pe": 7.3718,
+          "ps": 2.1159,
+          "pcf": -6.4587,
+          "peg": 0.031,
+          "year": 2022,
+          "pb_peer_avg": 1.0945,
+          "pe_peer_avg": 4.9868,
+          "ps_peer_avg": 1.2428,
+          "enterprise_to_ebitda": 4.516705182185805,
+          "enterprise_to_revenue": 2.13
+        },
+        "fifty_two_week_high": 484,
+        "fifty_two_week_low": 110,
+        "source_resolution": "Sectors API prioritized for forward_pe & intrinsic_value; yFinance cover-additional metrics"
+      },
+      "peer_data": {
+        "peer_company_name": "Bumi Resources Tbk",
+        "market_cap": 82436457039096,
+        "pe_ttm": 40.309,
+        "total_assets": 70604594591720,
+        "total_liabilities": 22270992358908,
+        "total_equity": 48333602232812,
+        "total_revenue": 23845559235376,
+        "net_income": 1355850850647,
+        "sector": "Energy",
+        "industry": "Thermal Coal"
+      },
+      "forecast_data": {
+        "estimate_year": 2026,
+        "eps_estimate": null,
+        "revenue_estimate": 0,
+        "target_mean_price": 299.12,
+        "target_high_price": 299.12,
+        "target_low_price": 299.12,
+        "target_median_price": 299.12,
+        "eps_growth": null,
+        "revenue_growth": null,
+        "recommendation_key": null
+      },
+      "ownership_data": {
+        "major_shareholder_name": "Public",
+        "major_shareholder_percentage": 0.5421,
+        "major_shareholder_shares": 201298892068,
+        "major_shareholder_value": 42675365118416,
+        "whale_investor": null,
+        "conglomerate_group": "Bakrie Group",
+        "insiders_percent_held": 0.60654,
+        "institutions_percent_held": 0.12463,
+        "breakdown": {}
+      },
+      "institutional_data": {
+        "transaction_date": "2026-08-31",
+        "sample_buyer": {
+          "name": "Vanguard",
+          "change_amount": 44056200
+        },
+        "sample_seller": {
+          "name": "Dimensional Fund Advisors LP",
+          "change_amount": -162784563
+        },
+        "top_holder_name": "VANGUARD STAR FUNDS-Vanguard Total International Stock Index Fund",
+        "top_holder_shares": 2369833629,
+        "top_holder_value": 502404729348,
+        "top_holder_pct_held": 0.0064,
+        "top_holder_pct_change": 0.0048
+      },
+      "insider_data": {
+        "executive_name": "Eddy Sanusi",
+        "position": "Director",
+        "share_percentage": 0.0001,
+        "share_amount": 36500000,
+        "age": 44,
+        "exercised_value": 0,
+        "unexercised_value": 0
+      },
+      "historical_data": {
+        "date": "2026-08-14",
+        "open": 178,
+        "high": 183,
+        "low": 174,
+        "close": 181,
+        "volume": 2030936400,
+        "dividends": 0,
+        "stock_splits": 0,
+        "source": "Sectors API (Primary) + yFinance (Extended)"
+      },
+      "dividend_data": {
+        "year": null,
+        "total_dividend": null,
+        "breakdown": [],
+        "dividend_yield": null,
+        "payout_ratio": 0,
+        "trailing_annual_dividend_rate": 0,
+        "trailing_annual_dividend_yield": 0.0,
+        "five_year_avg_dividend_yield": 0.0218,
+        "ex_dividend_date": "2012-06-20",
+        "recent_dividends": [
+          {
+            "date": "2008-07-29",
+            "amount": 45
+          },
+          {
+            "date": "2009-07-30",
+            "amount": 50.6
+          },
+          {
+            "date": "2010-07-29",
+            "amount": 27.68
+          },
+          {
+            "date": "2011-07-28",
+            "amount": 41.78
+          },
+          {
+            "date": "2012-06-20",
+            "amount": 14.31
+          }
+        ]
+      },
+      "financial_data": {
+        "total_assets": 70604594591720,
+        "total_liabilities": 22270992358908,
+        "total_equity": 48333602232812,
+        "total_revenue": 23845559235376,
+        "net_income": 1355850850647,
+        "eps_estimate": null,
+        "revenue_estimate": 0
+      },
+      "market_data": {
+        "symbol": "BUMI",
+        "latest_price": 181,
+        "open": 178,
+        "high": 183,
+        "low": 174,
+        "close": 181,
+        "volume": 2030936400,
+        "market_cap": 82436457039096,
+        "currency": "IDR",
+        "fifty_two_week_high": 484,
+        "fifty_two_week_low": 110,
+        "as_of_date": "2026-08-14"
+      }
+    },
+    "created_at": 1789294450.7371283,
+    "created_at_iso": "2026-09-13T10:14:10.737128+00:00",
+    "expires_at": 1789380850.7371283,
+    "expires_at_iso": "2026-09-14T10:14:10.737128+00:00",
+    "ttl_seconds": 86400,
+    "discrepancies": [
+      {
+        "field": "close_price",
+        "sectors_value": 181,
+        "yfinance_value": 212,
+        "diff_pct": 17.13,
+        "flag": "SIGNIFICANT_DISCREPANCY",
+        "note": "Difference of 17.1% between Sectors and yFinance for close_price"
+      }
+    ]
+  }
+}

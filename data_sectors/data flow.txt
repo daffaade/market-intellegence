@@ -8,6 +8,6 @@ Data Storage = temporary local
     ↓
 Historical Data Handling
     ↓
-Data Caching
+Data Caching 
     ↓
 Dataset for Intelligence Engine

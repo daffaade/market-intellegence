@@ -12,11 +12,11 @@ if hasattr(sys.stdout, "reconfigure"):
 
 # Import correlated modules
 try:
-    from dataminer import SectorsDataMiner, SectorsDataValidator
-    from datanormalise import SectorsDataNormalizer
+    from datamineryfinance import YFinanceDataMiner, YFinanceDataValidator
+    from datanormaliseyfinance import YFinanceDataNormalizer
 except ImportError:
-    from data_sectors.dataminer import SectorsDataMiner, SectorsDataValidator
-    from data_sectors.datanormalise import SectorsDataNormalizer
+    from y_finance_data.datamineryfinance import YFinanceDataMiner, YFinanceDataValidator
+    from y_finance_data.datanormaliseyfinance import YFinanceDataNormalizer
 
 
 # =====================================================================
@@ -27,8 +27,8 @@ class CacheTier:
     """
     Tier classification based on data volatility from cachingdata.md:
     1. STATIC: Slow changing (Company profile, Executives, Major shareholders) -> 7 days
-    2. PERIODIC: Periodic updates (Financials, Valuation, Institutional tx, Dividend) -> 24 hours
-    3. FREQUENT: Fast changing (Stock price, Volume, Market data, Daily prices) -> 15 minutes / 1 hour
+    2. PERIODIC: Periodic updates (Financials, Valuation, Institutional tx, Dividend, Future forecast) -> 24 hours
+    3. FREQUENT: Fast changing (Stock price, Volume, Market data, Daily prices) -> 1 hour
     """
     STATIC = "STATIC"
     PERIODIC = "PERIODIC"
@@ -38,7 +38,7 @@ class CacheTier:
     DEFAULT_TTLS = {
         STATIC: 7 * 24 * 3600,     # 7 days (604,800s)
         PERIODIC: 24 * 3600,       # 24 hours (86,400s)
-        FREQUENT: 3600             # 1 hour (3,600s) for daily EOD / market price
+        FREQUENT: 3600             # 1 hour (3,600s)
     }
 
     # Category routing map
@@ -59,12 +59,12 @@ class CacheTier:
         "dividend": PERIODIC,
         "institutional_transactions": PERIODIC,
 
-        # Frequently Changing Data (Daily EOD Prices)
-        "historical_price": PERIODIC,
+        # Frequently Changing Data
+        "historical_price": FREQUENT,
         "stock_price": FREQUENT,
         "volume": FREQUENT,
         "market_data": FREQUENT,
-        "daily_prices": PERIODIC
+        "daily_prices": FREQUENT
     }
 
     @classmethod
@@ -134,17 +134,17 @@ class CacheEntry:
 # DATA CACHE MODULE (L1 Memory + L2 Persistent Storage)
 # =====================================================================
 
-class SectorsDataCache:
+class YFinanceDataCache:
     """
-    Multi-tier Caching Engine with in-memory (L1) and persistent file (L2) storage.
-    Supports auto-tiering, TTL invalidation, statistics, and local disk persistence.
+    Multi-tier Caching Engine with in-memory (L1) and persistent file (L2) storage
+    specifically for Yahoo Finance data.
     """
 
     def __init__(self, cache_file_path: Optional[str] = None):
         if not cache_file_path:
             base_dir = Path(__file__).resolve().parent / ".cache"
             base_dir.mkdir(parents=True, exist_ok=True)
-            self.cache_file = base_dir / "sectors_cache.json"
+            self.cache_file = base_dir / "yfinance_cache.json"
         else:
             self.cache_file = Path(cache_file_path)
             self.cache_file.parent.mkdir(parents=True, exist_ok=True)
@@ -171,7 +171,6 @@ class SectorsDataCache:
             return None
 
         if entry.is_expired():
-            # Invalidate expired entry
             del self._memory_cache[key]
             self._stats["evictions"] += 1
             self._stats["misses"] += 1
@@ -227,12 +226,12 @@ class SectorsDataCache:
                 else:
                     del self._memory_cache[key]
                     self._stats["evictions"] += 1
-        
+
         if result:
             self._stats["hits"] += len(result)
         else:
             self._stats["misses"] += 1
-            
+
         return result
 
     def invalidate(self, symbol: Optional[str] = None, category: Optional[str] = None):
@@ -260,7 +259,6 @@ class SectorsDataCache:
     def save_to_disk(self):
         """Persists memory cache to disk file."""
         try:
-            # Filter out expired items before saving
             valid_entries = {
                 k: entry.to_dict()
                 for k, entry in self._memory_cache.items()
@@ -269,7 +267,7 @@ class SectorsDataCache:
             with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(valid_entries, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"⚠️ Failed to persist cache to disk: {e}")
+            print(f"⚠️ Failed to persist yfinance cache to disk: {e}")
 
     def load_from_disk(self):
         """Loads cached items from disk file into memory."""
@@ -284,14 +282,13 @@ class SectorsDataCache:
                     if not entry.is_expired(now):
                         self._memory_cache[k] = entry
         except Exception as e:
-            print(f"⚠️ Failed to load cache from disk: {e}")
+            print(f"⚠️ Failed to load yfinance cache from disk: {e}")
 
     def get_statistics(self) -> dict:
         """Returns cache telemetry and statistics."""
         total_requests = self._stats["hits"] + self._stats["misses"]
         hit_rate = (self._stats["hits"] / total_requests) if total_requests > 0 else 0.0
 
-        # Group count by tier
         tier_counts = {CacheTier.STATIC: 0, CacheTier.PERIODIC: 0, CacheTier.FREQUENT: 0}
         for entry in self._memory_cache.values():
             if not entry.is_expired():
@@ -313,47 +310,46 @@ class SectorsDataCache:
 # UNIFIED PIPELINE (Miner -> Validator -> Normalizer -> Cache -> Engine)
 # =====================================================================
 
-class SectorsPipeline:
+class YFinancePipeline:
     """
-    Coordinates data flow from API extraction through Validation, Normalization,
-    and Tiered Caching, delivering ready datasets for the Intelligence Engine.
+    Coordinates data flow from Yahoo Finance extraction through Validation,
+    Normalization, and Tiered Caching, delivering ready datasets for the Intelligence Engine.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
-        self.miner = SectorsDataMiner(api_key=api_key)
-        self.validator = SectorsDataValidator()
-        self.normalizer = SectorsDataNormalizer()
-        self.cache = SectorsDataCache()
+    def __init__(self):
+        self.miner = YFinanceDataMiner()
+        self.validator = YFinanceDataValidator()
+        self.normalizer = YFinanceDataNormalizer()
+        self.cache = YFinanceDataCache()
 
-    def get_dataset(self, symbol: str = "BBCA", force_refresh: bool = False) -> Dict[str, Any]:
+    def get_dataset(self, symbol: str = "BBCA.JK", force_refresh: bool = False) -> Dict[str, Any]:
         """
-        Executes full data pipeline:
+        Executes full yfinance data pipeline:
         1. Checks cache for symbol categories
         2. If missing or forced:
-           - Mines raw data
+           - Mines raw data via yfinance
            - Validates schema and integrity
            - Normalizes fields and formats
            - Stores normalized categories into tiered cache
         3. Returns standardized payload for Intelligence Engine.
         """
-        clean_symbol = symbol.replace(".JK", "").upper()
-        
+        formatted_symbol = self.miner.format_symbol(symbol)
+
         # Check cache if not forcing refresh
         if not force_refresh:
-            cached_data = self.cache.get_all_for_symbol(clean_symbol)
-            # Ensure critical categories are present in cache
+            cached_data = self.cache.get_all_for_symbol(formatted_symbol)
             if cached_data and len(cached_data) >= 7 and "historical_price" in cached_data:
                 return {
                     "source": "CACHE_HIT",
-                    "symbol": clean_symbol,
+                    "symbol": formatted_symbol,
                     "status": "READY",
                     "data": cached_data,
                     "validation": {"status": "VALID", "message": "Pre-validated in cache"},
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
 
-        # Step 1: Data Mining
-        raw_mined_data, validation_report = self.miner.mine_sample_data(clean_symbol, validate=True)
+        # Step 1: Data Mining from Yahoo Finance
+        raw_mined_data, validation_report = self.miner.mine_sample_data(formatted_symbol, validate=True)
 
         # Step 2: Data Validation
         if not validation_report:
@@ -363,12 +359,12 @@ class SectorsPipeline:
         normalized_data, norm_meta = self.normalizer.normalize_dataset(raw_mined_data)
 
         # Step 4: Tiered Data Caching
-        self.cache.set_dataset(clean_symbol, normalized_data)
+        self.cache.set_dataset(formatted_symbol, normalized_data)
 
         # Step 5: Package for Intelligence Engine
         return {
-            "source": "API_MINED_AND_NORMALIZED",
-            "symbol": clean_symbol,
+            "source": "YFINANCE_MINED_AND_NORMALIZED",
+            "symbol": formatted_symbol,
             "status": "READY" if validation_report.get("is_valid") else "VALIDATION_WARNING",
             "validation": validation_report,
             "normalization": norm_meta,
@@ -380,9 +376,9 @@ class SectorsPipeline:
 def display_caching_and_pipeline(symbol: str, pipeline_result: dict, cache_stats: dict):
     """Prints comprehensive pipeline & caching status report."""
     print("=" * 75)
-    print(f"🚀 SECTORS INTELLIGENCE PIPELINE RESULT: {symbol.upper()}")
+    print(f"🚀 YFINANCE INTELLIGENCE PIPELINE RESULT: {symbol.upper()}")
     print("=" * 75)
-    
+
     print(f"\n📡 Pipeline Source : {pipeline_result['source']}")
     print(f"🛡️  Engine Status   : {pipeline_result['status']}")
     print(f"⏰ Timestamp       : {pipeline_result['timestamp']}")
@@ -390,7 +386,7 @@ def display_caching_and_pipeline(symbol: str, pipeline_result: dict, cache_stats
     print("\n" + "-" * 75)
     print("🗂️  CACHED DATA TIERS BREAKDOWN")
     print("-" * 75)
-    
+
     data = pipeline_result.get("data", {})
     for category, content in data.items():
         tier = CacheTier.get_tier(category)
@@ -411,12 +407,12 @@ def display_caching_and_pipeline(symbol: str, pipeline_result: dict, cache_stats
 
 
 if __name__ == "__main__":
-    target_symbol = sys.argv[1] if len(sys.argv) > 1 else "BBCA"
-    
-    pipeline = SectorsPipeline()
-    print(f"▶️ [RUN 1] Requesting data for {target_symbol} (Expected: API Mining & Cache Population)...")
+    target_symbol = sys.argv[1] if len(sys.argv) > 1 else "BBCA.JK"
+
+    pipeline = YFinancePipeline()
+    print(f"▶️ [RUN 1] Requesting data for {target_symbol} (Expected: YFinance Mining & Cache Population)...")
     res1 = pipeline.get_dataset(target_symbol)
-    
+
     print(f"\n▶️ [RUN 2] Requesting data again for {target_symbol} (Expected: Cache Hit)...")
     res2 = pipeline.get_dataset(target_symbol)
 
