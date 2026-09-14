@@ -1,0 +1,1069 @@
+{
+  "BBCA.JK:valuation": {
+    "symbol": "BBCA.JK",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 13.1094,
+      "trailing_pe": 13.405,
+      "price_to_book": 2.87,
+      "enterprise_to_revenue": 6.87,
+      "peg_ratio": 1.58,
+      "enterprise_value": 751206959939584,
+      "market_cap": 776974079361024,
+      "intrinsic_value": 8220.04,
+      "fifty_two_week_high": 8750,
+      "fifty_two_week_low": 4820
+    },
+    "created_at": 1789292951.613145,
+    "created_at_iso": "2026-09-13T09:49:11.613145+00:00",
+    "expires_at": 1789379351.613145,
+    "expires_at_iso": "2026-09-14T09:49:11.613145+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA.JK:peer": {
+    "symbol": "BBCA.JK",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BBCA.JK",
+      "company_name": "PT Bank Central Asia Tbk",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 776974079361024,
+      "pe_ttm": 13.405,
+      "currency": "IDR",
+      "summary": "PT Bank Central Asia Tbk provides commercial banking and other financial services. The company offers time deposits, e- deposits, spinning, Dana Lander accounts, customer accounts, gold stage; loans, such as business, investment credit, securities collateral, multipurpose business, trade finance, business place loans; credit cards; and investment, including mutual funds, and bond and secondary SBN. The company also provides collection account opening, remittance, trade finance, tresuries and custodians, transaction banking, electronic banking, cash management, bank assurance, credit facilities, bank guarantees, export-import facilities, and foreign exchange facilities. In addition, the company offers investment financing, working capital financing, multipurpose financing, operating leases, and other financing activities; Sharia banking; securities brokerage dealer and underwriter for issuance of securities; general or loss insurance; life insurance; and venture capital services. PT Bank Central Asia Tbk was founded in 1955 and is headquartered in Jakarta, Indonesia. PT Bank Central Asia Tbk is a subsidiary of PT Dwimuria Investama Andalan."
+    },
+    "created_at": 1789292951.6131616,
+    "created_at_iso": "2026-09-13T09:49:11.613162+00:00",
+    "expires_at": 1789379351.6131616,
+    "expires_at_iso": "2026-09-14T09:49:11.613162+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA.JK:future_forecast": {
+    "symbol": "BBCA.JK",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "target_mean_price": 8220.04,
+      "target_high_price": 10100,
+      "target_low_price": 6000,
+      "target_median_price": 8200,
+      "eps_estimate": 124.97,
+      "eps_growth": 0.0681,
+      "estimate_year": 2026,
+      "revenue_estimate": 29292953790000,
+      "revenue_growth": 0.0045
+    },
+    "created_at": 1789292951.6131697,
+    "created_at_iso": "2026-09-13T09:49:11.613170+00:00",
+    "expires_at": 1789379351.6131697,
+    "expires_at_iso": "2026-09-14T09:49:11.613170+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA.JK:institutional_transactions": {
+    "symbol": "BBCA.JK",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2025-03-31",
+      "holder": "Gamma Investing LLC",
+      "shares": 11522,
+      "value": 72876650,
+      "pct_held": 0.0,
+      "pct_change": -0.8411,
+      "sample_buyer": {
+        "name": "Gamma Investing LLC",
+        "change_pct": -0.8411
+      }
+    },
+    "created_at": 1789292951.6131742,
+    "created_at_iso": "2026-09-13T09:49:11.613174+00:00",
+    "expires_at": 1789379351.6131742,
+    "expires_at_iso": "2026-09-14T09:49:11.613174+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA.JK:executive_shareholdings": {
+    "symbol": "BBCA.JK",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Gregory Hendra Lembong",
+      "position": "President Director",
+      "age": 51,
+      "exercised_value": 0,
+      "unexercised_value": 0,
+      "share_amount": 0,
+      "share_percentage": 0.0
+    },
+    "created_at": 1789292951.6131775,
+    "created_at_iso": "2026-09-13T09:49:11.613178+00:00",
+    "expires_at": 1789897751.6131775,
+    "expires_at_iso": "2026-09-20T09:49:11.613178+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA.JK:major_shareholders": {
+    "symbol": "BBCA.JK",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Major Shareholder Pool",
+      "share_percentage": null,
+      "breakdown": {}
+    },
+    "created_at": 1789292951.6131809,
+    "created_at_iso": "2026-09-13T09:49:11.613181+00:00",
+    "expires_at": 1789897751.6131809,
+    "expires_at_iso": "2026-09-20T09:49:11.613181+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA.JK:shareholder_composition": {
+    "symbol": "BBCA.JK",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "insiders_percent_held": 0.60814,
+      "institutions_percent_held": 0.19046
+    },
+    "created_at": 1789292951.6131837,
+    "created_at_iso": "2026-09-13T09:49:11.613184+00:00",
+    "expires_at": 1789897751.6131837,
+    "expires_at_iso": "2026-09-20T09:49:11.613184+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA.JK:dividend": {
+    "symbol": "BBCA.JK",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "dividend_rate": 381,
+      "dividend_yield": 0.0602,
+      "payout_ratio": 0.7542,
+      "trailing_annual_dividend_rate": 281,
+      "trailing_annual_dividend_yield": 0.043735,
+      "five_year_avg_dividend_yield": 0.0283,
+      "ex_dividend_date": "2026-08-31",
+      "recent_dividends": [
+        {
+          "date": "2025-03-21",
+          "amount": 250
+        },
+        {
+          "date": "2025-12-03",
+          "amount": 55
+        },
+        {
+          "date": "2026-03-30",
+          "amount": 281
+        },
+        {
+          "date": "2026-06-17",
+          "amount": 20
+        },
+        {
+          "date": "2026-08-31",
+          "amount": 25
+        }
+      ],
+      "latest_dividend_amount": 25
+    },
+    "created_at": 1789292951.6131864,
+    "created_at_iso": "2026-09-13T09:49:11.613186+00:00",
+    "expires_at": 1789379351.6131864,
+    "expires_at_iso": "2026-09-14T09:49:11.613186+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBCA.JK:executives": {
+    "symbol": "BBCA.JK",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Gregory Hendra Lembong",
+      "position": "President Director",
+      "age": 51,
+      "year_born": 1974,
+      "total_pay": null,
+      "exercised_value": 0,
+      "unexercised_value": 0
+    },
+    "created_at": 1789292951.6131895,
+    "created_at_iso": "2026-09-13T09:49:11.613189+00:00",
+    "expires_at": 1789897751.6131895,
+    "expires_at_iso": "2026-09-20T09:49:11.613189+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM.JK:valuation": {
+    "symbol": "TLKM.JK",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 9.9575,
+      "trailing_pe": 14.5773,
+      "price_to_book": 1.91,
+      "enterprise_to_ebitda": 4.639,
+      "enterprise_to_revenue": 1.99,
+      "peg_ratio": 3.15,
+      "enterprise_value": 297227440357376,
+      "market_cap": 256310444556288,
+      "intrinsic_value": 3440.91,
+      "fifty_two_week_high": 3990,
+      "fifty_two_week_low": 2350
+    },
+    "created_at": 1789293010.328762,
+    "created_at_iso": "2026-09-13T09:50:10.328762+00:00",
+    "expires_at": 1789379410.328762,
+    "expires_at_iso": "2026-09-14T09:50:10.328762+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM.JK:peer": {
+    "symbol": "TLKM.JK",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "TLKM.JK",
+      "company_name": "Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk",
+      "sector": "Communication Services",
+      "industry": "Telecom Services",
+      "market_cap": 256310444556288,
+      "pe_ttm": 14.5773,
+      "currency": "IDR",
+      "summary": "Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk provides information and communications technology, and telecommunications network services worldwide. The company operates through Mobile, Consumer, Enterprise, Wholesale and International Business, and Other segments. The Mobile segment offers mobile voice, SMS, mobile broadband, and value added services. The Consumer segment provides fixed wireline, pay TV, and internet services; and other telecommunication services to home customers. The Enterprise segment offers end-to-end solution to corporate and institutions. The Wholesale and International Business segment provides interconnection services, broadband access, information technology services, data, and internet services to other licensed operator and institutions. The Other segment offers digital content products, big data, business-to-business commerce, and financial services to individual and corporate customers. The company also engages in leasing of towers, and provision of digital support and other telecommunication services; provision of consultation service of hardware, software, data center, and internet exchange, as well as multimedia portal services; business management consulting; property development and management; trading service related to telecommunication, information, multimedia technology, entertainment, and investment services; and digital content exchange hub services. The company was founded in 1884 and is headquartered in Bandung, Indonesia. Perusahaan Perseroan (Persero) PT Telekomunikasi Indonesia Tbk operates as a subsidiary of PT Danantara Asset Management (Persero)."
+    },
+    "created_at": 1789293010.3287842,
+    "created_at_iso": "2026-09-13T09:50:10.328784+00:00",
+    "expires_at": 1789379410.3287842,
+    "expires_at_iso": "2026-09-14T09:50:10.328784+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM.JK:future_forecast": {
+    "symbol": "TLKM.JK",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "target_mean_price": 3440.91,
+      "target_high_price": 4150,
+      "target_low_price": 2300,
+      "target_median_price": 3500,
+      "eps_estimate": 59.3006,
+      "eps_growth": 0.2217,
+      "estimate_year": 2026,
+      "revenue_estimate": 37508004570000,
+      "revenue_growth": 0.0244
+    },
+    "created_at": 1789293010.3287954,
+    "created_at_iso": "2026-09-13T09:50:10.328795+00:00",
+    "expires_at": 1789379410.3287954,
+    "expires_at_iso": "2026-09-14T09:50:10.328795+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM.JK:institutional_transactions": {
+    "symbol": "TLKM.JK",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-06-30",
+      "holder": "Pacer Advisors, Inc.",
+      "shares": 27848164,
+      "value": 72405226400,
+      "pct_held": 0.0003,
+      "pct_change": 0.8247,
+      "sample_buyer": {
+        "name": "Pacer Advisors, Inc.",
+        "change_pct": 0.8247
+      }
+    },
+    "created_at": 1789293010.3288016,
+    "created_at_iso": "2026-09-13T09:50:10.328802+00:00",
+    "expires_at": 1789379410.3288016,
+    "expires_at_iso": "2026-09-14T09:50:10.328802+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM.JK:executive_shareholdings": {
+    "symbol": "TLKM.JK",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Ms. Dian Siswarini",
+      "position": "President Director",
+      "age": 56,
+      "exercised_value": 0,
+      "unexercised_value": 0,
+      "share_amount": 0,
+      "share_percentage": 0.0
+    },
+    "created_at": 1789293010.3288064,
+    "created_at_iso": "2026-09-13T09:50:10.328806+00:00",
+    "expires_at": 1789897810.3288064,
+    "expires_at_iso": "2026-09-20T09:50:10.328806+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM.JK:major_shareholders": {
+    "symbol": "TLKM.JK",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Major Shareholder Pool",
+      "share_percentage": null,
+      "breakdown": {}
+    },
+    "created_at": 1789293010.328811,
+    "created_at_iso": "2026-09-13T09:50:10.328811+00:00",
+    "expires_at": 1789897810.328811,
+    "expires_at_iso": "2026-09-20T09:50:10.328811+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM.JK:shareholder_composition": {
+    "symbol": "TLKM.JK",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "insiders_percent_held": 0.55438,
+      "institutions_percent_held": 0.21438
+    },
+    "created_at": 1789293010.3288157,
+    "created_at_iso": "2026-09-13T09:50:10.328816+00:00",
+    "expires_at": 1789897810.3288157,
+    "expires_at_iso": "2026-09-20T09:50:10.328816+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM.JK:dividend": {
+    "symbol": "TLKM.JK",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "dividend_rate": 223.17,
+      "dividend_yield": 0.0858,
+      "payout_ratio": 1.2516,
+      "trailing_annual_dividend_rate": 223.17,
+      "trailing_annual_dividend_yield": 0.084856,
+      "five_year_avg_dividend_yield": 0.0536,
+      "ex_dividend_date": "2026-06-18",
+      "recent_dividends": [
+        {
+          "date": "2022-06-08",
+          "amount": 149.97
+        },
+        {
+          "date": "2023-06-12",
+          "amount": 167.6
+        },
+        {
+          "date": "2024-05-16",
+          "amount": 178.5
+        },
+        {
+          "date": "2025-06-11",
+          "amount": 212.47
+        },
+        {
+          "date": "2026-06-18",
+          "amount": 223.17
+        }
+      ],
+      "latest_dividend_amount": 223.17
+    },
+    "created_at": 1789293010.3288193,
+    "created_at_iso": "2026-09-13T09:50:10.328819+00:00",
+    "expires_at": 1789379410.3288193,
+    "expires_at_iso": "2026-09-14T09:50:10.328819+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM.JK:executives": {
+    "symbol": "TLKM.JK",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Ms. Dian Siswarini",
+      "position": "President Director",
+      "age": 56,
+      "year_born": 1969,
+      "total_pay": 3358645161,
+      "exercised_value": 0,
+      "unexercised_value": 0
+    },
+    "created_at": 1789293010.3288236,
+    "created_at_iso": "2026-09-13T09:50:10.328824+00:00",
+    "expires_at": 1789897810.3288236,
+    "expires_at_iso": "2026-09-20T09:50:10.328824+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA.JK:historical_price": {
+    "symbol": "BBCA.JK",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "BBCA.JK",
+      "date": "2026-09-11",
+      "open": 6400,
+      "high": 6400,
+      "low": 6250,
+      "close": 6325,
+      "volume": 187922700,
+      "dividends": 0,
+      "stock_splits": 0
+    },
+    "created_at": 1789292951.6131926,
+    "created_at_iso": "2026-09-13T09:49:11.613193+00:00",
+    "expires_at": 1789296551.6131926,
+    "expires_at_iso": "2026-09-13T10:49:11.613193+00:00",
+    "ttl_seconds": 3600
+  },
+  "TLKM.JK:historical_price": {
+    "symbol": "TLKM.JK",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "TLKM.JK",
+      "date": "2026-09-11",
+      "open": 2620,
+      "high": 2630,
+      "low": 2590,
+      "close": 2600,
+      "volume": 88455300,
+      "dividends": 0,
+      "stock_splits": 0
+    },
+    "created_at": 1789293010.3288271,
+    "created_at_iso": "2026-09-13T09:50:10.328827+00:00",
+    "expires_at": 1789296610.3288271,
+    "expires_at_iso": "2026-09-13T10:50:10.328827+00:00",
+    "ttl_seconds": 3600
+  },
+  "BMRI.JK:valuation": {
+    "symbol": "BMRI.JK",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 6.5714,
+      "trailing_pe": 6.5316,
+      "price_to_book": 1.43,
+      "enterprise_to_revenue": 3.9,
+      "peg_ratio": 4.02,
+      "enterprise_value": 559405531660288,
+      "market_cap": 405363744571392,
+      "intrinsic_value": 5254.38,
+      "fifty_two_week_high": 5375,
+      "fifty_two_week_low": 3650
+    },
+    "created_at": 1789293013.9492466,
+    "created_at_iso": "2026-09-13T09:50:13.949247+00:00",
+    "expires_at": 1789379413.9492466,
+    "expires_at_iso": "2026-09-14T09:50:13.949247+00:00",
+    "ttl_seconds": 86400
+  },
+  "BMRI.JK:peer": {
+    "symbol": "BMRI.JK",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BMRI.JK",
+      "company_name": "PT Bank Mandiri (Persero) Tbk",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 405363744571392,
+      "pe_ttm": 6.5316,
+      "currency": "IDR",
+      "summary": "PT Bank Mandiri (Persero) Tbk provides various banking products and services to individuals and businesses in Indonesia, Singapore, Malaysia, Hong Kong, Timor Leste, Shanghai, England, and the Cayman Islands. It offers savings and current accounts, multicurrency, payroll, NOW, and foreign currency savings accounts; personal, mortgage, micro enterprise, small and medium enterprises, working capital, and investment loans; corporate, credit, and debit cards; and e-banking services. The company also provides life, health, and accident insurance products, as well as investment products; cash management, bill collection, payment, trade finance, money transfer, remittance, and wealth management services; and treasury services, including cash transaction, hedging, and investment products. It operates branch offices, sub-branch offices, and overseas branch offices; and ATM facilities. The company was founded in 1998 and is headquartered in Jakarta, Indonesia."
+    },
+    "created_at": 1789293013.9492533,
+    "created_at_iso": "2026-09-13T09:50:13.949253+00:00",
+    "expires_at": 1789379413.9492533,
+    "expires_at_iso": "2026-09-14T09:50:13.949253+00:00",
+    "ttl_seconds": 86400
+  },
+  "BMRI.JK:future_forecast": {
+    "symbol": "BMRI.JK",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "target_mean_price": 5254.38,
+      "target_high_price": 6800,
+      "target_low_price": 3600,
+      "target_median_price": 5325,
+      "eps_estimate": 150.13,
+      "eps_growth": 0.0555,
+      "estimate_year": 2026,
+      "revenue_estimate": 34315189850000,
+      "revenue_growth": -0.107
+    },
+    "created_at": 1789293013.9492567,
+    "created_at_iso": "2026-09-13T09:50:13.949257+00:00",
+    "expires_at": 1789379413.9492567,
+    "expires_at_iso": "2026-09-14T09:50:13.949257+00:00",
+    "ttl_seconds": 86400
+  },
+  "BMRI.JK:institutional_transactions": {
+    "symbol": "BMRI.JK",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-04-30",
+      "holder": "VANGUARD STAR FUNDS-Vanguard Total International Stock Index Fund",
+      "shares": 635208050,
+      "value": 2769507098000,
+      "pct_held": 0.0069,
+      "pct_change": -0.0009
+    },
+    "created_at": 1789293013.9492586,
+    "created_at_iso": "2026-09-13T09:50:13.949259+00:00",
+    "expires_at": 1789379413.9492586,
+    "expires_at_iso": "2026-09-14T09:50:13.949259+00:00",
+    "ttl_seconds": 86400
+  },
+  "BMRI.JK:executive_shareholdings": {
+    "symbol": "BMRI.JK",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Riduan Ahmad",
+      "position": "President Director",
+      "age": 55,
+      "exercised_value": 0,
+      "unexercised_value": 0,
+      "share_amount": 0,
+      "share_percentage": 0.0
+    },
+    "created_at": 1789293013.9492605,
+    "created_at_iso": "2026-09-13T09:50:13.949260+00:00",
+    "expires_at": 1789897813.9492605,
+    "expires_at_iso": "2026-09-20T09:50:13.949260+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI.JK:major_shareholders": {
+    "symbol": "BMRI.JK",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Major Shareholder Pool",
+      "share_percentage": null,
+      "breakdown": {}
+    },
+    "created_at": 1789293013.9492621,
+    "created_at_iso": "2026-09-13T09:50:13.949262+00:00",
+    "expires_at": 1789897813.9492621,
+    "expires_at_iso": "2026-09-20T09:50:13.949262+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI.JK:shareholder_composition": {
+    "symbol": "BMRI.JK",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "insiders_percent_held": 0.54688,
+      "institutions_percent_held": 0.27045
+    },
+    "created_at": 1789293013.9492636,
+    "created_at_iso": "2026-09-13T09:50:13.949264+00:00",
+    "expires_at": 1789897813.9492636,
+    "expires_at_iso": "2026-09-20T09:50:13.949264+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI.JK:dividend": {
+    "symbol": "BMRI.JK",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "dividend_rate": 542.96,
+      "dividend_yield": 0.1245,
+      "payout_ratio": 0.7147,
+      "trailing_annual_dividend_rate": 376.96,
+      "trailing_annual_dividend_yield": 0.086261,
+      "five_year_avg_dividend_yield": 0.0565,
+      "ex_dividend_date": "2026-09-16",
+      "recent_dividends": [
+        {
+          "date": "2023-03-27",
+          "amount": 264.67
+        },
+        {
+          "date": "2024-03-20",
+          "amount": 353.96
+        },
+        {
+          "date": "2025-04-14",
+          "amount": 466.18
+        },
+        {
+          "date": "2026-01-06",
+          "amount": 100
+        },
+        {
+          "date": "2026-05-11",
+          "amount": 376.96
+        }
+      ],
+      "latest_dividend_amount": 376.96
+    },
+    "created_at": 1789293013.9492652,
+    "created_at_iso": "2026-09-13T09:50:13.949265+00:00",
+    "expires_at": 1789379413.9492652,
+    "expires_at_iso": "2026-09-14T09:50:13.949265+00:00",
+    "ttl_seconds": 86400
+  },
+  "BMRI.JK:executives": {
+    "symbol": "BMRI.JK",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Riduan Ahmad",
+      "position": "President Director",
+      "age": 55,
+      "year_born": 1970,
+      "total_pay": null,
+      "exercised_value": 0,
+      "unexercised_value": 0
+    },
+    "created_at": 1789293013.949267,
+    "created_at_iso": "2026-09-13T09:50:13.949267+00:00",
+    "expires_at": 1789897813.949267,
+    "expires_at_iso": "2026-09-20T09:50:13.949267+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI.JK:historical_price": {
+    "symbol": "BMRI.JK",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "BMRI.JK",
+      "date": "2026-09-11",
+      "open": 4330,
+      "high": 4360,
+      "low": 4300,
+      "close": 4360,
+      "volume": 126557800,
+      "dividends": 0,
+      "stock_splits": 0
+    },
+    "created_at": 1789293013.9492686,
+    "created_at_iso": "2026-09-13T09:50:13.949269+00:00",
+    "expires_at": 1789296613.9492686,
+    "expires_at_iso": "2026-09-13T10:50:13.949269+00:00",
+    "ttl_seconds": 3600
+  },
+  "BBRI.JK:valuation": {
+    "symbol": "BBRI.JK",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 7.4286,
+      "trailing_pe": 8.032,
+      "price_to_book": 1.53,
+      "enterprise_to_revenue": 4.87,
+      "peg_ratio": 1.27,
+      "enterprise_value": 715230300602368,
+      "market_cap": 492737304461312,
+      "intrinsic_value": 3763.55,
+      "fifty_two_week_high": 4270,
+      "fifty_two_week_low": 2540
+    },
+    "created_at": 1789294448.727686,
+    "created_at_iso": "2026-09-13T10:14:08.727686+00:00",
+    "expires_at": 1789380848.727686,
+    "expires_at_iso": "2026-09-14T10:14:08.727686+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBRI.JK:peer": {
+    "symbol": "BBRI.JK",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BBRI.JK",
+      "company_name": "PT Bank Rakyat Indonesia (Persero) Tbk",
+      "sector": "Financial Services",
+      "industry": "Banks - Regional",
+      "market_cap": 492737304461312,
+      "pe_ttm": 8.032,
+      "currency": "IDR",
+      "summary": "PT Bank Rakyat Indonesia (Persero) Tbk provides various banking products and services in Indonesia and internationally. The company offers savings and current accounts; time, foreign currency time, and on-call deposits; mortgage, working capital, investment, franchise, and cash collateral loans, as well as supply and value chain financing and bank guarantees; and microphone, small and medium, and program loans. It also provides bill payment, deposit, online transaction, remittance, money transfer, business, financial, institutional, treasury and global, custodian, trustee, and cash management services. In addition, the company offers investment products and services; trade finance and services, and transaction banking services, including import and export, standby L/C, money changer, BRI RTE online system services, as well as letters of credit; credit cards; and wealth management, merchant, and digital banking services. Further, it provides life and general insurance, securities underwriting and brokerage, and venture capital services. PT Bank Rakyat Indonesia (Persero) Tbk was founded in 1895 and is headquartered in Jakarta, Indonesia. PT Bank Rakyat Indonesia (Persero) Tbk operates as a subsidiary of PT Danantara Asset Management (Persero)."
+    },
+    "created_at": 1789294448.7277045,
+    "created_at_iso": "2026-09-13T10:14:08.727705+00:00",
+    "expires_at": 1789380848.7277045,
+    "expires_at_iso": "2026-09-14T10:14:08.727705+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBRI.JK:future_forecast": {
+    "symbol": "BBRI.JK",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "target_mean_price": 3763.55,
+      "target_high_price": 4900,
+      "target_low_price": 2860,
+      "target_median_price": 3795,
+      "eps_estimate": 94.0233,
+      "eps_growth": -0.0307,
+      "estimate_year": 2026,
+      "revenue_estimate": 54674339590000,
+      "revenue_growth": 0.0668
+    },
+    "created_at": 1789294448.7277148,
+    "created_at_iso": "2026-09-13T10:14:08.727715+00:00",
+    "expires_at": 1789380848.7277148,
+    "expires_at_iso": "2026-09-14T10:14:08.727715+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBRI.JK:institutional_transactions": {
+    "symbol": "BBRI.JK",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-06-30",
+      "holder": "Boston Common Asset Management, LLC",
+      "shares": 25610,
+      "value": 83744700,
+      "pct_held": 0.0,
+      "pct_change": 0.0,
+      "sample_buyer": {
+        "name": "Boston Common Asset Management, LLC",
+        "change_pct": 0.0
+      }
+    },
+    "created_at": 1789294448.7277198,
+    "created_at_iso": "2026-09-13T10:14:08.727720+00:00",
+    "expires_at": 1789380848.7277198,
+    "expires_at_iso": "2026-09-14T10:14:08.727720+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBRI.JK:executive_shareholdings": {
+    "symbol": "BBRI.JK",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Hery Gunardi",
+      "position": "President Director",
+      "age": null,
+      "exercised_value": 0,
+      "unexercised_value": 0,
+      "share_amount": 0,
+      "share_percentage": 0.0
+    },
+    "created_at": 1789294448.7277243,
+    "created_at_iso": "2026-09-13T10:14:08.727724+00:00",
+    "expires_at": 1789899248.7277243,
+    "expires_at_iso": "2026-09-20T10:14:08.727724+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI.JK:major_shareholders": {
+    "symbol": "BBRI.JK",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Major Shareholder Pool",
+      "share_percentage": null,
+      "breakdown": {}
+    },
+    "created_at": 1789294448.7277281,
+    "created_at_iso": "2026-09-13T10:14:08.727728+00:00",
+    "expires_at": 1789899248.7277281,
+    "expires_at_iso": "2026-09-20T10:14:08.727728+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI.JK:shareholder_composition": {
+    "symbol": "BBRI.JK",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "insiders_percent_held": 0.56543,
+      "institutions_percent_held": 0.19278
+    },
+    "created_at": 1789294448.7277317,
+    "created_at_iso": "2026-09-13T10:14:08.727732+00:00",
+    "expires_at": 1789899248.7277317,
+    "expires_at_iso": "2026-09-20T10:14:08.727732+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI.JK:dividend": {
+    "symbol": "BBRI.JK",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "dividend_rate": 418,
+      "dividend_yield": 0.1278,
+      "payout_ratio": 0.8501,
+      "trailing_annual_dividend_rate": 209,
+      "trailing_annual_dividend_yield": 0.062952,
+      "five_year_avg_dividend_yield": 0.0649,
+      "ex_dividend_date": "2026-04-21",
+      "recent_dividends": [
+        {
+          "date": "2024-03-14",
+          "amount": 235
+        },
+        {
+          "date": "2024-12-27",
+          "amount": 135
+        },
+        {
+          "date": "2025-04-11",
+          "amount": 208.4
+        },
+        {
+          "date": "2025-12-30",
+          "amount": 137
+        },
+        {
+          "date": "2026-04-21",
+          "amount": 209
+        }
+      ],
+      "latest_dividend_amount": 209
+    },
+    "created_at": 1789294448.7277348,
+    "created_at_iso": "2026-09-13T10:14:08.727735+00:00",
+    "expires_at": 1789380848.7277348,
+    "expires_at_iso": "2026-09-14T10:14:08.727735+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBRI.JK:executives": {
+    "symbol": "BBRI.JK",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Hery Gunardi",
+      "position": "President Director",
+      "age": null,
+      "year_born": null,
+      "total_pay": null,
+      "exercised_value": 0,
+      "unexercised_value": 0
+    },
+    "created_at": 1789294448.7277386,
+    "created_at_iso": "2026-09-13T10:14:08.727739+00:00",
+    "expires_at": 1789899248.7277386,
+    "expires_at_iso": "2026-09-20T10:14:08.727739+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI.JK:historical_price": {
+    "symbol": "BBRI.JK",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "BBRI.JK",
+      "date": "2026-09-11",
+      "open": 3320,
+      "high": 3320,
+      "low": 3250,
+      "close": 3270,
+      "volume": 217302800,
+      "dividends": 0,
+      "stock_splits": 0
+    },
+    "created_at": 1789294448.7277422,
+    "created_at_iso": "2026-09-13T10:14:08.727742+00:00",
+    "expires_at": 1789298048.7277422,
+    "expires_at_iso": "2026-09-13T11:14:08.727742+00:00",
+    "ttl_seconds": 3600
+  },
+  "BUMI.JK:valuation": {
+    "symbol": "BUMI.JK",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 211999.98,
+      "trailing_pe": 36.8696,
+      "price_to_book": 53000.0,
+      "enterprise_to_ebitda": 422755.03,
+      "enterprise_to_revenue": 48788.84,
+      "peg_ratio": 0.1,
+      "enterprise_value": 78724938596352,
+      "market_cap": 78723101491200,
+      "intrinsic_value": 299.12,
+      "fifty_two_week_high": 484,
+      "fifty_two_week_low": 110
+    },
+    "created_at": 1789294450.7343128,
+    "created_at_iso": "2026-09-13T10:14:10.734313+00:00",
+    "expires_at": 1789380850.7343128,
+    "expires_at_iso": "2026-09-14T10:14:10.734313+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI.JK:peer": {
+    "symbol": "BUMI.JK",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BUMI.JK",
+      "company_name": "PT Bumi Resources Tbk",
+      "sector": "Energy",
+      "industry": "Thermal Coal",
+      "market_cap": 78723101491200,
+      "pe_ttm": 36.8696,
+      "currency": "IDR",
+      "summary": "PT Bumi Resources Tbk, together with its subsidiaries, engages in the mining activities in Indonesia. The company operates through three segments: Holding Company, Coal, and Minerals. It engages in the exploration, exploitation, mining, and sale of coal deposits; and explores gold and silver properties. The company also exports its products. The company also exports its products. The company was formerly known as PT Bumi Modern Tbk. and changed its name to PT Bumi Resources Tbk in September 2000. PT Bumi Resources Tbk was founded in 1973 and is headquartered in Jakarta Selatan, Indonesia."
+    },
+    "created_at": 1789294450.7343192,
+    "created_at_iso": "2026-09-13T10:14:10.734319+00:00",
+    "expires_at": 1789380850.7343192,
+    "expires_at_iso": "2026-09-14T10:14:10.734319+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI.JK:future_forecast": {
+    "symbol": "BUMI.JK",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "target_mean_price": 299.12,
+      "target_high_price": 299.12,
+      "target_low_price": 299.12,
+      "target_median_price": 299.12,
+      "eps_estimate": null,
+      "eps_growth": null,
+      "estimate_year": 2026,
+      "revenue_estimate": 0,
+      "revenue_growth": null
+    },
+    "created_at": 1789294450.7343218,
+    "created_at_iso": "2026-09-13T10:14:10.734322+00:00",
+    "expires_at": 1789380850.7343218,
+    "expires_at_iso": "2026-09-14T10:14:10.734322+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI.JK:institutional_transactions": {
+    "symbol": "BUMI.JK",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-04-30",
+      "holder": "VANGUARD STAR FUNDS-Vanguard Total International Stock Index Fund",
+      "shares": 2369833629,
+      "value": 502404729348,
+      "pct_held": 0.0064,
+      "pct_change": 0.0048
+    },
+    "created_at": 1789294450.7343261,
+    "created_at_iso": "2026-09-13T10:14:10.734326+00:00",
+    "expires_at": 1789380850.7343261,
+    "expires_at_iso": "2026-09-14T10:14:10.734326+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI.JK:executive_shareholdings": {
+    "symbol": "BUMI.JK",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Adika Nuraga Bakrie",
+      "position": "President Director",
+      "age": 44,
+      "exercised_value": 0,
+      "unexercised_value": 0,
+      "share_amount": 0,
+      "share_percentage": 0.0
+    },
+    "created_at": 1789294450.734328,
+    "created_at_iso": "2026-09-13T10:14:10.734328+00:00",
+    "expires_at": 1789899250.734328,
+    "expires_at_iso": "2026-09-20T10:14:10.734328+00:00",
+    "ttl_seconds": 604800
+  },
+  "BUMI.JK:major_shareholders": {
+    "symbol": "BUMI.JK",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Major Shareholder Pool",
+      "share_percentage": null,
+      "breakdown": {}
+    },
+    "created_at": 1789294450.7343302,
+    "created_at_iso": "2026-09-13T10:14:10.734330+00:00",
+    "expires_at": 1789899250.7343302,
+    "expires_at_iso": "2026-09-20T10:14:10.734330+00:00",
+    "ttl_seconds": 604800
+  },
+  "BUMI.JK:shareholder_composition": {
+    "symbol": "BUMI.JK",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "insiders_percent_held": 0.60654,
+      "institutions_percent_held": 0.12463
+    },
+    "created_at": 1789294450.7343318,
+    "created_at_iso": "2026-09-13T10:14:10.734332+00:00",
+    "expires_at": 1789899250.7343318,
+    "expires_at_iso": "2026-09-20T10:14:10.734332+00:00",
+    "ttl_seconds": 604800
+  },
+  "BUMI.JK:dividend": {
+    "symbol": "BUMI.JK",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "payout_ratio": 0,
+      "trailing_annual_dividend_rate": 0,
+      "trailing_annual_dividend_yield": 0.0,
+      "five_year_avg_dividend_yield": 0.0218,
+      "ex_dividend_date": "2012-06-20",
+      "recent_dividends": [
+        {
+          "date": "2008-07-29",
+          "amount": 45
+        },
+        {
+          "date": "2009-07-30",
+          "amount": 50.6
+        },
+        {
+          "date": "2010-07-29",
+          "amount": 27.68
+        },
+        {
+          "date": "2011-07-28",
+          "amount": 41.78
+        },
+        {
+          "date": "2012-06-20",
+          "amount": 14.31
+        }
+      ],
+      "latest_dividend_amount": 14.31
+    },
+    "created_at": 1789294450.7343338,
+    "created_at_iso": "2026-09-13T10:14:10.734334+00:00",
+    "expires_at": 1789380850.7343338,
+    "expires_at_iso": "2026-09-14T10:14:10.734334+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI.JK:executives": {
+    "symbol": "BUMI.JK",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mr. Adika Nuraga Bakrie",
+      "position": "President Director",
+      "age": 44,
+      "year_born": 1981,
+      "total_pay": null,
+      "exercised_value": 0,
+      "unexercised_value": 0
+    },
+    "created_at": 1789294450.7343354,
+    "created_at_iso": "2026-09-13T10:14:10.734335+00:00",
+    "expires_at": 1789899250.7343354,
+    "expires_at_iso": "2026-09-20T10:14:10.734335+00:00",
+    "ttl_seconds": 604800
+  },
+  "BUMI.JK:historical_price": {
+    "symbol": "BUMI.JK",
+    "category": "historical_price",
+    "tier": "FREQUENT",
+    "data": {
+      "symbol": "BUMI.JK",
+      "date": "2026-09-11",
+      "open": 210,
+      "high": 214,
+      "low": 206,
+      "close": 212,
+      "volume": 3243078600,
+      "dividends": 0,
+      "stock_splits": 0
+    },
+    "created_at": 1789294450.7343373,
+    "created_at_iso": "2026-09-13T10:14:10.734337+00:00",
+    "expires_at": 1789298050.7343373,
+    "expires_at_iso": "2026-09-13T11:14:10.734337+00:00",
+    "ttl_seconds": 3600
+  }
+}
