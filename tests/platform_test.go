@@ -14,6 +14,7 @@ func TestPlatformConfig(t *testing.T) {
 	os.Setenv("MOCK_SECTORS", "true")
 	os.Setenv("AI_PROVIDER", "groq")
 	os.Setenv("AI_MODEL", "llama-3.3-70b-versatile")
+	os.Setenv("LOG_LEVEL", "debug")
 	os.Setenv("CACHE_TTL_HOURS", "48")
 
 	cfg, err := config.LoadConfig()
@@ -32,6 +33,9 @@ func TestPlatformConfig(t *testing.T) {
 	if cfg.AIModel != "llama-3.3-70b-versatile" {
 		t.Errorf("expected AIModel to be llama-3.3-70b-versatile, got %s", cfg.AIModel)
 	}
+	if cfg.LogLevel != "debug" {
+		t.Errorf("expected LogLevel to be debug, got %s", cfg.LogLevel)
+	}
 	if cfg.CacheTTLHours != 48 {
 		t.Errorf("expected CacheTTLHours to be 48, got %d", cfg.CacheTTLHours)
 	}
@@ -46,6 +50,7 @@ func TestPlatformConfig_Defaults(t *testing.T) {
 	os.Unsetenv("MOCK_SECTORS")
 	os.Unsetenv("AI_PROVIDER")
 	os.Unsetenv("AI_MODEL")
+	os.Unsetenv("LOG_LEVEL")
 	os.Unsetenv("CACHE_TTL_HOURS")
 
 	cfg, err := config.LoadConfig()
@@ -54,6 +59,9 @@ func TestPlatformConfig_Defaults(t *testing.T) {
 	}
 	if cfg.Port != "8080" {
 		t.Errorf("expected default port 8080, got %s", cfg.Port)
+	}
+	if cfg.LogLevel != "info" {
+		t.Errorf("expected default LogLevel to be info, got %s", cfg.LogLevel)
 	}
 	if cfg.DatabaseURL != "postgres://postgres:postgres@localhost:5432/market_intel?sslmode=disable" {
 		t.Errorf("unexpected default database url: %s", cfg.DatabaseURL)

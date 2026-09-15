@@ -17,6 +17,7 @@ type Config struct {
 	AIProvider      string // "gemini", "groq", "mock"
 	AIModel         string // "gemini-3.5-flash", "llama-3.3-70b-versatile"
 	AIApiKey        string
+	LogLevel        string
 	CacheTTLHours   int
 }
 
@@ -48,6 +49,10 @@ func LoadConfig() (*Config, error) {
 	if aiModel == "" {
 		aiModel = "gemini-3.5-flash"
 	}
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel == "" {
+		logLevel = "info"
+	}
 	cacheTTL, _ := strconv.Atoi(os.Getenv("CACHE_TTL_HOURS"))
 	if cacheTTL <= 0 {
 		cacheTTL = 24
@@ -63,6 +68,7 @@ func LoadConfig() (*Config, error) {
 		AIProvider:      aiProvider,
 		AIModel:         aiModel,
 		AIApiKey:        os.Getenv("AI_API_KEY"),
+		LogLevel:        logLevel,
 		CacheTTLHours:   cacheTTL,
 	}, nil
 }
