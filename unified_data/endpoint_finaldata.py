@@ -34,6 +34,7 @@ SUPPORTED_DATA_TYPES = [
     "peers",
     "forecast",
     "dividend",
+    "dividend_growth",
     "executives",
     "executive_shareholdings",
     "major_shareholders",
@@ -54,6 +55,7 @@ DATA_SOURCE_MAPPING = {
     "peers": "Sectors",
     "forecast": "Sectors",
     "dividend": "yFinance",
+    "dividend_growth": "Sectors / yFinance",
     "executives": "Sectors / yFinance",
     "executive_shareholdings": "Sectors",
     "major_shareholders": "Sectors",
@@ -257,6 +259,53 @@ def fetch_period_dividend(symbol: str, period_label: str) -> Dict[str, Any]:
     return div_summary
 
 
+def fetch_dividend_growth(symbol: str, period_label: str) -> Dict[str, Any]:
+    """Fetches dividend growth data by comparing current and previous periods."""
+    clean_sym = symbol.upper().replace(".JK", "")
+    
+    div_data = fetch_period_dividend(clean_sym, period_label)
+    history = div_data.get("dividend_history", [])
+    dividend_growth = None
+    
+    if len(history) >= 2:
+        history.sort(key=lambda x: x["date"])
+        try:
+            latest = float(history[-1]["amount"])
+            previous = float(history[-2]["amount"])
+            if previous and previous > 0:
+                dividend_growth = round(((latest - previous) / previous) * 100, 2)
+        except (ValueError, TypeError):
+            pass
+            
+    # Try to get it from Sectors API through unified pipeline if period is current
+    sectors_growth = None
+    if period_label in ("current", "latest", "now", "today"):
+        try:
+            pipeline = get_pipeline()
+            unified_res = pipeline.get_unified_dataset(clean_sym)
+            s_div = unified_res.get("data", {}).get("dividend_data", {})
+            sectors_growth = s_div.get("dividend_growth")
+        except Exception:
+            pass
+
+    if period_label in ("current", "latest", "now", "today"):
+        final_growth = sectors_growth if sectors_growth is not None else dividend_growth
+        source = "Sectors API" if sectors_growth is not None else "yFinance (Calculated)"
+    else:
+        final_growth = dividend_growth if dividend_growth is not None else sectors_growth
+        source = "yFinance (Calculated)" if dividend_growth is not None else "Sectors API"
+
+    if final_growth is None:
+        return {}
+
+    return {
+        "symbol": clean_sym,
+        "dividend_growth": final_growth,
+        "period": period_label,
+        "source": source
+    }
+
+
 def fetch_financial_statements(symbol: str, statement_type: str, period_label: str) -> Dict[str, Any]:
     """Fetches multi-year financials, balance sheet, or cash flow."""
     clean_sym = symbol.upper().replace(".JK", "")
@@ -371,6 +420,21 @@ def get_api_data(
                 "status": "SUCCESS",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "data": div_data
+            }
+
+        # -------------------------------------------------------------
+        # Route 2b: Dividend Growth
+        # -------------------------------------------------------------
+        elif dt_clean == "dividend_growth":
+            div_growth_data = fetch_dividend_growth(clean_ticker, norm_period)
+            return {
+                "ticker": clean_ticker,
+                "data_type": "dividend_growth",
+                "period": norm_period,
+                "source": div_growth_data.get("source", "Unknown") if div_growth_data else "Unknown",
+                "status": "SUCCESS" if div_growth_data else "WARNING",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "data": div_growth_data if div_growth_data else {"error": "Dividend growth data not available"}
             }
 
         # -------------------------------------------------------------

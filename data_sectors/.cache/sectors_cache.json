@@ -1,115 +1,4 @@
 {
-  "BUMI:valuation": {
-    "symbol": "BUMI",
-    "category": "valuation",
-    "tier": "PERIODIC",
-    "data": {
-      "forward_pe": null,
-      "intrinsic_value": -156,
-      "sample_historical_valuation": {
-        "pb": 1.3604,
-        "pe": 7.3718,
-        "ps": 2.1159,
-        "pcf": -6.4587,
-        "peg": 0.031,
-        "year": 2022,
-        "pb_peer_avg": 1.0945,
-        "pe_peer_avg": 4.9868,
-        "ps_peer_avg": 1.2428,
-        "enterprise_to_ebitda": 4.516705182185805,
-        "enterprise_to_revenue": 2.13
-      }
-    },
-    "created_at": 1789277344.5184283,
-    "created_at_iso": "2026-09-13T05:29:04.518428+00:00",
-    "expires_at": 1789363744.5184283,
-    "expires_at_iso": "2026-09-14T05:29:04.518428+00:00",
-    "ttl_seconds": 86400
-  },
-  "BUMI:peer": {
-    "symbol": "BUMI",
-    "category": "peer",
-    "tier": "PERIODIC",
-    "data": {
-      "year": 2025,
-      "group": [
-        "self"
-      ],
-      "pb_mrq": 2.7663,
-      "pe_ttm": 40.309,
-      "symbol": "BUMI.JK",
-      "market_cap": 82436457039096,
-      "net_income": 1355850850647,
-      "company_name": "Bumi Resources Tbk",
-      "employee_num": 70,
-      "total_assets": 70604594591720,
-      "total_equity": 48333602232812,
-      "pretax_income": 2976797604229,
-      "total_revenue": 23845559235376,
-      "point_summaries": [
-        {
-          "name": "value",
-          "point": 6,
-          "maxpoint": 18
-        },
-        {
-          "name": "competitive",
-          "point": 12.5,
-          "maxpoint": 25.5
-        },
-        {
-          "name": "future",
-          "point": 0,
-          "maxpoint": 6
-        },
-        {
-          "name": "financials",
-          "point": 4.5,
-          "maxpoint": 7.5
-        },
-        {
-          "name": "dividend",
-          "point": 1.5,
-          "maxpoint": 15.5
-        },
-        {
-          "updated_at": "2026-09-09"
-        }
-      ],
-      "yearly_mcap_chg": 0.010748,
-      "operating_expense": 1803793231804,
-      "revenue_breakdown": null,
-      "total_liabilities": 22270992358908,
-      "int_income_breakdown": null,
-      "operating_expense_breakdown": null
-    },
-    "created_at": 1789277344.5184598,
-    "created_at_iso": "2026-09-13T05:29:04.518460+00:00",
-    "expires_at": 1789363744.5184598,
-    "expires_at_iso": "2026-09-14T05:29:04.518460+00:00",
-    "ttl_seconds": 86400
-  },
-  "BUMI:institutional_transactions": {
-    "symbol": "BUMI",
-    "category": "institutional_transactions",
-    "tier": "PERIODIC",
-    "data": {
-      "date": "2026-08-31",
-      "sample_buyer": {
-        "name": "Vanguard",
-        "change_amount": 44056200
-      },
-      "sample_seller": {
-        "name": "Dimensional Fund Advisors LP",
-        "change_amount": -162784563
-      }
-    },
-    "created_at": 1789277344.518476,
-    "created_at_iso": "2026-09-13T05:29:04.518476+00:00",
-    "expires_at": 1789363744.518476,
-    "expires_at_iso": "2026-09-14T05:29:04.518476+00:00",
-    "ttl_seconds": 86400
-  },
   "BUMI:executive_shareholdings": {
     "symbol": "BUMI",
     "category": "executive_shareholdings",
@@ -120,10 +9,10 @@
       "share_amount": 36500000,
       "share_percentage": 0.0001
     },
-    "created_at": 1789277344.5184827,
-    "created_at_iso": "2026-09-13T05:29:04.518483+00:00",
-    "expires_at": 1789882144.5184827,
-    "expires_at_iso": "2026-09-20T05:29:04.518483+00:00",
+    "created_at": 1789574189.1907856,
+    "created_at_iso": "2026-09-16T15:56:29.190786+00:00",
+    "expires_at": 1790178989.1907856,
+    "expires_at_iso": "2026-09-23T15:56:29.190786+00:00",
     "ttl_seconds": 604800
   },
   "BUMI:major_shareholders": {
@@ -132,14 +21,14 @@
     "tier": "STATIC",
     "data": {
       "name": "Public",
-      "share_value": 42675365118416,
+      "share_value": 41870169550144,
       "share_amount": 201298892068,
       "share_percentage": 0.5421
     },
-    "created_at": 1789277344.5184886,
-    "created_at_iso": "2026-09-13T05:29:04.518489+00:00",
-    "expires_at": 1789882144.5184886,
-    "expires_at_iso": "2026-09-20T05:29:04.518489+00:00",
+    "created_at": 1789574189.1907892,
+    "created_at_iso": "2026-09-16T15:56:29.190789+00:00",
+    "expires_at": 1790178989.1907892,
+    "expires_at_iso": "2026-09-23T15:56:29.190789+00:00",
     "ttl_seconds": 604800
   },
   "BUMI:shareholder_composition": {
@@ -149,10 +38,10 @@
     "data": {
       "sample_conglomerate_group": "Bakrie Group"
     },
-    "created_at": 1789277344.5184932,
-    "created_at_iso": "2026-09-13T05:29:04.518493+00:00",
-    "expires_at": 1789882144.5184932,
-    "expires_at_iso": "2026-09-20T05:29:04.518493+00:00",
+    "created_at": 1789574189.190792,
+    "created_at_iso": "2026-09-16T15:56:29.190792+00:00",
+    "expires_at": 1790178989.190792,
+    "expires_at_iso": "2026-09-23T15:56:29.190792+00:00",
     "ttl_seconds": 604800
   },
   "BUMI:executives": {
@@ -163,157 +52,11 @@
       "name": "Adika Nuraga Bakrie",
       "position": "President Director"
     },
-    "created_at": 1789277344.5184984,
-    "created_at_iso": "2026-09-13T05:29:04.518498+00:00",
-    "expires_at": 1789882144.5184984,
-    "expires_at_iso": "2026-09-20T05:29:04.518498+00:00",
+    "created_at": 1789574189.1907945,
+    "created_at_iso": "2026-09-16T15:56:29.190794+00:00",
+    "expires_at": 1790178989.1907945,
+    "expires_at_iso": "2026-09-23T15:56:29.190794+00:00",
     "ttl_seconds": 604800
-  },
-  "BUMI:historical_price": {
-    "symbol": "BUMI",
-    "category": "historical_price",
-    "tier": "PERIODIC",
-    "data": {
-      "symbol": "BUMI.JK",
-      "date": "2026-08-14",
-      "close": 181,
-      "open": 178,
-      "high": 183,
-      "low": 174,
-      "volume": 2030936400,
-      "market_cap": 67211705964308
-    },
-    "created_at": 1789277344.518503,
-    "created_at_iso": "2026-09-13T05:29:04.518503+00:00",
-    "expires_at": 1789363744.518503,
-    "expires_at_iso": "2026-09-14T05:29:04.518503+00:00",
-    "ttl_seconds": 86400
-  },
-  "ANTM:valuation": {
-    "symbol": "ANTM",
-    "category": "valuation",
-    "tier": "PERIODIC",
-    "data": {
-      "forward_pe": 23.0753,
-      "intrinsic_value": 2577,
-      "sample_historical_valuation": {
-        "pb": 2.0117,
-        "pe": 12.484,
-        "ps": 1.0386,
-        "pcf": 11.6116,
-        "peg": 0.1186,
-        "year": 2022,
-        "pb_peer_avg": 1.0836,
-        "pe_peer_avg": 7.2562,
-        "ps_peer_avg": 0.8388,
-        "enterprise_to_ebitda": 7.3856837514965115,
-        "enterprise_to_revenue": 1.01
-      }
-    },
-    "created_at": 1789277345.5495884,
-    "created_at_iso": "2026-09-13T05:29:05.549588+00:00",
-    "expires_at": 1789363745.5495884,
-    "expires_at_iso": "2026-09-14T05:29:05.549588+00:00",
-    "ttl_seconds": 86400
-  },
-  "ANTM:peer": {
-    "symbol": "ANTM",
-    "category": "peer",
-    "tier": "PERIODIC",
-    "data": {
-      "year": 2025,
-      "group": [
-        "self"
-      ],
-      "pb_mrq": 2.0633,
-      "pe_ttm": 8.6393,
-      "symbol": "ANTM.JK",
-      "market_cap": 76898447120000,
-      "net_income": 7208834000000,
-      "company_name": "Aneka Tambang Tbk.",
-      "employee_num": 2621,
-      "total_assets": 52530405000000,
-      "total_equity": 36599886000000,
-      "pretax_income": 9747127000000,
-      "total_revenue": 84642439000000,
-      "point_summaries": [
-        {
-          "name": "value",
-          "point": 6,
-          "maxpoint": 18
-        },
-        {
-          "name": "competitive",
-          "point": 12,
-          "maxpoint": 25.5
-        },
-        {
-          "name": "future",
-          "point": 0,
-          "maxpoint": 6
-        },
-        {
-          "name": "financials",
-          "point": 6.5,
-          "maxpoint": 7.5
-        },
-        {
-          "name": "dividend",
-          "point": 9,
-          "maxpoint": 9
-        },
-        {
-          "updated_at": "2026-09-09"
-        }
-      ],
-      "yearly_mcap_chg": 0.0,
-      "operating_expense": 5286319000000,
-      "revenue_breakdown": null,
-      "total_liabilities": 15930519000000,
-      "int_income_breakdown": null,
-      "operating_expense_breakdown": null
-    },
-    "created_at": 1789277345.5496025,
-    "created_at_iso": "2026-09-13T05:29:05.549603+00:00",
-    "expires_at": 1789363745.5496025,
-    "expires_at_iso": "2026-09-14T05:29:05.549603+00:00",
-    "ttl_seconds": 86400
-  },
-  "ANTM:future_forecast": {
-    "symbol": "ANTM",
-    "category": "future_forecast",
-    "tier": "PERIODIC",
-    "data": {
-      "eps_estimate": 161.17,
-      "estimate_year": 2026,
-      "revenue_estimate": 59020000000000
-    },
-    "created_at": 1789277345.5496092,
-    "created_at_iso": "2026-09-13T05:29:05.549609+00:00",
-    "expires_at": 1789363745.5496092,
-    "expires_at_iso": "2026-09-14T05:29:05.549609+00:00",
-    "ttl_seconds": 86400
-  },
-  "ANTM:institutional_transactions": {
-    "symbol": "ANTM",
-    "category": "institutional_transactions",
-    "tier": "PERIODIC",
-    "data": {
-      "date": "2026-08-31",
-      "sample_buyer": {
-        "name": "Fidelity Management & Research Company LLC",
-        "change_amount": 65672560
-      },
-      "sample_seller": {
-        "name": "Causeway Capital Management LLC",
-        "change_amount": -51028457
-      }
-    },
-    "created_at": 1789277345.5496159,
-    "created_at_iso": "2026-09-13T05:29:05.549616+00:00",
-    "expires_at": 1789363745.5496159,
-    "expires_at_iso": "2026-09-14T05:29:05.549616+00:00",
-    "ttl_seconds": 86400
   },
   "ANTM:executive_shareholdings": {
     "symbol": "ANTM",
@@ -347,30 +90,6 @@
     "expires_at_iso": "2026-09-20T05:29:05.549626+00:00",
     "ttl_seconds": 604800
   },
-  "ANTM:dividend": {
-    "symbol": "ANTM",
-    "category": "dividend",
-    "tier": "PERIODIC",
-    "data": {
-      "year": "2020",
-      "data": {
-        "breakdown": [
-          {
-            "date": "2020-06-22",
-            "total": 2.82,
-            "yield": 0.003561
-          }
-        ],
-        "total_yield": 0.003561,
-        "total_dividend": 2.82
-      }
-    },
-    "created_at": 1789277345.5496302,
-    "created_at_iso": "2026-09-13T05:29:05.549630+00:00",
-    "expires_at": 1789363745.5496302,
-    "expires_at_iso": "2026-09-14T05:29:05.549630+00:00",
-    "ttl_seconds": 86400
-  },
   "ANTM:executives": {
     "symbol": "ANTM",
     "category": "executives",
@@ -385,32 +104,477 @@
     "expires_at_iso": "2026-09-20T05:29:05.549635+00:00",
     "ttl_seconds": 604800
   },
-  "ANTM:historical_price": {
-    "symbol": "ANTM",
-    "category": "historical_price",
-    "tier": "PERIODIC",
+  "BBCA:executive_shareholdings": {
+    "symbol": "BBCA",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
     "data": {
-      "symbol": "ANTM.JK",
-      "date": "2026-08-14",
-      "close": 3070,
-      "open": 3000,
-      "high": 3090,
-      "low": 2970,
-      "volume": 83223900,
-      "market_cap": 73774447705750
+      "name": "Armand Wahyudi Hartono",
+      "position": "Vice President Director",
+      "share_amount": 4256065,
+      "share_percentage": 3e-05
     },
-    "created_at": 1789277345.5496387,
-    "created_at_iso": "2026-09-13T05:29:05.549639+00:00",
-    "expires_at": 1789363745.5496387,
-    "expires_at_iso": "2026-09-14T05:29:05.549639+00:00",
-    "ttl_seconds": 86400
+    "created_at": 1789574162.9855509,
+    "created_at_iso": "2026-09-16T15:56:02.985551+00:00",
+    "expires_at": 1790178962.9855509,
+    "expires_at_iso": "2026-09-23T15:56:02.985551+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:major_shareholders": {
+    "symbol": "BBCA",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Dwimuria Investama Andalan",
+      "share_value": 433471680000000,
+      "share_amount": 67729950000,
+      "share_percentage": 0.54942
+    },
+    "created_at": 1789574162.9855542,
+    "created_at_iso": "2026-09-16T15:56:02.985554+00:00",
+    "expires_at": 1790178962.9855542,
+    "expires_at_iso": "2026-09-23T15:56:02.985554+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:shareholder_composition": {
+    "symbol": "BBCA",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_whale_investor": "Anthoni Salim",
+      "sample_conglomerate_group": "Djarum Group"
+    },
+    "created_at": 1789574162.9855568,
+    "created_at_iso": "2026-09-16T15:56:02.985557+00:00",
+    "expires_at": 1790178962.9855568,
+    "expires_at_iso": "2026-09-23T15:56:02.985557+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBCA:executives": {
+    "symbol": "BBCA",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Gregory Hendra Lembong",
+      "position": "President Director"
+    },
+    "created_at": 1789574162.9855626,
+    "created_at_iso": "2026-09-16T15:56:02.985563+00:00",
+    "expires_at": 1790178962.9855626,
+    "expires_at_iso": "2026-09-23T15:56:02.985563+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM:major_shareholders": {
+    "symbol": "TLKM",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Danantara Asset Management",
+      "share_value": 137933091064800,
+      "share_amount": 51086330024,
+      "share_percentage": 0.5157
+    },
+    "created_at": 1789574178.3354936,
+    "created_at_iso": "2026-09-16T15:56:18.335494+00:00",
+    "expires_at": 1790178978.3354936,
+    "expires_at_iso": "2026-09-23T15:56:18.335494+00:00",
+    "ttl_seconds": 604800
+  },
+  "TLKM:executives": {
+    "symbol": "TLKM",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Dian Siswarini",
+      "position": "President Director"
+    },
+    "created_at": 1789574178.3354993,
+    "created_at_iso": "2026-09-16T15:56:18.335499+00:00",
+    "expires_at": 1790178978.3354993,
+    "expires_at_iso": "2026-09-23T15:56:18.335499+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI:executive_shareholdings": {
+    "symbol": "BMRI",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Eka Fitria",
+      "position": "Director",
+      "share_amount": 4293600,
+      "share_percentage": 5e-05
+    },
+    "created_at": 1789574167.1525953,
+    "created_at_iso": "2026-09-16T15:56:07.152595+00:00",
+    "expires_at": 1790178967.1525953,
+    "expires_at_iso": "2026-09-23T15:56:07.152595+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI:major_shareholders": {
+    "symbol": "BMRI",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Danantara Asset Management (Persero)",
+      "share_value": 208528320004340,
+      "share_amount": 48048000001,
+      "share_percentage": 0.5148
+    },
+    "created_at": 1789574167.152598,
+    "created_at_iso": "2026-09-16T15:56:07.152598+00:00",
+    "expires_at": 1790178967.152598,
+    "expires_at_iso": "2026-09-23T15:56:07.152598+00:00",
+    "ttl_seconds": 604800
+  },
+  "BMRI:executives": {
+    "symbol": "BMRI",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Riduan",
+      "position": "President Director"
+    },
+    "created_at": 1789574167.1526022,
+    "created_at_iso": "2026-09-16T15:56:07.152602+00:00",
+    "expires_at": 1790178967.1526022,
+    "expires_at_iso": "2026-09-23T15:56:07.152602+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI:executive_shareholdings": {
+    "symbol": "BBRI",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Kartika Wirjoatmodjo",
+      "position": "President Commissioner",
+      "share_amount": 1678000,
+      "share_percentage": 1e-05
+    },
+    "created_at": 1789574170.6472127,
+    "created_at_iso": "2026-09-16T15:56:10.647213+00:00",
+    "expires_at": 1790178970.6472127,
+    "expires_at_iso": "2026-09-23T15:56:10.647213+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI:major_shareholders": {
+    "symbol": "BBRI",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Danantara Asset Management",
+      "share_value": 264952158795240,
+      "share_amount": 79804867107,
+      "share_percentage": 0.52656
+    },
+    "created_at": 1789574170.6472168,
+    "created_at_iso": "2026-09-16T15:56:10.647217+00:00",
+    "expires_at": 1790178970.6472168,
+    "expires_at_iso": "2026-09-23T15:56:10.647217+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBRI:executives": {
+    "symbol": "BBRI",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Viviana Dyah Ayu Retno",
+      "position": "Vice Presidentt"
+    },
+    "created_at": 1789574170.6472228,
+    "created_at_iso": "2026-09-16T15:56:10.647223+00:00",
+    "expires_at": 1790178970.6472228,
+    "expires_at_iso": "2026-09-23T15:56:10.647223+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBNI:executive_shareholdings": {
+    "symbol": "BBNI",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Agung Prabowo",
+      "position": "Director",
+      "share_amount": 1915356,
+      "share_percentage": 5e-05
+    },
+    "created_at": 1789574174.2009583,
+    "created_at_iso": "2026-09-16T15:56:14.200958+00:00",
+    "expires_at": 1790178974.2009583,
+    "expires_at_iso": "2026-09-23T15:56:14.200958+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBNI:major_shareholders": {
+    "symbol": "BBNI",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Danantara Asset Management",
+      "share_value": 83079764520000,
+      "share_amount": 22154603872,
+      "share_percentage": 0.594
+    },
+    "created_at": 1789574174.2009618,
+    "created_at_iso": "2026-09-16T15:56:14.200962+00:00",
+    "expires_at": 1790178974.2009618,
+    "expires_at_iso": "2026-09-23T15:56:14.200962+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBNI:shareholder_composition": {
+    "symbol": "BBNI",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_whale_investor": "Winarno Tjajadi"
+    },
+    "created_at": 1789574174.2009637,
+    "created_at_iso": "2026-09-16T15:56:14.200964+00:00",
+    "expires_at": 1790178974.2009637,
+    "expires_at_iso": "2026-09-23T15:56:14.200964+00:00",
+    "ttl_seconds": 604800
+  },
+  "BBNI:executives": {
+    "symbol": "BBNI",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Putrama Wahju Setyawan",
+      "position": "President Director"
+    },
+    "created_at": 1789574174.200968,
+    "created_at_iso": "2026-09-16T15:56:14.200968+00:00",
+    "expires_at": 1790178974.200968,
+    "expires_at_iso": "2026-09-23T15:56:14.200968+00:00",
+    "ttl_seconds": 604800
+  },
+  "ISAT:executive_shareholdings": {
+    "symbol": "ISAT",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Irsyad Sahroni",
+      "position": "Director",
+      "share_amount": 2547500,
+      "share_percentage": 8e-05
+    },
+    "created_at": 1789574182.1920753,
+    "created_at_iso": "2026-09-16T15:56:22.192075+00:00",
+    "expires_at": 1790178982.1920753,
+    "expires_at_iso": "2026-09-23T15:56:22.192075+00:00",
+    "ttl_seconds": 604800
+  },
+  "ISAT:major_shareholders": {
+    "symbol": "ISAT",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Ooredoo Hutchison Asia Pte. Ltd",
+      "share_value": 50598314789120,
+      "share_amount": 21170843008,
+      "share_percentage": 0.65644
+    },
+    "created_at": 1789574182.1920776,
+    "created_at_iso": "2026-09-16T15:56:22.192078+00:00",
+    "expires_at": 1790178982.1920776,
+    "expires_at_iso": "2026-09-23T15:56:22.192078+00:00",
+    "ttl_seconds": 604800
+  },
+  "ISAT:executives": {
+    "symbol": "ISAT",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Vikram Sinha",
+      "position": "President Director"
+    },
+    "created_at": 1789574182.19208,
+    "created_at_iso": "2026-09-16T15:56:22.192080+00:00",
+    "expires_at": 1790178982.19208,
+    "expires_at_iso": "2026-09-23T15:56:22.192080+00:00",
+    "ttl_seconds": 604800
+  },
+  "EXCL:executive_shareholdings": {
+    "symbol": "EXCL",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "David Arcelus Oses",
+      "position": "Director",
+      "share_amount": 5000000,
+      "share_percentage": 0.00027
+    },
+    "created_at": 1789574185.7277892,
+    "created_at_iso": "2026-09-16T15:56:25.727789+00:00",
+    "expires_at": 1790178985.7277892,
+    "expires_at_iso": "2026-09-23T15:56:25.727789+00:00",
+    "ttl_seconds": 604800
+  },
+  "EXCL:major_shareholders": {
+    "symbol": "EXCL",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Axiata Investments (Indonesia) Sdn. Bhd.",
+      "share_value": 16099978013400,
+      "share_amount": 6313716868,
+      "share_percentage": 0.34691
+    },
+    "created_at": 1789574185.727791,
+    "created_at_iso": "2026-09-16T15:56:25.727791+00:00",
+    "expires_at": 1790178985.727791,
+    "expires_at_iso": "2026-09-23T15:56:25.727791+00:00",
+    "ttl_seconds": 604800
+  },
+  "EXCL:shareholder_composition": {
+    "symbol": "EXCL",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_conglomerate_group": "Sinarmas Group"
+    },
+    "created_at": 1789574185.7277927,
+    "created_at_iso": "2026-09-16T15:56:25.727793+00:00",
+    "expires_at": 1790178985.7277927,
+    "expires_at_iso": "2026-09-23T15:56:25.727793+00:00",
+    "ttl_seconds": 604800
+  },
+  "EXCL:executives": {
+    "symbol": "EXCL",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Rajeev Sethi",
+      "position": "President Director"
+    },
+    "created_at": 1789574185.7277954,
+    "created_at_iso": "2026-09-16T15:56:25.727795+00:00",
+    "expires_at": 1790178985.7277954,
+    "expires_at_iso": "2026-09-23T15:56:25.727795+00:00",
+    "ttl_seconds": 604800
+  },
+  "ADRO:executive_shareholdings": {
+    "symbol": "ADRO",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Arini Saraswaty Subianto",
+      "position": "Commissioner",
+      "share_amount": 80106250,
+      "share_percentage": 0.00278
+    },
+    "created_at": 1789574192.3899095,
+    "created_at_iso": "2026-09-16T15:56:32.389910+00:00",
+    "expires_at": 1790178992.3899095,
+    "expires_at_iso": "2026-09-23T15:56:32.389910+00:00",
+    "ttl_seconds": 604800
+  },
+  "ADRO:major_shareholders": {
+    "symbol": "ADRO",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "PT Adaro Strategic Investment",
+      "share_value": 36377652045000,
+      "share_amount": 14045425500,
+      "share_percentage": 0.48768
+    },
+    "created_at": 1789574192.3899162,
+    "created_at_iso": "2026-09-16T15:56:32.389916+00:00",
+    "expires_at": 1790178992.3899162,
+    "expires_at_iso": "2026-09-23T15:56:32.389916+00:00",
+    "ttl_seconds": 604800
+  },
+  "ADRO:shareholder_composition": {
+    "symbol": "ADRO",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_whale_investor": "Edwin Soeryadjaya",
+      "sample_conglomerate_group": "Saratoga Group"
+    },
+    "created_at": 1789574192.3899212,
+    "created_at_iso": "2026-09-16T15:56:32.389921+00:00",
+    "expires_at": 1790178992.3899212,
+    "expires_at_iso": "2026-09-23T15:56:32.389921+00:00",
+    "ttl_seconds": 604800
+  },
+  "ADRO:executives": {
+    "symbol": "ADRO",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Mohammad Syah Indra Aman",
+      "position": "Director"
+    },
+    "created_at": 1789574192.3899305,
+    "created_at_iso": "2026-09-16T15:56:32.389930+00:00",
+    "expires_at": 1790178992.3899305,
+    "expires_at_iso": "2026-09-23T15:56:32.389930+00:00",
+    "ttl_seconds": 604800
+  },
+  "ASII:executive_shareholdings": {
+    "symbol": "ASII",
+    "category": "executive_shareholdings",
+    "tier": "STATIC",
+    "data": {
+      "name": "Djap Tet Fa",
+      "position": "Director",
+      "share_amount": 3000000,
+      "share_percentage": 0.0001
+    },
+    "created_at": 1789574196.475741,
+    "created_at_iso": "2026-09-16T15:56:36.475741+00:00",
+    "expires_at": 1790178996.475741,
+    "expires_at_iso": "2026-09-23T15:56:36.475741+00:00",
+    "ttl_seconds": 604800
+  },
+  "ASII:major_shareholders": {
+    "symbol": "ASII",
+    "category": "major_shareholders",
+    "tier": "STATIC",
+    "data": {
+      "name": "Jardine Cycle & Carriage Limited",
+      "share_value": 99209567145600,
+      "share_amount": 20288255040,
+      "share_percentage": 0.5011
+    },
+    "created_at": 1789574196.475744,
+    "created_at_iso": "2026-09-16T15:56:36.475744+00:00",
+    "expires_at": 1790178996.475744,
+    "expires_at_iso": "2026-09-23T15:56:36.475744+00:00",
+    "ttl_seconds": 604800
+  },
+  "ASII:shareholder_composition": {
+    "symbol": "ASII",
+    "category": "shareholder_composition",
+    "tier": "STATIC",
+    "data": {
+      "sample_conglomerate_group": "Astra Group"
+    },
+    "created_at": 1789574196.4757462,
+    "created_at_iso": "2026-09-16T15:56:36.475746+00:00",
+    "expires_at": 1790178996.4757462,
+    "expires_at_iso": "2026-09-23T15:56:36.475746+00:00",
+    "ttl_seconds": 604800
+  },
+  "ASII:executives": {
+    "symbol": "ASII",
+    "category": "executives",
+    "tier": "STATIC",
+    "data": {
+      "name": "Rudy",
+      "position": "President Director"
+    },
+    "created_at": 1789574196.47575,
+    "created_at_iso": "2026-09-16T15:56:36.475750+00:00",
+    "expires_at": 1790178996.47575,
+    "expires_at_iso": "2026-09-23T15:56:36.475750+00:00",
+    "ttl_seconds": 604800
   },
   "BBCA:valuation": {
     "symbol": "BBCA",
     "category": "valuation",
     "tier": "PERIODIC",
     "data": {
-      "forward_pe": 13.1094,
+      "forward_pe": 13.2648,
       "intrinsic_value": 13694,
       "sample_historical_valuation": {
         "pb": 4.7177,
@@ -426,10 +590,10 @@
         "enterprise_to_revenue": null
       }
     },
-    "created_at": 1789291361.8542635,
-    "created_at_iso": "2026-09-13T09:22:41.854264+00:00",
-    "expires_at": 1789377761.8542635,
-    "expires_at_iso": "2026-09-14T09:22:41.854264+00:00",
+    "created_at": 1789574162.9855285,
+    "created_at_iso": "2026-09-16T15:56:02.985528+00:00",
+    "expires_at": 1789660562.9855285,
+    "expires_at_iso": "2026-09-17T15:56:02.985528+00:00",
     "ttl_seconds": 86400
   },
   "BBCA:peer": {
@@ -441,10 +605,10 @@
       "group": [
         "self"
       ],
-      "pb_mrq": 2.9446,
-      "pe_ttm": 13.7023,
+      "pb_mrq": 2.8543,
+      "pe_ttm": 13.2823,
       "symbol": "BBCA.JK",
-      "market_cap": 796326004237500,
+      "market_cap": 771917544337500,
       "net_income": 57537287000000,
       "company_name": "PT Bank Central Asia Tbk.",
       "employee_num": 27937,
@@ -479,10 +643,10 @@
           "maxpoint": 11
         },
         {
-          "updated_at": "2026-09-09"
+          "updated_at": "2026-09-13"
         }
       ],
-      "yearly_mcap_chg": -0.184375,
+      "yearly_mcap_chg": -0.209375,
       "operating_expense": 36734403000000,
       "revenue_breakdown": null,
       "total_liabilities": 1305140000000000,
@@ -546,10 +710,10 @@
         }
       ]
     },
-    "created_at": 1789291361.854274,
-    "created_at_iso": "2026-09-13T09:22:41.854274+00:00",
-    "expires_at": 1789377761.854274,
-    "expires_at_iso": "2026-09-14T09:22:41.854274+00:00",
+    "created_at": 1789574162.9855404,
+    "created_at_iso": "2026-09-16T15:56:02.985540+00:00",
+    "expires_at": 1789660562.9855404,
+    "expires_at_iso": "2026-09-17T15:56:02.985540+00:00",
     "ttl_seconds": 86400
   },
   "BBCA:future_forecast": {
@@ -561,10 +725,10 @@
       "estimate_year": 2026,
       "revenue_estimate": 126170000000000
     },
-    "created_at": 1789291361.85428,
-    "created_at_iso": "2026-09-13T09:22:41.854280+00:00",
-    "expires_at": 1789377761.85428,
-    "expires_at_iso": "2026-09-14T09:22:41.854280+00:00",
+    "created_at": 1789574162.9855456,
+    "created_at_iso": "2026-09-16T15:56:02.985546+00:00",
+    "expires_at": 1789660562.9855456,
+    "expires_at_iso": "2026-09-17T15:56:02.985546+00:00",
     "ttl_seconds": 86400
   },
   "BBCA:institutional_transactions": {
@@ -582,57 +746,11 @@
         "change_amount": -490522692
       }
     },
-    "created_at": 1789291361.8542829,
-    "created_at_iso": "2026-09-13T09:22:41.854283+00:00",
-    "expires_at": 1789377761.8542829,
-    "expires_at_iso": "2026-09-14T09:22:41.854283+00:00",
+    "created_at": 1789574162.9855487,
+    "created_at_iso": "2026-09-16T15:56:02.985549+00:00",
+    "expires_at": 1789660562.9855487,
+    "expires_at_iso": "2026-09-17T15:56:02.985549+00:00",
     "ttl_seconds": 86400
-  },
-  "BBCA:executive_shareholdings": {
-    "symbol": "BBCA",
-    "category": "executive_shareholdings",
-    "tier": "STATIC",
-    "data": {
-      "name": "Armand Wahyudi Hartono",
-      "position": "Vice President Director",
-      "share_amount": 4256065,
-      "share_percentage": 3e-05
-    },
-    "created_at": 1789291361.8542848,
-    "created_at_iso": "2026-09-13T09:22:41.854285+00:00",
-    "expires_at": 1789896161.8542848,
-    "expires_at_iso": "2026-09-20T09:22:41.854285+00:00",
-    "ttl_seconds": 604800
-  },
-  "BBCA:major_shareholders": {
-    "symbol": "BBCA",
-    "category": "major_shareholders",
-    "tier": "STATIC",
-    "data": {
-      "name": "PT Dwimuria Investama Andalan",
-      "share_value": 428391933750000,
-      "share_amount": 67729950000,
-      "share_percentage": 0.54942
-    },
-    "created_at": 1789291361.8542883,
-    "created_at_iso": "2026-09-13T09:22:41.854288+00:00",
-    "expires_at": 1789896161.8542883,
-    "expires_at_iso": "2026-09-20T09:22:41.854288+00:00",
-    "ttl_seconds": 604800
-  },
-  "BBCA:shareholder_composition": {
-    "symbol": "BBCA",
-    "category": "shareholder_composition",
-    "tier": "STATIC",
-    "data": {
-      "sample_whale_investor": "Anthoni Salim",
-      "sample_conglomerate_group": "Djarum Group"
-    },
-    "created_at": 1789291361.85429,
-    "created_at_iso": "2026-09-13T09:22:41.854290+00:00",
-    "expires_at": 1789896161.85429,
-    "expires_at_iso": "2026-09-20T09:22:41.854290+00:00",
-    "ttl_seconds": 604800
   },
   "BBCA:dividend": {
     "symbol": "BBCA",
@@ -657,25 +775,11 @@
         "total_dividend": 553
       }
     },
-    "created_at": 1789291361.8542917,
-    "created_at_iso": "2026-09-13T09:22:41.854292+00:00",
-    "expires_at": 1789377761.8542917,
-    "expires_at_iso": "2026-09-14T09:22:41.854292+00:00",
+    "created_at": 1789574162.985559,
+    "created_at_iso": "2026-09-16T15:56:02.985559+00:00",
+    "expires_at": 1789660562.985559,
+    "expires_at_iso": "2026-09-17T15:56:02.985559+00:00",
     "ttl_seconds": 86400
-  },
-  "BBCA:executives": {
-    "symbol": "BBCA",
-    "category": "executives",
-    "tier": "STATIC",
-    "data": {
-      "name": "Gregory Hendra Lembong",
-      "position": "President Director"
-    },
-    "created_at": 1789291361.8542936,
-    "created_at_iso": "2026-09-13T09:22:41.854294+00:00",
-    "expires_at": 1789896161.8542936,
-    "expires_at_iso": "2026-09-20T09:22:41.854294+00:00",
-    "ttl_seconds": 604800
   },
   "BBCA:historical_price": {
     "symbol": "BBCA",
@@ -683,218 +787,18 @@
     "tier": "PERIODIC",
     "data": {
       "symbol": "BBCA.JK",
-      "date": "2026-08-14",
-      "close": 6350,
-      "open": 6300,
-      "high": 6350,
-      "low": 6275,
-      "volume": 56953500,
-      "market_cap": 774968601825000
+      "date": "2026-08-18",
+      "close": 6300,
+      "open": 6375,
+      "high": 6450,
+      "low": 6300,
+      "volume": 114945500,
+      "market_cap": 768866486850000
     },
-    "created_at": 1789291361.8542953,
-    "created_at_iso": "2026-09-13T09:22:41.854295+00:00",
-    "expires_at": 1789377761.8542953,
-    "expires_at_iso": "2026-09-14T09:22:41.854295+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:valuation": {
-    "symbol": "TLKM",
-    "category": "valuation",
-    "tier": "PERIODIC",
-    "data": {
-      "forward_pe": 9.9575,
-      "intrinsic_value": 9361,
-      "sample_historical_valuation": {
-        "pb": 2.4888,
-        "pe": 17.9002,
-        "ps": 2.5218,
-        "pcf": 5.0643,
-        "peg": -1.1061,
-        "year": 2022,
-        "pb_peer_avg": 1.4353,
-        "pe_peer_avg": 23.4503,
-        "ps_peer_avg": 5.3766,
-        "enterprise_to_ebitda": 9.720868992758394,
-        "enterprise_to_revenue": 2.61
-      }
-    },
-    "created_at": 1789291498.0666041,
-    "created_at_iso": "2026-09-13T09:24:58.066604+00:00",
-    "expires_at": 1789377898.0666041,
-    "expires_at_iso": "2026-09-14T09:24:58.066604+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:peer": {
-    "symbol": "TLKM",
-    "category": "peer",
-    "tier": "PERIODIC",
-    "data": {
-      "year": 2025,
-      "group": [
-        "self"
-      ],
-      "pb_mrq": 2.2268,
-      "pe_ttm": 15.0902,
-      "symbol": "TLKM.JK",
-      "market_cap": 263505496156000,
-      "net_income": 17814000000000,
-      "company_name": "PT Telkom Indonesia (Persero) Tbk",
-      "employee_num": 19695,
-      "total_assets": 287759000000000,
-      "total_equity": 150537000000000,
-      "pretax_income": 31102000000000,
-      "total_revenue": 146742000000000,
-      "point_summaries": [
-        {
-          "name": "value",
-          "point": 10,
-          "maxpoint": 18
-        },
-        {
-          "name": "competitive",
-          "point": 16.5,
-          "maxpoint": 25.5
-        },
-        {
-          "name": "future",
-          "point": 22.5,
-          "maxpoint": 30
-        },
-        {
-          "name": "financials",
-          "point": 0,
-          "maxpoint": 7.5
-        },
-        {
-          "name": "dividend",
-          "point": 8,
-          "maxpoint": 11
-        },
-        {
-          "updated_at": "2026-09-09"
-        }
-      ],
-      "yearly_mcap_chg": -0.144695,
-      "operating_expense": 64371000000000,
-      "revenue_breakdown": null,
-      "total_liabilities": 137222000000000,
-      "int_income_breakdown": null,
-      "operating_expense_breakdown": null
-    },
-    "created_at": 1789291498.066638,
-    "created_at_iso": "2026-09-13T09:24:58.066638+00:00",
-    "expires_at": 1789377898.066638,
-    "expires_at_iso": "2026-09-14T09:24:58.066638+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:future_forecast": {
-    "symbol": "TLKM",
-    "category": "future_forecast",
-    "tier": "PERIODIC",
-    "data": {
-      "eps_estimate": 239.55,
-      "estimate_year": 2027,
-      "revenue_estimate": 165170000000000
-    },
-    "created_at": 1789291498.0666542,
-    "created_at_iso": "2026-09-13T09:24:58.066654+00:00",
-    "expires_at": 1789377898.0666542,
-    "expires_at_iso": "2026-09-14T09:24:58.066654+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:institutional_transactions": {
-    "symbol": "TLKM",
-    "category": "institutional_transactions",
-    "tier": "PERIODIC",
-    "data": {
-      "date": "2026-02-28",
-      "sample_buyer": {
-        "name": "T. Rowe Price",
-        "change_amount": 48575899
-      },
-      "sample_seller": {
-        "name": "BlackRock Fund Advisors",
-        "change_amount": -32433931
-      }
-    },
-    "created_at": 1789291498.066663,
-    "created_at_iso": "2026-09-13T09:24:58.066663+00:00",
-    "expires_at": 1789377898.066663,
-    "expires_at_iso": "2026-09-14T09:24:58.066663+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:major_shareholders": {
-    "symbol": "TLKM",
-    "category": "major_shareholders",
-    "tier": "STATIC",
-    "data": {
-      "name": "PT Danantara Asset Management",
-      "share_value": 132824458062400,
-      "share_amount": 51086330024,
-      "share_percentage": 0.5157
-    },
-    "created_at": 1789291498.066669,
-    "created_at_iso": "2026-09-13T09:24:58.066669+00:00",
-    "expires_at": 1789896298.066669,
-    "expires_at_iso": "2026-09-20T09:24:58.066669+00:00",
-    "ttl_seconds": 604800
-  },
-  "TLKM:dividend": {
-    "symbol": "TLKM",
-    "category": "dividend",
-    "tier": "PERIODIC",
-    "data": {
-      "year": "2020",
-      "data": {
-        "breakdown": [
-          {
-            "date": "2020-06-30",
-            "total": 154.068,
-            "yield": 0.048189
-          }
-        ],
-        "total_yield": 0.048189,
-        "total_dividend": 154.07
-      }
-    },
-    "created_at": 1789291498.066674,
-    "created_at_iso": "2026-09-13T09:24:58.066674+00:00",
-    "expires_at": 1789377898.066674,
-    "expires_at_iso": "2026-09-14T09:24:58.066674+00:00",
-    "ttl_seconds": 86400
-  },
-  "TLKM:executives": {
-    "symbol": "TLKM",
-    "category": "executives",
-    "tier": "STATIC",
-    "data": {
-      "name": "Dian Siswarini",
-      "position": "President Director"
-    },
-    "created_at": 1789291498.0666788,
-    "created_at_iso": "2026-09-13T09:24:58.066679+00:00",
-    "expires_at": 1789896298.0666788,
-    "expires_at_iso": "2026-09-20T09:24:58.066679+00:00",
-    "ttl_seconds": 604800
-  },
-  "TLKM:historical_price": {
-    "symbol": "TLKM",
-    "category": "historical_price",
-    "tier": "PERIODIC",
-    "data": {
-      "symbol": "TLKM.JK",
-      "date": "2026-08-14",
-      "close": 2620,
-      "open": 2600,
-      "high": 2630,
-      "low": 2590,
-      "volume": 80799200,
-      "market_cap": 259543007492000
-    },
-    "created_at": 1789291498.0666833,
-    "created_at_iso": "2026-09-13T09:24:58.066683+00:00",
-    "expires_at": 1789377898.0666833,
-    "expires_at_iso": "2026-09-14T09:24:58.066683+00:00",
+    "created_at": 1789574162.9855647,
+    "created_at_iso": "2026-09-16T15:56:02.985565+00:00",
+    "expires_at": 1789660562.9855647,
+    "expires_at_iso": "2026-09-17T15:56:02.985565+00:00",
     "ttl_seconds": 86400
   },
   "BMRI:valuation": {
@@ -902,7 +806,7 @@
     "category": "valuation",
     "tier": "PERIODIC",
     "data": {
-      "forward_pe": 6.5714,
+      "forward_pe": 6.5413,
       "intrinsic_value": 1181,
       "sample_historical_valuation": {
         "pb": 1.8178,
@@ -918,10 +822,10 @@
         "enterprise_to_revenue": null
       }
     },
-    "created_at": 1789293011.9922695,
-    "created_at_iso": "2026-09-13T09:50:11.992270+00:00",
-    "expires_at": 1789379411.9922695,
-    "expires_at_iso": "2026-09-14T09:50:11.992270+00:00",
+    "created_at": 1789574167.152582,
+    "created_at_iso": "2026-09-16T15:56:07.152582+00:00",
+    "expires_at": 1789660567.152582,
+    "expires_at_iso": "2026-09-17T15:56:07.152582+00:00",
     "ttl_seconds": 86400
   },
   "BMRI:peer": {
@@ -933,10 +837,10 @@
       "group": [
         "self"
       ],
-      "pb_mrq": 1.4253,
-      "pe_ttm": 5.7953,
+      "pb_mrq": 1.4156,
+      "pe_ttm": 5.7557,
       "symbol": "BMRI.JK",
-      "market_cap": 405635999982440,
+      "market_cap": 402863999982560,
       "net_income": 56293950000000,
       "company_name": "PT Bank Mandiri (Persero) Tbk",
       "employee_num": 38751,
@@ -952,7 +856,7 @@
         },
         {
           "name": "competitive",
-          "point": 15,
+          "point": 16.5,
           "maxpoint": 25.5
         },
         {
@@ -971,10 +875,10 @@
           "maxpoint": 9
         },
         {
-          "updated_at": "2026-09-09"
+          "updated_at": "2026-09-13"
         }
       ],
-      "yearly_mcap_chg": -0.045652,
+      "yearly_mcap_chg": -0.052174,
       "operating_expense": 67584405000000,
       "revenue_breakdown": null,
       "total_liabilities": 2502550000000000,
@@ -1038,10 +942,10 @@
         }
       ]
     },
-    "created_at": 1789293011.9923,
-    "created_at_iso": "2026-09-13T09:50:11.992300+00:00",
-    "expires_at": 1789379411.9923,
-    "expires_at_iso": "2026-09-14T09:50:11.992300+00:00",
+    "created_at": 1789574167.1525884,
+    "created_at_iso": "2026-09-16T15:56:07.152588+00:00",
+    "expires_at": 1789660567.1525884,
+    "expires_at_iso": "2026-09-17T15:56:07.152588+00:00",
     "ttl_seconds": 86400
   },
   "BMRI:future_forecast": {
@@ -1053,10 +957,10 @@
       "estimate_year": 2027,
       "revenue_estimate": 190590000000000
     },
-    "created_at": 1789293011.9923184,
-    "created_at_iso": "2026-09-13T09:50:11.992318+00:00",
-    "expires_at": 1789379411.9923184,
-    "expires_at_iso": "2026-09-14T09:50:11.992318+00:00",
+    "created_at": 1789574167.1525908,
+    "created_at_iso": "2026-09-16T15:56:07.152591+00:00",
+    "expires_at": 1789660567.1525908,
+    "expires_at_iso": "2026-09-17T15:56:07.152591+00:00",
     "ttl_seconds": 86400
   },
   "BMRI:institutional_transactions": {
@@ -1074,43 +978,11 @@
         "change_amount": -902426000
       }
     },
-    "created_at": 1789293011.9923275,
-    "created_at_iso": "2026-09-13T09:50:11.992327+00:00",
-    "expires_at": 1789379411.9923275,
-    "expires_at_iso": "2026-09-14T09:50:11.992327+00:00",
+    "created_at": 1789574167.1525931,
+    "created_at_iso": "2026-09-16T15:56:07.152593+00:00",
+    "expires_at": 1789660567.1525931,
+    "expires_at_iso": "2026-09-17T15:56:07.152593+00:00",
     "ttl_seconds": 86400
-  },
-  "BMRI:executive_shareholdings": {
-    "symbol": "BMRI",
-    "category": "executive_shareholdings",
-    "tier": "STATIC",
-    "data": {
-      "name": "Eka Fitria",
-      "position": "Director",
-      "share_amount": 4293600,
-      "share_percentage": 5e-05
-    },
-    "created_at": 1789293011.9923353,
-    "created_at_iso": "2026-09-13T09:50:11.992335+00:00",
-    "expires_at": 1789897811.9923353,
-    "expires_at_iso": "2026-09-20T09:50:11.992335+00:00",
-    "ttl_seconds": 604800
-  },
-  "BMRI:major_shareholders": {
-    "symbol": "BMRI",
-    "category": "major_shareholders",
-    "tier": "STATIC",
-    "data": {
-      "name": "PT Danantara Asset Management (Persero)",
-      "share_value": 209489280004360,
-      "share_amount": 48048000001,
-      "share_percentage": 0.5148
-    },
-    "created_at": 1789293011.9923422,
-    "created_at_iso": "2026-09-13T09:50:11.992342+00:00",
-    "expires_at": 1789897811.9923422,
-    "expires_at_iso": "2026-09-20T09:50:11.992342+00:00",
-    "ttl_seconds": 604800
   },
   "BMRI:dividend": {
     "symbol": "BMRI",
@@ -1130,25 +1002,11 @@
         "total_dividend": 353.34
       }
     },
-    "created_at": 1789293011.992348,
-    "created_at_iso": "2026-09-13T09:50:11.992348+00:00",
-    "expires_at": 1789379411.992348,
-    "expires_at_iso": "2026-09-14T09:50:11.992348+00:00",
+    "created_at": 1789574167.1526,
+    "created_at_iso": "2026-09-16T15:56:07.152600+00:00",
+    "expires_at": 1789660567.1526,
+    "expires_at_iso": "2026-09-17T15:56:07.152600+00:00",
     "ttl_seconds": 86400
-  },
-  "BMRI:executives": {
-    "symbol": "BMRI",
-    "category": "executives",
-    "tier": "STATIC",
-    "data": {
-      "name": "Riduan",
-      "position": "President Director"
-    },
-    "created_at": 1789293011.9923537,
-    "created_at_iso": "2026-09-13T09:50:11.992354+00:00",
-    "expires_at": 1789897811.9923537,
-    "expires_at_iso": "2026-09-20T09:50:11.992354+00:00",
-    "ttl_seconds": 604800
   },
   "BMRI:historical_price": {
     "symbol": "BMRI",
@@ -1156,18 +1014,18 @@
     "tier": "PERIODIC",
     "data": {
       "symbol": "BMRI.JK",
-      "date": "2026-08-14",
-      "close": 4170,
-      "open": 4140,
-      "high": 4170,
-      "low": 4100,
-      "volume": 75934800,
-      "market_cap": 385307999983320
+      "date": "2026-08-18",
+      "close": 4150,
+      "open": 4200,
+      "high": 4220,
+      "low": 4150,
+      "volume": 116514200,
+      "market_cap": 383459999983400
     },
-    "created_at": 1789293011.9923637,
-    "created_at_iso": "2026-09-13T09:50:11.992364+00:00",
-    "expires_at": 1789379411.9923637,
-    "expires_at_iso": "2026-09-14T09:50:11.992364+00:00",
+    "created_at": 1789574167.152604,
+    "created_at_iso": "2026-09-16T15:56:07.152604+00:00",
+    "expires_at": 1789660567.152604,
+    "expires_at_iso": "2026-09-17T15:56:07.152604+00:00",
     "ttl_seconds": 86400
   },
   "BBRI:valuation": {
@@ -1175,7 +1033,7 @@
     "category": "valuation",
     "tier": "PERIODIC",
     "data": {
-      "forward_pe": 7.4286,
+      "forward_pe": 7.5422,
       "intrinsic_value": 289,
       "sample_historical_valuation": {
         "pb": 2.4431,
@@ -1191,10 +1049,10 @@
         "enterprise_to_revenue": null
       }
     },
-    "created_at": 1789294447.090115,
-    "created_at_iso": "2026-09-13T10:14:07.090115+00:00",
-    "expires_at": 1789380847.090115,
-    "expires_at_iso": "2026-09-14T10:14:07.090115+00:00",
+    "created_at": 1789574170.6471946,
+    "created_at_iso": "2026-09-16T15:56:10.647195+00:00",
+    "expires_at": 1789660570.6471946,
+    "expires_at_iso": "2026-09-17T15:56:10.647195+00:00",
     "ttl_seconds": 86400
   },
   "BBRI:peer": {
@@ -1206,10 +1064,10 @@
       "group": [
         "self"
       ],
-      "pb_mrq": 1.594,
-      "pe_ttm": 8.2338,
+      "pb_mrq": 1.5241,
+      "pe_ttm": 7.8726,
       "symbol": "BBRI.JK",
-      "market_cap": 513148467627540,
+      "market_cap": 490641955889490,
       "net_income": 56652384000000,
       "company_name": "PT Bank Rakyat Indonesia (Persero) Tbk",
       "employee_num": 27937,
@@ -1244,10 +1102,10 @@
           "maxpoint": 9
         },
         {
-          "updated_at": "2026-09-09"
+          "updated_at": "2026-09-13"
         }
       ],
-      "yearly_mcap_chg": -0.140704,
+      "yearly_mcap_chg": -0.178392,
       "operating_expense": 88446886000000,
       "revenue_breakdown": null,
       "total_liabilities": 1804430000000000,
@@ -1321,10 +1179,10 @@
         }
       ]
     },
-    "created_at": 1789294447.0901244,
-    "created_at_iso": "2026-09-13T10:14:07.090124+00:00",
-    "expires_at": 1789380847.0901244,
-    "expires_at_iso": "2026-09-14T10:14:07.090124+00:00",
+    "created_at": 1789574170.647204,
+    "created_at_iso": "2026-09-16T15:56:10.647204+00:00",
+    "expires_at": 1789660570.647204,
+    "expires_at_iso": "2026-09-17T15:56:10.647204+00:00",
     "ttl_seconds": 86400
   },
   "BBRI:future_forecast": {
@@ -1336,10 +1194,10 @@
       "estimate_year": 2026,
       "revenue_estimate": 224850000000000
     },
-    "created_at": 1789294447.090129,
-    "created_at_iso": "2026-09-13T10:14:07.090129+00:00",
-    "expires_at": 1789380847.090129,
-    "expires_at_iso": "2026-09-14T10:14:07.090129+00:00",
+    "created_at": 1789574170.6472073,
+    "created_at_iso": "2026-09-16T15:56:10.647207+00:00",
+    "expires_at": 1789660570.6472073,
+    "expires_at_iso": "2026-09-17T15:56:10.647207+00:00",
     "ttl_seconds": 86400
   },
   "BBRI:institutional_transactions": {
@@ -1357,43 +1215,11 @@
         "change_amount": -45851496
       }
     },
-    "created_at": 1789294447.0901315,
-    "created_at_iso": "2026-09-13T10:14:07.090132+00:00",
-    "expires_at": 1789380847.0901315,
-    "expires_at_iso": "2026-09-14T10:14:07.090132+00:00",
+    "created_at": 1789574170.6472101,
+    "created_at_iso": "2026-09-16T15:56:10.647210+00:00",
+    "expires_at": 1789660570.6472101,
+    "expires_at_iso": "2026-09-17T15:56:10.647210+00:00",
     "ttl_seconds": 86400
-  },
-  "BBRI:executive_shareholdings": {
-    "symbol": "BBRI",
-    "category": "executive_shareholdings",
-    "tier": "STATIC",
-    "data": {
-      "name": "Kartika Wirjoatmodjo",
-      "position": "President Commissioner",
-      "share_amount": 1678000,
-      "share_percentage": 1e-05
-    },
-    "created_at": 1789294447.0901334,
-    "created_at_iso": "2026-09-13T10:14:07.090133+00:00",
-    "expires_at": 1789899247.0901334,
-    "expires_at_iso": "2026-09-20T10:14:07.090133+00:00",
-    "ttl_seconds": 604800
-  },
-  "BBRI:major_shareholders": {
-    "symbol": "BBRI",
-    "category": "major_shareholders",
-    "tier": "STATIC",
-    "data": {
-      "name": "PT Danantara Asset Management",
-      "share_value": 260961915439890,
-      "share_amount": 79804867107,
-      "share_percentage": 0.52656
-    },
-    "created_at": 1789294447.0901353,
-    "created_at_iso": "2026-09-13T10:14:07.090135+00:00",
-    "expires_at": 1789899247.0901353,
-    "expires_at_iso": "2026-09-20T10:14:07.090135+00:00",
-    "ttl_seconds": 604800
   },
   "BBRI:dividend": {
     "symbol": "BBRI",
@@ -1413,25 +1239,11 @@
         "total_dividend": 168.2
       }
     },
-    "created_at": 1789294447.0901368,
-    "created_at_iso": "2026-09-13T10:14:07.090137+00:00",
-    "expires_at": 1789380847.0901368,
-    "expires_at_iso": "2026-09-14T10:14:07.090137+00:00",
+    "created_at": 1789574170.6472201,
+    "created_at_iso": "2026-09-16T15:56:10.647220+00:00",
+    "expires_at": 1789660570.6472201,
+    "expires_at_iso": "2026-09-17T15:56:10.647220+00:00",
     "ttl_seconds": 86400
-  },
-  "BBRI:executives": {
-    "symbol": "BBRI",
-    "category": "executives",
-    "tier": "STATIC",
-    "data": {
-      "name": "Viviana Dyah Ayu Retno",
-      "position": "Vice Presidentt"
-    },
-    "created_at": 1789294447.0901384,
-    "created_at_iso": "2026-09-13T10:14:07.090138+00:00",
-    "expires_at": 1789899247.0901384,
-    "expires_at_iso": "2026-09-20T10:14:07.090138+00:00",
-    "ttl_seconds": 604800
   },
   "BBRI:historical_price": {
     "symbol": "BBRI",
@@ -1439,18 +1251,1231 @@
     "tier": "PERIODIC",
     "data": {
       "symbol": "BBRI.JK",
-      "date": "2026-08-14",
-      "close": 3120,
-      "open": 3110,
-      "high": 3150,
-      "low": 3090,
-      "volume": 118492200,
-      "market_cap": 468135444151440
+      "date": "2026-08-18",
+      "close": 3080,
+      "open": 3120,
+      "high": 3140,
+      "low": 3080,
+      "volume": 153801000,
+      "market_cap": 462133707687960
     },
-    "created_at": 1789294447.0901399,
-    "created_at_iso": "2026-09-13T10:14:07.090140+00:00",
-    "expires_at": 1789380847.0901399,
-    "expires_at_iso": "2026-09-14T10:14:07.090140+00:00",
+    "created_at": 1789574170.647226,
+    "created_at_iso": "2026-09-16T15:56:10.647226+00:00",
+    "expires_at": 1789660570.647226,
+    "expires_at_iso": "2026-09-17T15:56:10.647226+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:valuation": {
+    "symbol": "BBNI",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 5.5593,
+      "intrinsic_value": 8702,
+      "sample_historical_valuation": {
+        "pb": 1.2148,
+        "pe": 9.3006,
+        "ps": 2.7706,
+        "pcf": 8.5358,
+        "peg": 0.1367,
+        "year": 2022,
+        "pb_peer_avg": 0.9759,
+        "pe_peer_avg": 15.1293,
+        "ps_peer_avg": 4.4186,
+        "enterprise_to_ebitda": null,
+        "enterprise_to_revenue": null
+      }
+    },
+    "created_at": 1789574174.2009444,
+    "created_at_iso": "2026-09-16T15:56:14.200944+00:00",
+    "expires_at": 1789660574.2009444,
+    "expires_at_iso": "2026-09-17T15:56:14.200944+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:peer": {
+    "symbol": "BBNI",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 0.845,
+      "pe_ttm": 6.6549,
+      "symbol": "BBNI.JK",
+      "market_cap": 138466274197500,
+      "net_income": 20040703000000,
+      "company_name": "PT Bank Negara Indonesia (Persero) Tbk",
+      "employee_num": 25266,
+      "total_assets": 1362050000000000,
+      "total_equity": 176339368000000,
+      "pretax_income": 24397463000000,
+      "total_revenue": 63939207000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 12,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 9.5,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 30,
+          "maxpoint": 30
+        },
+        {
+          "name": "financials",
+          "point": 1.5,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 1.5,
+          "maxpoint": 11
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": -0.131944,
+      "operating_expense": 30856356000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 1185720000000000,
+      "int_income_breakdown": [
+        {
+          "class": "Loans & Deposits",
+          "amount": 57957360000000,
+          "category": "Loans"
+        },
+        {
+          "class": "Securities",
+          "amount": 7204618000000,
+          "category": "Government Bonds"
+        },
+        {
+          "class": "Marketable Securities",
+          "amount": 752171000000,
+          "category": "Marketable securities"
+        },
+        {
+          "class": "Interbank Placement",
+          "amount": 2413743000000,
+          "category": "Placement with Bank Indonesia"
+        },
+        {
+          "class": "Finance Receivable",
+          "amount": 1066262000000,
+          "category": "Others"
+        }
+      ],
+      "operating_expense_breakdown": [
+        {
+          "class": "Salaries & Benefits",
+          "amount": 14529204000000,
+          "category": "Salaries and employees' benefits"
+        },
+        {
+          "class": "General & Admin",
+          "amount": 9394734000000,
+          "category": "General and administrative"
+        },
+        {
+          "class": "Other expenses",
+          "amount": 1703849000000,
+          "category": "Deposit guarantee premium"
+        },
+        {
+          "class": "Sales & Marketing",
+          "amount": 1187693000000,
+          "category": "Promotion expense"
+        },
+        {
+          "class": "Other expenses",
+          "amount": 4040876000000,
+          "category": "Others (expense)"
+        }
+      ]
+    },
+    "created_at": 1789574174.200951,
+    "created_at_iso": "2026-09-16T15:56:14.200951+00:00",
+    "expires_at": 1789660574.200951,
+    "expires_at_iso": "2026-09-17T15:56:14.200951+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:future_forecast": {
+    "symbol": "BBNI",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 701.34,
+      "estimate_year": 2026,
+      "revenue_estimate": 74680000000000
+    },
+    "created_at": 1789574174.2009535,
+    "created_at_iso": "2026-09-16T15:56:14.200953+00:00",
+    "expires_at": 1789660574.2009535,
+    "expires_at_iso": "2026-09-17T15:56:14.200953+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:institutional_transactions": {
+    "symbol": "BBNI",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "Vanguard",
+        "change_amount": 2795300
+      },
+      "sample_seller": {
+        "name": "Invesco Asset Management Ltd",
+        "change_amount": -12445700
+      }
+    },
+    "created_at": 1789574174.200956,
+    "created_at_iso": "2026-09-16T15:56:14.200956+00:00",
+    "expires_at": 1789660574.200956,
+    "expires_at_iso": "2026-09-17T15:56:14.200956+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:dividend": {
+    "symbol": "BBNI",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-03-02",
+            "total": 206.241,
+            "yield": 0.077851
+          }
+        ],
+        "total_yield": 0.077851,
+        "total_dividend": 206.24
+      }
+    },
+    "created_at": 1789574174.2009661,
+    "created_at_iso": "2026-09-16T15:56:14.200966+00:00",
+    "expires_at": 1789660574.2009661,
+    "expires_at_iso": "2026-09-17T15:56:14.200966+00:00",
+    "ttl_seconds": 86400
+  },
+  "BBNI:historical_price": {
+    "symbol": "BBNI",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BBNI.JK",
+      "date": "2026-08-18",
+      "close": 3590,
+      "open": 3630,
+      "high": 3660,
+      "low": 3590,
+      "volume": 26064000,
+      "market_cap": 132558379831740
+    },
+    "created_at": 1789574174.2009702,
+    "created_at_iso": "2026-09-16T15:56:14.200970+00:00",
+    "expires_at": 1789660574.2009702,
+    "expires_at_iso": "2026-09-17T15:56:14.200970+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:valuation": {
+    "symbol": "TLKM",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 10.3405,
+      "intrinsic_value": 9361,
+      "sample_historical_valuation": {
+        "pb": 2.4888,
+        "pe": 17.9002,
+        "ps": 2.5218,
+        "pcf": 5.0643,
+        "peg": -1.1061,
+        "year": 2022,
+        "pb_peer_avg": 1.4353,
+        "pe_peer_avg": 23.4503,
+        "ps_peer_avg": 5.3766,
+        "enterprise_to_ebitda": 9.720868992758394,
+        "enterprise_to_revenue": 2.61
+      }
+    },
+    "created_at": 1789574178.3354795,
+    "created_at_iso": "2026-09-16T15:56:18.335479+00:00",
+    "expires_at": 1789660578.3354795,
+    "expires_at_iso": "2026-09-17T15:56:18.335479+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:peer": {
+    "symbol": "TLKM",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 2.1766,
+      "pe_ttm": 14.7498,
+      "symbol": "TLKM.JK",
+      "market_cap": 257561763160000,
+      "net_income": 17814000000000,
+      "company_name": "PT Telkom Indonesia (Persero) Tbk",
+      "employee_num": 19695,
+      "total_assets": 287759000000000,
+      "total_equity": 150537000000000,
+      "pretax_income": 31102000000000,
+      "total_revenue": 146742000000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 10,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 16.5,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 22.5,
+          "maxpoint": 30
+        },
+        {
+          "name": "financials",
+          "point": 0,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 8,
+          "maxpoint": 11
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": -0.163987,
+      "operating_expense": 64371000000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 137222000000000,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574178.3354867,
+    "created_at_iso": "2026-09-16T15:56:18.335487+00:00",
+    "expires_at": 1789660578.3354867,
+    "expires_at_iso": "2026-09-17T15:56:18.335487+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:future_forecast": {
+    "symbol": "TLKM",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 239.55,
+      "estimate_year": 2027,
+      "revenue_estimate": 165170000000000
+    },
+    "created_at": 1789574178.335489,
+    "created_at_iso": "2026-09-16T15:56:18.335489+00:00",
+    "expires_at": 1789660578.335489,
+    "expires_at_iso": "2026-09-17T15:56:18.335489+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:institutional_transactions": {
+    "symbol": "TLKM",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-02-28",
+      "sample_buyer": {
+        "name": "T. Rowe Price",
+        "change_amount": 48575899
+      },
+      "sample_seller": {
+        "name": "BlackRock Fund Advisors",
+        "change_amount": -32433931
+      }
+    },
+    "created_at": 1789574178.3354914,
+    "created_at_iso": "2026-09-16T15:56:18.335491+00:00",
+    "expires_at": 1789660578.3354914,
+    "expires_at_iso": "2026-09-17T15:56:18.335491+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:dividend": {
+    "symbol": "TLKM",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-06-30",
+            "total": 154.068,
+            "yield": 0.048189
+          }
+        ],
+        "total_yield": 0.048189,
+        "total_dividend": 154.07
+      }
+    },
+    "created_at": 1789574178.335497,
+    "created_at_iso": "2026-09-16T15:56:18.335497+00:00",
+    "expires_at": 1789660578.335497,
+    "expires_at_iso": "2026-09-17T15:56:18.335497+00:00",
+    "ttl_seconds": 86400
+  },
+  "TLKM:historical_price": {
+    "symbol": "TLKM",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "TLKM.JK",
+      "date": "2026-08-18",
+      "close": 2600,
+      "open": 2640,
+      "high": 2640,
+      "low": 2600,
+      "volume": 80089000,
+      "market_cap": 257561763160000
+    },
+    "created_at": 1789574178.335502,
+    "created_at_iso": "2026-09-16T15:56:18.335502+00:00",
+    "expires_at": 1789660578.335502,
+    "expires_at_iso": "2026-09-17T15:56:18.335502+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:valuation": {
+    "symbol": "ISAT",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 11.9926,
+      "intrinsic_value": 5486,
+      "sample_historical_valuation": {
+        "pb": 1.5748,
+        "pe": 10540.467,
+        "ps": 1064.9097,
+        "pcf": 3.1758,
+        "peg": -105.4785,
+        "year": 2022,
+        "pb_peer_avg": 1.4353,
+        "pe_peer_avg": 23.4503,
+        "ps_peer_avg": 5.3766,
+        "enterprise_to_ebitda": 2516.659565071761,
+        "enterprise_to_revenue": 1317.01
+      }
+    },
+    "created_at": 1789574182.192067,
+    "created_at_iso": "2026-09-16T15:56:22.192067+00:00",
+    "expires_at": 1789660582.192067,
+    "expires_at_iso": "2026-09-17T15:56:22.192067+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:peer": {
+    "symbol": "ISAT",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 2.1152,
+      "pe_ttm": 10.4725,
+      "symbol": "ISAT.JK",
+      "market_cap": 78369470625510,
+      "net_income": 5509703000000,
+      "company_name": "PT Indosat Tbk",
+      "employee_num": 2788,
+      "total_assets": 118629871000000,
+      "total_equity": 39509108000000,
+      "pretax_income": 7284647000000,
+      "total_revenue": 56518141000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 12,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 18,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 22.5,
+          "maxpoint": 30
+        },
+        {
+          "name": "financials",
+          "point": 3.5,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 11,
+          "maxpoint": 11
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": 0.218045,
+      "operating_expense": 21913396000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 79120763000000,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574182.1920707,
+    "created_at_iso": "2026-09-16T15:56:22.192071+00:00",
+    "expires_at": 1789660582.1920707,
+    "expires_at_iso": "2026-09-17T15:56:22.192071+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:future_forecast": {
+    "symbol": "ISAT",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 248.47,
+      "estimate_year": 2027,
+      "revenue_estimate": 65769999999999
+    },
+    "created_at": 1789574182.1920724,
+    "created_at_iso": "2026-09-16T15:56:22.192072+00:00",
+    "expires_at": 1789660582.1920724,
+    "expires_at_iso": "2026-09-17T15:56:22.192072+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:institutional_transactions": {
+    "symbol": "ISAT",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "Letko, Brosseau & Associates Inc.",
+        "change_amount": 48621750
+      },
+      "sample_seller": {
+        "name": "Capital Research and Management Company",
+        "change_amount": -345721476
+      }
+    },
+    "created_at": 1789574182.192074,
+    "created_at_iso": "2026-09-16T15:56:22.192074+00:00",
+    "expires_at": 1789660582.192074,
+    "expires_at_iso": "2026-09-17T15:56:22.192074+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:dividend": {
+    "symbol": "ISAT",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2021",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2021-12-07",
+            "total": 920.14,
+            "yield": 0.130209
+          }
+        ],
+        "total_yield": 0.130209,
+        "total_dividend": 920.14
+      }
+    },
+    "created_at": 1789574182.1920788,
+    "created_at_iso": "2026-09-16T15:56:22.192079+00:00",
+    "expires_at": 1789660582.1920788,
+    "expires_at_iso": "2026-09-17T15:56:22.192079+00:00",
+    "ttl_seconds": 86400
+  },
+  "ISAT:historical_price": {
+    "symbol": "ISAT",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "ISAT.JK",
+      "date": "2026-08-18",
+      "close": 2600,
+      "open": 2600,
+      "high": 2670,
+      "low": 2530,
+      "volume": 178949600,
+      "market_cap": 83852108488200
+    },
+    "created_at": 1789574182.1920815,
+    "created_at_iso": "2026-09-16T15:56:22.192081+00:00",
+    "expires_at": 1789660582.1920815,
+    "expires_at_iso": "2026-09-17T15:56:22.192081+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:valuation": {
+    "symbol": "EXCL",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 15.1885,
+      "intrinsic_value": 10764,
+      "sample_historical_valuation": {
+        "pb": 1.0352,
+        "pe": 24.05,
+        "ps": 0.9156,
+        "pcf": 1.8917,
+        "peg": -1.7364,
+        "year": 2022,
+        "pb_peer_avg": 1.4353,
+        "pe_peer_avg": 23.4503,
+        "ps_peer_avg": 5.3766,
+        "enterprise_to_ebitda": 4.461719856140176,
+        "enterprise_to_revenue": 2.25
+      }
+    },
+    "created_at": 1789574185.7277796,
+    "created_at_iso": "2026-09-16T15:56:25.727780+00:00",
+    "expires_at": 1789660585.7277796,
+    "expires_at_iso": "2026-09-17T15:56:25.727780+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:peer": {
+    "symbol": "EXCL",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 1.6576,
+      "pe_ttm": -11.4095,
+      "symbol": "EXCL.JK",
+      "market_cap": 47865638246130,
+      "net_income": -4426618000000,
+      "company_name": "PT XLSMART Telecom Sejahtera Tbk",
+      "employee_num": 1378,
+      "total_assets": 115318438000000,
+      "total_equity": 30008708000000,
+      "pretax_income": -5262771000000,
+      "total_revenue": 42445960000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 12.5,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 12.5,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 16.5,
+          "maxpoint": 30
+        },
+        {
+          "name": "financials",
+          "point": 0,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 8,
+          "maxpoint": 8
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": -0.033088,
+      "operating_expense": 25442161000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 85309730000000,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574185.7277842,
+    "created_at_iso": "2026-09-16T15:56:25.727784+00:00",
+    "expires_at": 1789660585.7277842,
+    "expires_at_iso": "2026-09-17T15:56:25.727784+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:future_forecast": {
+    "symbol": "EXCL",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 186.23,
+      "estimate_year": 2026,
+      "revenue_estimate": 38170000000000
+    },
+    "created_at": 1789574185.7277863,
+    "created_at_iso": "2026-09-16T15:56:25.727786+00:00",
+    "expires_at": 1789660585.7277863,
+    "expires_at_iso": "2026-09-17T15:56:25.727786+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:institutional_transactions": {
+    "symbol": "EXCL",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "State Street Investment Management",
+        "change_amount": 16077539
+      },
+      "sample_seller": {
+        "name": "Northern Trust Investments Inc",
+        "change_amount": -1420502
+      }
+    },
+    "created_at": 1789574185.7277877,
+    "created_at_iso": "2026-09-16T15:56:25.727788+00:00",
+    "expires_at": 1789660585.7277877,
+    "expires_at_iso": "2026-09-17T15:56:25.727788+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:dividend": {
+    "symbol": "EXCL",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-06-02",
+            "total": 20,
+            "yield": 0.008048
+          }
+        ],
+        "total_yield": 0.008048,
+        "total_dividend": 20
+      }
+    },
+    "created_at": 1789574185.7277942,
+    "created_at_iso": "2026-09-16T15:56:25.727794+00:00",
+    "expires_at": 1789660585.7277942,
+    "expires_at_iso": "2026-09-17T15:56:25.727794+00:00",
+    "ttl_seconds": 86400
+  },
+  "EXCL:historical_price": {
+    "symbol": "EXCL",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "EXCL.JK",
+      "date": "2026-08-18",
+      "close": 2910,
+      "open": 2840,
+      "high": 2930,
+      "low": 2760,
+      "volume": 10371800,
+      "market_cap": 52961599732410
+    },
+    "created_at": 1789574185.7277968,
+    "created_at_iso": "2026-09-16T15:56:25.727797+00:00",
+    "expires_at": 1789660585.7277968,
+    "expires_at_iso": "2026-09-17T15:56:25.727797+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI:valuation": {
+    "symbol": "BUMI",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": null,
+      "intrinsic_value": -156,
+      "sample_historical_valuation": {
+        "pb": 1.3604,
+        "pe": 7.3718,
+        "ps": 2.1159,
+        "pcf": -6.4587,
+        "peg": 0.031,
+        "year": 2022,
+        "pb_peer_avg": 1.0945,
+        "pe_peer_avg": 4.9868,
+        "ps_peer_avg": 1.2428,
+        "enterprise_to_ebitda": 4.516705182185805,
+        "enterprise_to_revenue": 2.13
+      }
+    },
+    "created_at": 1789574189.1907737,
+    "created_at_iso": "2026-09-16T15:56:29.190774+00:00",
+    "expires_at": 1789660589.1907737,
+    "expires_at_iso": "2026-09-17T15:56:29.190774+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI:peer": {
+    "symbol": "BUMI",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 2.6417,
+      "pe_ttm": 38.4933,
+      "symbol": "BUMI.JK",
+      "market_cap": 78723103118416,
+      "net_income": 1355850850647,
+      "company_name": "Bumi Resources Tbk",
+      "employee_num": 70,
+      "total_assets": 70604594591720,
+      "total_equity": 48333602232812,
+      "pretax_income": 2976797604229,
+      "total_revenue": 23845559235376,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 6,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 12.5,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 0,
+          "maxpoint": 6
+        },
+        {
+          "name": "financials",
+          "point": 4.5,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 1.5,
+          "maxpoint": 15.5
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": 0.981308,
+      "operating_expense": 1803793231804,
+      "revenue_breakdown": null,
+      "total_liabilities": 22270992358908,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574189.1907806,
+    "created_at_iso": "2026-09-16T15:56:29.190781+00:00",
+    "expires_at": 1789660589.1907806,
+    "expires_at_iso": "2026-09-17T15:56:29.190781+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI:institutional_transactions": {
+    "symbol": "BUMI",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "Vanguard",
+        "change_amount": 44056200
+      },
+      "sample_seller": {
+        "name": "Dimensional Fund Advisors LP",
+        "change_amount": -162784563
+      }
+    },
+    "created_at": 1789574189.1907835,
+    "created_at_iso": "2026-09-16T15:56:29.190784+00:00",
+    "expires_at": 1789660589.1907835,
+    "expires_at_iso": "2026-09-17T15:56:29.190784+00:00",
+    "ttl_seconds": 86400
+  },
+  "BUMI:historical_price": {
+    "symbol": "BUMI",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "BUMI.JK",
+      "date": "2026-08-18",
+      "close": 184,
+      "open": 183,
+      "high": 187,
+      "low": 182,
+      "volume": 2230547000,
+      "market_cap": 68325712140512
+    },
+    "created_at": 1789574189.190797,
+    "created_at_iso": "2026-09-16T15:56:29.190797+00:00",
+    "expires_at": 1789660589.190797,
+    "expires_at_iso": "2026-09-17T15:56:29.190797+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:valuation": {
+    "symbol": "ADRO",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 5.0159,
+      "intrinsic_value": 10567,
+      "sample_historical_valuation": {
+        "pb": 1.21,
+        "pe": 3.168,
+        "ps": 0.9748,
+        "pcf": 2.0439,
+        "peg": 0.0165,
+        "year": 2022,
+        "pb_peer_avg": 1.0945,
+        "pe_peer_avg": 4.9868,
+        "ps_peer_avg": 1.2428,
+        "enterprise_to_ebitda": 1.0755577789292976,
+        "enterprise_to_revenue": 0.67
+      }
+    },
+    "created_at": 1789574192.3898711,
+    "created_at_iso": "2026-09-16T15:56:32.389871+00:00",
+    "expires_at": 1789660592.3898711,
+    "expires_at_iso": "2026-09-17T15:56:32.389871+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:peer": {
+    "symbol": "ADRO",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 0.9217,
+      "pe_ttm": 7.6222,
+      "symbol": "ADRO.JK",
+      "market_cap": 76033304688000,
+      "net_income": 7492812723240,
+      "company_name": "Alamtri Resources Indonesia Tbk",
+      "employee_num": 13015,
+      "total_assets": 114092330664780,
+      "total_equity": 83748459226380,
+      "pretax_income": 10250429028060,
+      "total_revenue": 31356226430880,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 14.5,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 14,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 0,
+          "maxpoint": 6
+        },
+        {
+          "name": "financials",
+          "point": 3,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 9,
+          "maxpoint": 9
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": 0.504113,
+      "operating_expense": 1793294952540,
+      "revenue_breakdown": null,
+      "total_liabilities": 30343871438400,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574192.3898854,
+    "created_at_iso": "2026-09-16T15:56:32.389885+00:00",
+    "expires_at": 1789660592.3898854,
+    "expires_at_iso": "2026-09-17T15:56:32.389885+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:future_forecast": {
+    "symbol": "ADRO",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 445.93,
+      "estimate_year": 2026,
+      "revenue_estimate": 64090000000000
+    },
+    "created_at": 1789574192.3898985,
+    "created_at_iso": "2026-09-16T15:56:32.389899+00:00",
+    "expires_at": 1789660592.3898985,
+    "expires_at_iso": "2026-09-17T15:56:32.389899+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:institutional_transactions": {
+    "symbol": "ADRO",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "Lazard Asset Management LLC",
+        "change_amount": 274355400
+      },
+      "sample_seller": {
+        "name": "BlackRock Fund Advisors",
+        "change_amount": -101695004
+      }
+    },
+    "created_at": 1789574192.389905,
+    "created_at_iso": "2026-09-16T15:56:32.389905+00:00",
+    "expires_at": 1789660592.389905,
+    "expires_at_iso": "2026-09-17T15:56:32.389905+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:dividend": {
+    "symbol": "ADRO",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-06-04",
+            "total": 44.13,
+            "yield": 0.037934
+          },
+          {
+            "date": "2020-01-03",
+            "total": 65.48,
+            "yield": 0.056287
+          }
+        ],
+        "total_yield": 0.094221,
+        "total_dividend": 109.61
+      }
+    },
+    "created_at": 1789574192.389926,
+    "created_at_iso": "2026-09-16T15:56:32.389926+00:00",
+    "expires_at": 1789660592.389926,
+    "expires_at_iso": "2026-09-17T15:56:32.389926+00:00",
+    "ttl_seconds": 86400
+  },
+  "ADRO:historical_price": {
+    "symbol": "ADRO",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "ADRO.JK",
+      "date": "2026-08-18",
+      "close": 2570,
+      "open": 2530,
+      "high": 2570,
+      "low": 2500,
+      "volume": 37379600,
+      "market_cap": 74017270094000
+    },
+    "created_at": 1789574192.3899353,
+    "created_at_iso": "2026-09-16T15:56:32.389935+00:00",
+    "expires_at": 1789660592.3899353,
+    "expires_at_iso": "2026-09-17T15:56:32.389935+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:valuation": {
+    "symbol": "ASII",
+    "category": "valuation",
+    "tier": "PERIODIC",
+    "data": {
+      "forward_pe": 6.3683,
+      "intrinsic_value": 10970,
+      "sample_historical_valuation": {
+        "pb": 0.9468,
+        "pe": 7.9725,
+        "ps": 0.7657,
+        "pcf": 6.1795,
+        "peg": 0.1841,
+        "year": 2022,
+        "pb_peer_avg": 1.0214,
+        "pe_peer_avg": 6.5961,
+        "ps_peer_avg": 0.4709,
+        "enterprise_to_ebitda": 4.575156675619559,
+        "enterprise_to_revenue": 0.8
+      }
+    },
+    "created_at": 1789574196.4757283,
+    "created_at_iso": "2026-09-16T15:56:36.475728+00:00",
+    "expires_at": 1789660596.4757283,
+    "expires_at_iso": "2026-09-17T15:56:36.475728+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:peer": {
+    "symbol": "ASII",
+    "category": "peer",
+    "tier": "PERIODIC",
+    "data": {
+      "year": 2025,
+      "group": [
+        "self"
+      ],
+      "pb_mrq": 0.864,
+      "pe_ttm": 6.6732,
+      "symbol": "ASII.JK",
+      "market_cap": 198774245917400,
+      "net_income": 32769000000000,
+      "company_name": "Astra International Tbk",
+      "employee_num": 144284,
+      "total_assets": 507366000000000,
+      "total_equity": 290812000000000,
+      "pretax_income": 49288000000000,
+      "total_revenue": 323392000000000,
+      "point_summaries": [
+        {
+          "name": "value",
+          "point": 14,
+          "maxpoint": 18
+        },
+        {
+          "name": "competitive",
+          "point": 13.5,
+          "maxpoint": 25.5
+        },
+        {
+          "name": "future",
+          "point": 0,
+          "maxpoint": 6
+        },
+        {
+          "name": "financials",
+          "point": 2,
+          "maxpoint": 7.5
+        },
+        {
+          "name": "dividend",
+          "point": 9,
+          "maxpoint": 11
+        },
+        {
+          "updated_at": "2026-09-13"
+        }
+      ],
+      "yearly_mcap_chg": -0.099083,
+      "operating_expense": 32779000000000,
+      "revenue_breakdown": null,
+      "total_liabilities": 216554000000000,
+      "int_income_breakdown": null,
+      "operating_expense_breakdown": null
+    },
+    "created_at": 1789574196.4757347,
+    "created_at_iso": "2026-09-16T15:56:36.475735+00:00",
+    "expires_at": 1789660596.4757347,
+    "expires_at_iso": "2026-09-17T15:56:36.475735+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:future_forecast": {
+    "symbol": "ASII",
+    "category": "future_forecast",
+    "tier": "PERIODIC",
+    "data": {
+      "eps_estimate": 849.91,
+      "estimate_year": 2026,
+      "revenue_estimate": 345720000000000
+    },
+    "created_at": 1789574196.4757369,
+    "created_at_iso": "2026-09-16T15:56:36.475737+00:00",
+    "expires_at": 1789660596.4757369,
+    "expires_at_iso": "2026-09-17T15:56:36.475737+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:institutional_transactions": {
+    "symbol": "ASII",
+    "category": "institutional_transactions",
+    "tier": "PERIODIC",
+    "data": {
+      "date": "2026-08-31",
+      "sample_buyer": {
+        "name": "First Sentier Investors (Hong Kong) Limited",
+        "change_amount": 12910900
+      },
+      "sample_seller": {
+        "name": "Vanguard",
+        "change_amount": -89404876
+      }
+    },
+    "created_at": 1789574196.4757392,
+    "created_at_iso": "2026-09-16T15:56:36.475739+00:00",
+    "expires_at": 1789660596.4757392,
+    "expires_at_iso": "2026-09-17T15:56:36.475739+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:dividend": {
+    "symbol": "ASII",
+    "category": "dividend",
+    "tier": "PERIODIC",
+    "data": {
+      "year": "2020",
+      "data": {
+        "breakdown": [
+          {
+            "date": "2020-10-07",
+            "total": 27,
+            "yield": 0.00521
+          },
+          {
+            "date": "2020-06-25",
+            "total": 157,
+            "yield": 0.030298
+          }
+        ],
+        "total_yield": 0.035508,
+        "total_dividend": 184
+      }
+    },
+    "created_at": 1789574196.475748,
+    "created_at_iso": "2026-09-16T15:56:36.475748+00:00",
+    "expires_at": 1789660596.475748,
+    "expires_at_iso": "2026-09-17T15:56:36.475748+00:00",
+    "ttl_seconds": 86400
+  },
+  "ASII:historical_price": {
+    "symbol": "ASII",
+    "category": "historical_price",
+    "tier": "PERIODIC",
+    "data": {
+      "symbol": "ASII.JK",
+      "date": "2026-08-18",
+      "close": 4790,
+      "open": 4800,
+      "high": 4820,
+      "low": 4760,
+      "volume": 59420100,
+      "market_cap": 193916219540600
+    },
+    "created_at": 1789574196.4757519,
+    "created_at_iso": "2026-09-16T15:56:36.475752+00:00",
+    "expires_at": 1789660596.4757519,
+    "expires_at_iso": "2026-09-17T15:56:36.475752+00:00",
     "ttl_seconds": 86400
   }
 }
