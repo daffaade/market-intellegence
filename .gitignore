@@ -16,3 +16,6 @@ testing.py
 !README.md
 !TUTORIAL.md
 *.txt
+
+
+.cache
