@@ -2,13 +2,23 @@
 .env
 .env.*
 *.env
-data_sectors/.env
 
 # Python cache & Jupyter
 __pycache__/
 *.py[cod]
 *$py.class
 .ipynb_checkpoints/
+.cache/
+
+# Data and Models
+raw-csv/
+Model-P0/
+model_intellegence/
+model-intellegence/
+
+# Test Outputs
+*.png
+testing_anomaly_result.png
 testing.py
 
 # Pseudocode & design specification documents
