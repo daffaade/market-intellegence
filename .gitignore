@@ -16,20 +16,16 @@ Model-P0/
 model_intellegence/
 model-intellegence/
 
-# Test Outputs
+# Test Outputs & Media
 *.png
 testing_anomaly_result.png
-testing.py
 
-# Pseudocode & design specification documents
-*.md
-!README.md
-!TUTORIAL.md
-
-*.txt
-*.png
-.cache
-*.csv
-model_intellegence/
+# Raw Data & Legacy Models
 raw-csv/
+*.csv
 Model-P0/
+model_intellegence/
+model-intellegence/
+
+# Notes & Specs
+*.txt
