@@ -15,7 +15,11 @@ testing.py
 *.md
 !README.md
 !TUTORIAL.md
+
 *.txt
-
-
+*.png
 .cache
+*.csv
+model_intellegence/
+raw-csv/
+Model-P0/
