@@ -842,7 +842,8 @@ def anomaly_detect(
             anomalies_only, 
             min_volume_zscore=min_volume_zscore,
             bearish_score_threshold=0.6,
-            bullish_score_threshold=0.8
+            bullish_score_threshold=0.8,
+            return_all=True
         )
         
         # Update flag
@@ -1457,12 +1458,15 @@ def filter_false_positives(
     anomaly_predictions: List[Dict[str, Any]],
     min_volume_zscore: float = 0.5,
     bearish_score_threshold: float = 0.6,
-    bullish_score_threshold: float = 0.8
+    bullish_score_threshold: float = 0.8,
+    return_all: bool = False
 ) -> List[Dict[str, Any]]:
     """
     ENHANCEMENT 2: POST-PROCESSING FILTER & ASYMMETRIC THRESHOLD
     Menyaring False Positives dengan mengabaikan anomali saat likuiditas tipis,
     dan menerapkan ambang batas yang berbeda untuk pergerakan harga naik vs turun.
+    Jika return_all=True, mengembalikan seluruh baris dengan atribut is_false_positive.
+    Jika return_all=False (default), menyaring dan HANYA mengembalikan anomali yang valid (True Positives).
     """
     processed_anomalies = []
     
@@ -1482,7 +1486,8 @@ def filter_false_positives(
             pred_copy["is_false_positive"] = True
             pred_copy["filtered_reason"] = "low_volume"
             pred_copy["note"] = f"False Positive: Low Volume (Z-Score: {vol_zscore:.2f} < {min_volume_zscore})"
-            processed_anomalies.append(pred_copy)
+            if return_all:
+                processed_anomalies.append(pred_copy)
             continue 
             
         # Aturan 2: Threshold Asimetris (Berdasarkan arah pergerakan)
@@ -1490,15 +1495,17 @@ def filter_false_positives(
         
         if is_bearish and anomaly_score >= bearish_score_threshold:
             pred_copy["anomaly_type"] = "BEARISH_SHOCK"
+            processed_anomalies.append(pred_copy)
         elif not is_bearish and anomaly_score >= bullish_score_threshold:
             pred_copy["anomaly_type"] = "BULLISH_SPIKE"
+            processed_anomalies.append(pred_copy)
         else:
             # Tidak lolos asymmetric threshold
             pred_copy["is_false_positive"] = True
             pred_copy["filtered_reason"] = "threshold_asymmetric"
             pred_copy["note"] = f"False Positive: Score {anomaly_score:.2f} below threshold (Bearish: {bearish_score_threshold}, Bullish: {bullish_score_threshold})"
-            
-        processed_anomalies.append(pred_copy)
+            if return_all:
+                processed_anomalies.append(pred_copy)
             
     return processed_anomalies
 
@@ -2236,21 +2243,6 @@ def _run_self_tests():
     print("Semua self-test Isolation Forest & REVISION PLAN BERHASIL lolos tanpa kendala.")
 
 
-if __name__ == "__main__":
-    _run_self_tests()
-    print("=" * 85)
-
-    # Contoh eksekusi live jika dijalankan dari command line
-    sample_tickers = sys.argv[1].split(",") if len(sys.argv) > 1 else [
-        "BBCA", "BMRI", "BBRI", "BBNI", "TLKM", "ISAT", "EXCL", "BUMI", "ADRO", "ASII"
-    ]
-    p = sys.argv[2] if len(sys.argv) > 2 else "current"
-
-    print(f"Menjalankan deteksi anomali pasar untuk {len(sample_tickers)} ticker (periode: {p})...")
-    live_res = fetch_and_detect_anomalies(sample_tickers, period=p, contamination=0.15)
-    print(format_anomalies_summary(live_res))
-
-
 class AnomalyModel:
     def __init__(self, data_loader=None):
         self.data_loader = data_loader
@@ -2277,4 +2269,20 @@ class AnomalyModel:
             return {"status": "no_anomalies"}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+
+
+if __name__ == "__main__":
+    _run_self_tests()
+    print("=" * 85)
+
+    # Contoh eksekusi live jika dijalankan dari command line
+    sample_tickers = sys.argv[1].split(",") if len(sys.argv) > 1 else [
+        "BBCA", "BMRI", "BBRI", "BBNI", "TLKM", "ISAT", "EXCL", "BUMI", "ADRO", "ASII"
+    ]
+    p = sys.argv[2] if len(sys.argv) > 2 else "current"
+
+    print(f"Menjalankan deteksi anomali pasar untuk {len(sample_tickers)} ticker (periode: {p})...")
+    live_res = fetch_and_detect_anomalies(sample_tickers, period=p, contamination=0.15)
+    print(format_anomalies_summary(live_res))
+
 
