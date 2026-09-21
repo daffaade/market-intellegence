@@ -28,34 +28,58 @@ except ImportError:
     HAS_SEABORN = False
 
 
-# Helper utilities
-def safe_divide(numerator: Any, denominator: Any) -> Optional[float]:
-    if numerator is None or denominator is None:
-        return None
-    try:
-        num = float(numerator)
-        den = float(denominator)
-        if den == 0.0 or math.isnan(den) or math.isnan(num):
-            return None
-        return num / den
-    except (TypeError, ValueError, ZeroDivisionError):
-        return None
+# Memastikan root direktori berada di sys.path
+CURRENT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = CURRENT_DIR.parent.parent.parent
+for _p in [str(CURRENT_DIR), str(REPO_ROOT)]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
-def _get(obj: Any, path: str, default: Any = None) -> Any:
-    if obj is None:
-        return default
-    parts = path.split(".")
-    curr = obj
-    for part in parts:
-        if curr is None:
+try:
+    from model_intellegence.derived_metrics import (
+        safe_divide,
+        compute_derived_metrics,
+        fetch_and_compute_derived_metrics,
+        _get
+    )
+    HAS_DERIVED_METRICS = True
+except ImportError:
+    HAS_DERIVED_METRICS = False
+
+if not HAS_DERIVED_METRICS:
+    def safe_divide(numerator: Any, denominator: Any) -> Optional[float]:
+        if numerator is None or denominator is None:
+            return None
+        try:
+            num = float(numerator)
+            den = float(denominator)
+            if den == 0.0 or math.isnan(den) or math.isnan(num):
+                return None
+            return num / den
+        except (TypeError, ValueError, ZeroDivisionError):
+            return None
+
+    def _get(obj: Any, path: str, default: Any = None) -> Any:
+        if obj is None:
             return default
-        if isinstance(curr, dict):
-            curr = curr.get(part, default)
-        elif hasattr(curr, part):
-            curr = getattr(curr, part, default)
-        else:
-            return default
-    return curr if curr is not None else default
+        parts = path.split(".")
+        curr = obj
+        for part in parts:
+            if curr is None:
+                return default
+            if isinstance(curr, dict):
+                curr = curr.get(part, default)
+            elif hasattr(curr, part):
+                curr = getattr(curr, part, default)
+            else:
+                return default
+        return curr if curr is not None else default
+
+    def compute_derived_metrics(*args, **kwargs):
+        raise ImportError("Modul derived_metrics tidak tersedia.")
+
+    def fetch_and_compute_derived_metrics(*args, **kwargs):
+        return {"status": "ERROR", "error": "Modul derived_metrics tidak tersedia."}
 
 
 # ============================================================================
