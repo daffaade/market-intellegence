@@ -79,7 +79,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
         <div>
           <span className="font-bold text-lg bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-            Sahamphy
+            Marketidex
           </span>
           <span className="text-xs text-slate-400 block -mt-1 font-mono tracking-wider">
             Analisis Saham Lokal
