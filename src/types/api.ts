@@ -204,3 +204,9 @@ export interface WatchlistItem {
   name: string;
   added_at: string;
 }
+
+// ─── Market Growth Timeline (Top 10 Time-Series) ───────────────
+export interface MarketGrowthTimelinePoint {
+  period: string; // e.g. "Okt 2025", "Nov 2025", etc.
+  [symbol: string]: number | string;
+}

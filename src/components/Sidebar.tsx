@@ -4,7 +4,6 @@ import {
   Zap,
   Globe2,
   BrainCircuit,
-  ShieldAlert,
   SlidersHorizontal
 } from 'lucide-react';
 
@@ -128,18 +127,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Footer Info Box */}
-      <div className="px-3">
-        <div className="glass-card p-3 rounded-xl border border-slate-800/80 bg-slate-900/40">
-          <div className="flex items-center space-x-2 text-cyan-400 mb-1">
-            <ShieldAlert className="w-4 h-4" />
-            <span className="text-xs font-semibold">Non-Advisory Engine</span>
-          </div>
-          <p className="text-[10px] text-slate-400 leading-relaxed">
-            Menyajikan sinyal kuantitatif & anomali tanpa rekomendasi transaksi (Beli/Jual) langsung.
-          </p>
-        </div>
-      </div>
     </aside>
   );
 };

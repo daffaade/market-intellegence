@@ -65,6 +65,7 @@ export function App() {
       <Navbar
         activeView={currentView}
         onOpenPipeline={() => setIsPipelineOpen(true)}
+        onSelectSymbol={handleSelectSymbol}
       />
 
       <div className="flex-1 flex overflow-hidden">
