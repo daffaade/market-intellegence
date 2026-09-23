@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"be/internal/domain"
@@ -20,7 +21,7 @@ func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL: baseURL,
 		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: 8 * time.Second,
 			Transport: &http.Transport{
 				MaxIdleConns:        50,
 				MaxIdleConnsPerHost: 10,
@@ -30,44 +31,76 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
+// Request structure matching ai_engine.routers.analyze.AnalyzeRequest
 type pythonAnalyzeRequest struct {
 	Symbol            string `json:"symbol"`
-	IncludePeer       bool   `json:"include_peer"`
+	IncludeForecast   bool   `json:"include_forecast"`
 	IncludeAnomaly    bool   `json:"include_anomaly"`
 	IncludeDivergence bool   `json:"include_divergence"`
 }
 
-type pythonIntelligenceOutput struct {
-	Anomaly         bool     `json:"anomaly"`
-	AnomalyScore    float64  `json:"anomaly_score"`
-	Direction       string   `json:"direction"`
+type pythonOpportunitySignal struct {
 	Score           float64  `json:"score"`
 	Confidence      string   `json:"confidence"`
-	Risk            string   `json:"risk"`
+	Direction       string   `json:"direction"`
 	PositiveFactors []string `json:"positive_factors"`
 	NegativeFactors []string `json:"negative_factors"`
+	Evidence        []string `json:"evidence"`
 }
 
-type pythonDivergenceOutput struct {
-	Detected          bool     `json:"detected"`
-	Confidence        string   `json:"confidence"`
-	SupportingFactors []string `json:"supporting_factors"`
+type pythonRiskSignal struct {
+	Score           float64  `json:"score"`
+	Level           string   `json:"level"`
+	NegativeFactors []string `json:"negative_factors"`
+	Evidence        []string `json:"evidence"`
 }
 
+type pythonRelativePosition struct {
+	Position   string  `json:"position"`
+	Diff       float64 `json:"diff"`
+	TickerVal  float64 `json:"ticker_val"`
+	PeerMedian float64 `json:"peer_median"`
+}
+
+type pythonSignificantChange struct {
+	Metric        string  `json:"metric"`
+	PriorValue    float64 `json:"prior_value"`
+	CurrentValue  float64 `json:"current_value"`
+	DeltaPct      float64 `json:"delta_pct"`
+	ShiftDetected bool    `json:"shift_detected"`
+}
+
+type pythonFundamentalDivergence struct {
+	DivergenceScore    float64                            `json:"divergence_score"`
+	RelativePositions  map[string]pythonRelativePosition  `json:"relative_positions"`
+	SignificantChanges []pythonSignificantChange          `json:"significant_changes"`
+}
+
+type pythonAnomalyOutput struct {
+	Status                   string  `json:"status"`
+	IsAnomalousToday         bool    `json:"is_anomalous_today"`
+	DetectedAnomaliesCount   int     `json:"detected_anomalies_count"`
+	RecentBaselineVolatility float64 `json:"recent_baseline_volatility"`
+	AdaptiveContamination    float64 `json:"adaptive_contamination"`
+}
+
+// Response structure matching ai_engine.routers.analyze output
 type pythonAnalyzeResponse struct {
-	Ticker                string                   `json:"ticker"`
-	IntelligenceOutput    pythonIntelligenceOutput `json:"intelligence_output"`
-	FundamentalDivergence pythonDivergenceOutput   `json:"fundamental_divergence"`
-	Evidence              []domain.EvidenceItem    `json:"evidence"`
-	Timestamp             string                   `json:"timestamp"`
+	Symbol                string                       `json:"symbol"`
+	Forecast              map[string]interface{}       `json:"forecast"`
+	OpportunitySignal     *pythonOpportunitySignal     `json:"opportunity_signal"`
+	RiskSignal            *pythonRiskSignal            `json:"risk_signal"`
+	FundamentalDivergence *pythonFundamentalDivergence `json:"fundamental_divergence"`
+	Anomaly               *pythonAnomalyOutput         `json:"anomaly"`
+	Cached                bool                         `json:"cached"`
 }
 
 func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domain.IntelligenceSnapshot, error) {
-	// Call Python FastAPI
+	// Call Python FastAPI at /api/v1/analyze
 	url := fmt.Sprintf("%s/api/v1/analyze", c.baseURL)
 	bodyBytes, err := json.Marshal(pythonAnalyzeRequest{
 		Symbol:            req.Symbol,
-		IncludePeer:       req.IncludePeer,
+		IncludeForecast:   true,
 		IncludeAnomaly:    req.IncludeAnomaly,
 		IncludeDivergence: req.IncludeDivergence,
 	})
@@ -93,33 +126,102 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 		return fallbackDeterministicSnapshot(req.Symbol), nil
 	}
 
-	return &domain.IntelligenceSnapshot{
-		Symbol:             pyResp.Ticker,
-		OpportunityScore:   pyResp.IntelligenceOutput.Score,
-		RiskScore:          calculateRiskScore(pyResp.IntelligenceOutput.Risk),
-		Direction:          pyResp.IntelligenceOutput.Direction,
-		Confidence:         pyResp.IntelligenceOutput.Confidence,
-		RiskLevel:          pyResp.IntelligenceOutput.Risk,
-		IsAnomaly:          pyResp.IntelligenceOutput.Anomaly,
-		AnomalyScore:       pyResp.IntelligenceOutput.AnomalyScore,
-		DivergenceDetected: pyResp.FundamentalDivergence.Detected,
-		PositiveFactors:    pyResp.IntelligenceOutput.PositiveFactors,
-		NegativeFactors:    pyResp.IntelligenceOutput.NegativeFactors,
-		SupportingFactors:  pyResp.FundamentalDivergence.SupportingFactors,
-		Evidence:           pyResp.Evidence,
-		CreatedAt:          time.Now(),
-	}, nil
-}
-
-func calculateRiskScore(riskLevel string) float64 {
-	switch riskLevel {
-	case "High":
-		return 75.0
-	case "Medium":
-		return 45.0
-	default:
-		return 20.0
+	// Map into domain snapshot
+	snap := &domain.IntelligenceSnapshot{
+		Symbol:    pyResp.Symbol,
+		CreatedAt: time.Now(),
 	}
+	if snap.Symbol == "" {
+		snap.Symbol = req.Symbol
+	}
+
+	// 1. Opportunity Signal
+	if pyResp.OpportunitySignal != nil {
+		snap.OpportunityScore = pyResp.OpportunitySignal.Score
+		snap.Direction = pyResp.OpportunitySignal.Direction
+		if snap.Direction == "Positive" {
+			snap.Direction = "Bullish"
+		} else if snap.Direction == "Negative" {
+			snap.Direction = "Bearish"
+		}
+		snap.Confidence = pyResp.OpportunitySignal.Confidence
+		snap.PositiveFactors = pyResp.OpportunitySignal.PositiveFactors
+	}
+
+	// 2. Risk Signal
+	if pyResp.RiskSignal != nil {
+		snap.RiskScore = pyResp.RiskSignal.Score
+		snap.RiskLevel = pyResp.RiskSignal.Level
+		snap.NegativeFactors = pyResp.RiskSignal.NegativeFactors
+	}
+
+	// 3. Anomaly
+	if pyResp.Anomaly != nil {
+		snap.IsAnomaly = pyResp.Anomaly.IsAnomalousToday || pyResp.Anomaly.DetectedAnomaliesCount > 0
+		snap.AnomalyScore = pyResp.Anomaly.RecentBaselineVolatility * 1000
+		if snap.AnomalyScore > 100 {
+			snap.AnomalyScore = 100
+		}
+	}
+
+	// 4. Fundamental Divergence & Evidence
+	if pyResp.FundamentalDivergence != nil {
+		snap.DivergenceDetected = pyResp.FundamentalDivergence.DivergenceScore > 0.5 || len(pyResp.FundamentalDivergence.SignificantChanges) > 0
+
+		// Supporting factors from significant changes
+		for _, sc := range pyResp.FundamentalDivergence.SignificantChanges {
+			if sc.ShiftDetected {
+				snap.SupportingFactors = append(snap.SupportingFactors, fmt.Sprintf("Significant shift detected in %s (delta: %.1f%%)", sc.Metric, sc.DeltaPct))
+			}
+		}
+
+		// Relative positions to EvidenceItem & PeerComparisonItem
+		for metric, pos := range pyResp.FundamentalDivergence.RelativePositions {
+			snap.Evidence = append(snap.Evidence, domain.EvidenceItem{
+				Metric:       strings.ToUpper(metric),
+				CompanyValue: fmt.Sprintf("%.2f", pos.TickerVal),
+				PeerMedian:   fmt.Sprintf("%.2f", pos.PeerMedian),
+				Position:     pos.Position,
+			})
+			snap.PeerComparison = append(snap.PeerComparison, domain.PeerComparisonItem{
+				Metric:     strings.ToUpper(metric),
+				Target:     fmt.Sprintf("%.2f", pos.TickerVal),
+				PeerMedian: fmt.Sprintf("%.2f", pos.PeerMedian),
+				Position:   pos.Position,
+			})
+		}
+
+		// Significant changes to WhatChanged
+		for _, sc := range pyResp.FundamentalDivergence.SignificantChanges {
+			impact := "Neutral"
+			if sc.DeltaPct > 0 {
+				impact = "Positive"
+			} else if sc.DeltaPct < 0 {
+				impact = "Negative"
+			}
+			snap.WhatChanged = append(snap.WhatChanged, domain.WhatChangedItem{
+				Metric:   strings.ToUpper(sc.Metric),
+				Previous: fmt.Sprintf("%.2f", sc.PriorValue),
+				Current:  fmt.Sprintf("%.2f", sc.CurrentValue),
+				Delta:    fmt.Sprintf("%+.1f%%", sc.DeltaPct),
+				Impact:   impact,
+			})
+		}
+	}
+
+	// If Evidence is still empty, synthesize from OpportunitySignal.Evidence strings
+	if len(snap.Evidence) == 0 && pyResp.OpportunitySignal != nil {
+		for _, evStr := range pyResp.OpportunitySignal.Evidence {
+			snap.Evidence = append(snap.Evidence, domain.EvidenceItem{
+				Metric:       evStr,
+				CompanyValue: "-",
+				PeerMedian:   "-",
+				Position:     "Relevant",
+			})
+		}
+	}
+
+	return snap, nil
 }
 
 // fallbackDeterministicSnapshot guarantees zero demo failure even if Python server is not running
