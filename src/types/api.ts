@@ -124,6 +124,15 @@ export interface SmartMoneyTransaction {
   value_idr: string;
 }
 
+export interface CompanyFundamentals {
+  symbol: string;
+  growth_data: GrowthData[];
+  dividends: DividendHistory[];
+  shareholders: Shareholder[];
+  executives: KeyExecutive[];
+  smart_money: SmartMoneyTransaction[];
+}
+
 export interface MacroIndicator {
   name: string;
   value: string;
@@ -192,6 +201,12 @@ export interface PipelineStage {
   status: "COMPLETED" | "PROCESSING" | "PENDING";
   data_type: string;
   duration_ms?: number;
+}
+
+export interface PipelineTelemetry {
+  stages: PipelineStage[];
+  total_duration_ms: number;
+  pipeline_status: string;
 }
 
 // ─── Signal Matrix (2D Quadrant) ───────────────────────────────
