@@ -14,17 +14,20 @@ import {
 } from 'lucide-react';
 import type { IntelligenceSnapshot, Company, StandardizedSignalOutput } from '../../types/api';
 import { EvidencePanel } from '../shared/EvidencePanel';
+import { EmitenSwitcherModal } from '../shared/EmitenSwitcherModal';
 
 interface SignalIntelligenceProps {
   intelligence: IntelligenceSnapshot;
   company: Company;
   signalOutput?: StandardizedSignalOutput;
+  onSelectSymbol?: (symbol: string) => void;
 }
 
 export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
   intelligence,
   company,
-  signalOutput
+  signalOutput,
+  onSelectSymbol
 }) => {
   const isBullish = intelligence.direction === 'BULLISH';
   const isHighRisk = intelligence.risk_level === 'HIGH' || intelligence.risk_level === 'CRITICAL';
@@ -37,13 +40,21 @@ export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="text-2xl font-bold tracking-tight text-white">{company.symbol}</span>
-              <span className="text-sm text-slate-400">({company.name})</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <span className="text-2xl font-bold tracking-tight text-white font-mono">{company.symbol}</span>
+              <span className="text-sm text-slate-300 font-semibold">({company.name})</span>
+              <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium border border-slate-700/60">
                 {company.sector}
               </span>
+              {onSelectSymbol && (
+                <EmitenSwitcherModal
+                  currentSymbol={company.symbol}
+                  onSelectSymbol={onSelectSymbol}
+                  buttonText="Ganti Emiten"
+                />
+              )}
             </div>
+
             <p className="text-xs text-slate-400 max-w-2xl">
               Derived intelligence snapshot berdasarkan pemrosesan data real-time, deteksi deviasi fundamental, dan pelacakan arus modal institusional.
             </p>

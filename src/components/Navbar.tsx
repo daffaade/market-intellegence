@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Database, Cpu, X, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
+import { Search, Cpu, X, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
 import { MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../services/mockData';
 
 interface NavbarProps {
   activeView?: string;
   onOpenPipeline?: () => void;
   onSelectSymbol?: (symbol: string) => void;
+  useDummyData?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   onOpenPipeline,
-  onSelectSymbol
+  onSelectSymbol,
+  useDummyData = false
 }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -87,12 +89,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
+
       <div className="h-6 w-px bg-slate-800 shrink-0 hidden md:block" />
 
-      {/* Search Bar (Fills remaining space with Autocomplete Dropdown) */}
-      <div className="flex-1 hidden md:flex items-center">
-        <div ref={searchContainerRef} className="relative w-full max-w-2xl">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      {/* Search Bar (Fills ALL remaining empty space completely) */}
+      <div className="flex-1 flex items-center min-w-0">
+        <div ref={searchContainerRef} className="relative w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={query}
@@ -105,8 +108,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               if (query.trim()) setIsOpen(true);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Cari emiten (e.g. BBCA, TLKM), nama perusahaan, atau sektor..."
-            className="bg-slate-900/90 text-xs text-slate-200 pl-9 pr-9 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-cyan-500/50 w-full transition-all placeholder:text-slate-500"
+            placeholder="Cari kode emiten (e.g. BBCA, TLKM), nama emiten, atau sektor industri..."
+            className="w-full bg-slate-900/90 text-xs text-slate-200 pl-10 pr-10 py-2.5 rounded-xl border border-slate-800/90 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-500 shadow-inner"
           />
           {query && (
             <button
@@ -114,11 +117,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setQuery('');
                 setIsOpen(false);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-0.5 rounded transition-colors"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 rounded-md transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
+
 
           {/* Autocomplete Dropdown */}
           {isOpen && query.trim().length > 0 && (
@@ -201,17 +205,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="flex items-center space-x-4 shrink-0 ml-auto">
         <button
           onClick={onOpenPipeline}
-          className="flex items-center space-x-2 bg-slate-900/60 hover:bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-800 text-xs transition-colors cursor-pointer group"
+          className="flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-xs transition-colors cursor-pointer group"
+          title="Buka Pipeline Inspector & Kontrol Mode Data"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-slate-300 font-medium group-hover:text-cyan-400 transition-colors">Pipeline Active</span>
-          <span className="text-slate-500 font-mono text-[10px] pl-1">| INSPECT</span>
+          <span className={`w-2 h-2 rounded-full ${useDummyData ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
+          <span className="text-slate-300 font-medium group-hover:text-cyan-400 transition-colors">Pipeline</span>
+          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold border ${
+            useDummyData 
+              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
+              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+          }`}>
+            {useDummyData ? 'DUMMY' : 'BACKEND'}
+          </span>
         </button>
-
-        <div className="flex items-center space-x-2 text-xs text-slate-400 border-l border-slate-800 pl-4">
-          <Database className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="font-mono">Sectors API</span>
-        </div>
       </div>
     </header>
   );

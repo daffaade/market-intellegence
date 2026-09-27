@@ -25,12 +25,14 @@ import {
   MOCK_EXECUTIVES,
   MOCK_SMART_MONEY
 } from '../../services/mockData';
+import { EmitenSwitcherModal } from '../shared/EmitenSwitcherModal';
 
 interface CompanyDashboardProps {
   company: Company;
+  onSelectSymbol?: (symbol: string) => void;
 }
 
-export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ company }) => {
+export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ company, onSelectSymbol }) => {
   const growthData = MOCK_GROWTH_DATA[company.symbol] || MOCK_GROWTH_DATA.BBCA;
   const dividends = MOCK_DIVIDENDS[company.symbol] || MOCK_DIVIDENDS.BBCA;
   const shareholders = MOCK_SHAREHOLDERS[company.symbol] || MOCK_SHAREHOLDERS.BBCA;
@@ -49,12 +51,20 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ company }) =
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white flex items-center space-x-2">
+              <h1 className="text-xl font-bold text-white flex flex-wrap items-center gap-2">
                 <span>{company.name}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">
+                <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono font-bold">
                   {company.symbol}
                 </span>
+                {onSelectSymbol && (
+                  <EmitenSwitcherModal
+                    currentSymbol={company.symbol}
+                    onSelectSymbol={onSelectSymbol}
+                    buttonText="Ganti Emiten"
+                  />
+                )}
               </h1>
+
               <p className="text-xs text-slate-400 mt-0.5">
                 Sektor: <strong className="text-slate-300">{company.sector}</strong> | Sub-sektor: <strong className="text-slate-300">{company.sub_sector}</strong>
               </p>

@@ -8,7 +8,7 @@ import { PortfolioAndAi } from './components/views/PortfolioAndAi';
 import { MarketOverviewView } from './components/views/MarketOverview';
 import { SectorsPipelineInspector } from './components/shared/SectorsPipelineInspector';
 import type { Company, IntelligenceSnapshot, MarketOverview } from './types/api';
-import { apiService } from './services/mockApi';
+import { apiService, isDummyMode, setDummyMode } from './services/mockApi';
 import { MOCK_PIPELINE_STAGES, MOCK_SIGNAL_OUTPUTS } from './services/mockData';
 import { Loader2 } from 'lucide-react';
 
@@ -17,7 +17,9 @@ export function App() {
   const [currentView, setCurrentView] = useState<ViewType>('overview');
   
   // New States
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [isPipelineOpen, setIsPipelineOpen] = useState<boolean>(false);
+  const [useDummyData, setUseDummyData] = useState<boolean>(() => isDummyMode());
   const [watchlist, setWatchlist] = useState<string[]>(['BBCA', 'TLKM']);
   
   const [company, setCompany] = useState<Company | null>(null);
@@ -25,10 +27,10 @@ export function App() {
   const [marketOverview, setMarketOverview] = useState<MarketOverview | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch initial data & handle symbol changes
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
+  // Fetch initial data & handle symbol or data source mode changes
+  const loadData = async () => {
+    setLoading(true);
+    try {
       const [compRes, intelRes, mktRes] = await Promise.all([
         apiService.getCompany(selectedSymbol),
         apiService.getIntelligence(selectedSymbol),
@@ -38,11 +40,19 @@ export function App() {
       if (compRes.data) setCompany(compRes.data);
       if (intelRes.data) setIntelligence(intelRes.data);
       if (mktRes.data) setMarketOverview(mktRes.data);
+    } finally {
       setLoading(false);
     }
+  };
 
+  useEffect(() => {
     loadData();
-  }, [selectedSymbol]);
+  }, [selectedSymbol, useDummyData]);
+
+  const handleToggleDummy = (enabled: boolean) => {
+    setDummyMode(enabled);
+    setUseDummyData(enabled);
+  };
 
   const handleSelectSymbol = (sym: string) => {
     setSelectedSymbol(sym);
@@ -66,14 +76,17 @@ export function App() {
         activeView={currentView}
         onOpenPipeline={() => setIsPipelineOpen(true)}
         onSelectSymbol={handleSelectSymbol}
+        useDummyData={useDummyData}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Sidebar */}
         <Sidebar
           currentView={currentView}
           onViewChange={setCurrentView}
           anomalyCount={marketOverview?.detected_anomalies.length || 2}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(prev => !prev)}
         />
 
         {/* Main Workspace Area */}
@@ -102,12 +115,14 @@ export function App() {
                   intelligence={intelligence}
                   company={company}
                   signalOutput={MOCK_SIGNAL_OUTPUTS[company.symbol]}
+                  onSelectSymbol={handleSelectSymbol}
                 />
               )}
 
               {currentView === 'dashboard' && (
                 <CompanyDashboard
                   company={company}
+                  onSelectSymbol={handleSelectSymbol}
                 />
               )}
 
@@ -133,6 +148,9 @@ export function App() {
         stages={MOCK_PIPELINE_STAGES}
         isOpen={isPipelineOpen}
         onClose={() => setIsPipelineOpen(false)}
+        useDummyData={useDummyData}
+        onToggleDummy={handleToggleDummy}
+        onRefreshData={loadData}
       />
     </div>
   );

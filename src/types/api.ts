@@ -4,6 +4,14 @@ export interface ResponseWrapper<T> {
   message?: string;
 }
 
+export interface HealthStatus {
+  status: string;
+  ai_provider?: string;
+  ai_model?: string;
+  mock_mode?: boolean;
+  version?: string;
+}
+
 export interface Company {
   symbol: string;
   name: string;
