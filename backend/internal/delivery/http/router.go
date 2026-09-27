@@ -13,6 +13,7 @@ type Handlers struct {
 	Company      *handler.CompanyHandler
 	Intelligence *handler.IntelligenceHandler
 	Scanner      *handler.ScannerHandler
+	Analytics    *handler.AnalyticsHandler
 }
 
 func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
@@ -21,18 +22,26 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 	// Health check
 	mux.HandleFunc("GET /api/v1/health", handlers.Health.Health)
 
-	// Market Overview & Scanner
+	// Market Overview, Scanner & Growth Timeline
 	mux.HandleFunc("GET /api/v1/market/overview", handlers.Scanner.GetMarketOverview)
+	mux.HandleFunc("GET /api/v1/market/growth-timeline", handlers.Analytics.GetMarketGrowthTimeline)
 	mux.HandleFunc("POST /api/v1/screener", handlers.Scanner.Screen)
 
-	// Companies
+	// Companies & Fundamentals
 	mux.HandleFunc("GET /api/v1/companies", handlers.Company.ListCompanies)
 	mux.HandleFunc("GET /api/v1/companies/{symbol}", handlers.Company.GetCompany)
+	mux.HandleFunc("GET /api/v1/companies/{symbol}/fundamentals", handlers.Analytics.GetFundamentals)
 
 	// Company Intelligence & Signatures
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/intelligence", handlers.Intelligence.GetCompanyIntelligence)
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/anomalies", handlers.Intelligence.GetCompanyAnomalies)
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/peers", handlers.Intelligence.GetCompanyPeers)
+
+	// Pipeline Telemetry & Macro Indicators
+	mux.HandleFunc("GET /api/v1/pipeline/telemetry", handlers.Analytics.GetPipelineTelemetry)
+	mux.HandleFunc("GET /api/v1/macro/indicators", handlers.Analytics.GetMacroIndicators)
+	mux.HandleFunc("GET /api/v1/macro/disaster-risks", handlers.Analytics.GetDisasterRisks)
+	mux.HandleFunc("GET /api/v1/portfolio/positions", handlers.Analytics.GetPortfolioPositions)
 
 	// Apply Middlewares: CORS -> Logger -> Mux
 	var rootHandler http.Handler = mux

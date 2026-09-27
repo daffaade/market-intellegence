@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	nethttp "net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"be/db/sqlc"
+	sqlc "be/db/sqlc"
 	"be/internal/adapter/llm"
 	"be/internal/adapter/python_engine"
 	deliveryhttp "be/internal/delivery/http"
@@ -24,11 +23,14 @@ import (
 )
 
 func main() {
-	// 1. Load Configuration
+	// 1. Load Configurations
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
-		os.Exit(1)
+		nethttp.HandleFunc("/", func(w nethttp.ResponseWriter, r *nethttp.Request) {
+			nethttp.Error(w, "config error: "+err.Error(), nethttp.StatusInternalServerError)
+		})
+		_ = nethttp.ListenAndServe(":8080", nil)
+		return
 	}
 
 	// 2. Initialize Structured Logger
@@ -43,6 +45,11 @@ func main() {
 	// 3. Database Connection / Fallback Setup
 	var companyRepo domain.CompanyRepository
 	var snapshotRepo domain.SnapshotRepository
+	var analyticsRepo domain.AnalyticsRepository
+
+	// Always instantiate MemoryRepository for analytics data & fallback
+	memRepo := memory.NewMemoryRepository()
+	analyticsRepo = memRepo
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	pool, err := postgres.NewPool(ctx, cfg.DatabaseURL)
@@ -50,7 +57,6 @@ func main() {
 
 	if err != nil {
 		log.Warn("postgresql unavailable, activating in-memory repository fallback (zero-setup mode)", "error", err.Error())
-		memRepo := memory.NewMemoryRepository()
 		companyRepo = memRepo
 		snapshotRepo = memRepo
 	} else {
@@ -69,6 +75,7 @@ func main() {
 	companyUsecase := usecase.NewCompanyUsecase(companyRepo)
 	intelUsecase := usecase.NewIntelligenceUsecase(snapshotRepo, companyRepo, pyClient, aiClient, cfg)
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, companyRepo)
+	analyticsUsecase := usecase.NewAnalyticsUsecase(analyticsRepo)
 
 	// 6. Initialize Delivery HTTP Handlers & Router
 	handlers := deliveryhttp.Handlers{
@@ -76,6 +83,7 @@ func main() {
 		Company:      handler.NewCompanyHandler(companyUsecase),
 		Intelligence: handler.NewIntelligenceHandler(intelUsecase),
 		Scanner:      handler.NewScannerHandler(scannerUsecase),
+		Analytics:    handler.NewAnalyticsHandler(analyticsUsecase),
 	}
 
 	router := deliveryhttp.NewRouter(handlers, log)
