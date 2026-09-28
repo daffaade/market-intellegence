@@ -76,6 +76,7 @@ func main() {
 	intelUsecase := usecase.NewIntelligenceUsecase(snapshotRepo, companyRepo, pyClient, aiClient, cfg)
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, companyRepo)
 	analyticsUsecase := usecase.NewAnalyticsUsecase(analyticsRepo)
+	sectorUsecase := usecase.NewSectorUsecase(pyClient)
 
 	// 6. Initialize Delivery HTTP Handlers & Router
 	handlers := deliveryhttp.Handlers{
@@ -84,6 +85,7 @@ func main() {
 		Intelligence: handler.NewIntelligenceHandler(intelUsecase),
 		Scanner:      handler.NewScannerHandler(scannerUsecase),
 		Analytics:    handler.NewAnalyticsHandler(analyticsUsecase),
+		Sector:       handler.NewSectorHandler(sectorUsecase),
 	}
 
 	router := deliveryhttp.NewRouter(handlers, log)

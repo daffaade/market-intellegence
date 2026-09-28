@@ -37,6 +37,11 @@ func NewMemoryRepository() *MemoryRepository {
 	return repo
 }
 
+// NewCompanyRepository returns a MemoryRepository as a CompanyRepository.
+func NewCompanyRepository() *MemoryRepository {
+	return NewMemoryRepository()
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CompanyRepository Implementation
 // ─────────────────────────────────────────────────────────────────────────────

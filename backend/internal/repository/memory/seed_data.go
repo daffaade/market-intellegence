@@ -63,6 +63,36 @@ func (r *MemoryRepository) seedInitialData() {
 			},
 			AIResearchSummary: "BBCA mempertahankan kepemimpinan kualitas aset perbankan Indonesia dengan CASA 81.2% dan ROE 21.5%. Meskipun diperdagangkan pada PBV premium 4.8x, divergensi positif terlihat dari aliran dana asing (+Rp 600B swing) dan efisiensi operasional tak tertandingi (CIR 34.1%).",
 			Disclaimer:        "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual).",
+			SmartMoney: &domain.SmartMoneySnapshot{
+				State: "Accumulation",
+				Score: 0.55,
+				Components: map[string]float64{
+					"transaction_flow":      0.60,
+					"cmf":                   0.45,
+					"obv_trend":             0.65,
+					"price_flow_divergence": 0.50,
+				},
+				Confidence: "high",
+				Evidence: []string{
+					"OBV meningkat 4 dari 5 hari terakhir",
+					"CMF(20) = +0.22 menunjukkan tekanan beli institusi",
+				},
+			},
+			Catalysts: &domain.CatalystSnapshot{
+				CatalystScore: 0.65,
+				NetDirection:  "Positive",
+				Events: []domain.CatalystEvent{
+					{
+						Date:       now.Format("2006-01-02"),
+						Type:       "volume_spike",
+						Layer:      "market",
+						Direction:  "Positive",
+						Strength:   0.75,
+						Confidence: "high",
+						Evidence:   []string{"Volume perdagangan 2.1x rata-rata 60 hari"},
+					},
+				},
+			},
 			IsCached:          true, CreatedAt: now,
 		},
 		{

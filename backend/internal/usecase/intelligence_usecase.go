@@ -50,6 +50,22 @@ func (u *IntelligenceUsecase) GetCompanyIntelligence(ctx context.Context, symbol
 			if cached.Disclaimer == "" {
 				cached.Disclaimer = LegalDisclaimer
 			}
+			if (cached.SmartMoney == nil || cached.Catalysts == nil) && u.pyClient != nil {
+				enriched, err := u.pyClient.Analyze(ctx, domain.AnalyzeRequest{
+					Symbol:            symbol,
+					IncludePeer:       true,
+					IncludeAnomaly:    true,
+					IncludeDivergence: true,
+				})
+				if err == nil && enriched != nil {
+					if cached.SmartMoney == nil {
+						cached.SmartMoney = enriched.SmartMoney
+					}
+					if cached.Catalysts == nil {
+						cached.Catalysts = enriched.Catalysts
+					}
+				}
+			}
 			return cached, nil
 		}
 	}

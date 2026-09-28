@@ -33,3 +33,8 @@ func InitLogger(level string) *slog.Logger {
 
 	return l
 }
+
+// New creates and returns a structured logger with the given level (alias for InitLogger).
+func New(level string) *slog.Logger {
+	return InitLogger(level)
+}
