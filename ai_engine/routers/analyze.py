@@ -10,6 +10,7 @@ from ai_engine.models.peers.peer_analysis import PeerAnalysisModel
 from ai_engine.models.peers.what_changed import WhatChangedModel
 from ai_engine.models.smart_money.smart_money_model import SmartMoneyModel
 from ai_engine.models.catalyst.catalyst_detector import CatalystDetector
+from ai_engine.models.screener.screener import IntelligenceScreener, ScreenerRequest
 
 router = APIRouter(prefix="/api/v1", tags=["analyze"])
 _ai_cache = AIResultCache(ttl_seconds=3600)
@@ -112,5 +113,14 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
         )
         return {**response, "cached": False}
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/screener")
+async def run_screener(request: ScreenerRequest, data_loader: UnifiedDataLoader = Depends(get_data_loader)):
+    try:
+        screener = IntelligenceScreener(data_loader)
+        result = screener.screen(request)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
