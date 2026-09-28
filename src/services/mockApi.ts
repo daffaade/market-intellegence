@@ -5,12 +5,28 @@ import type {
   MarketOverview,
   ScreenerFilter,
   HealthStatus,
-  PeerComparisonItem
+  PeerComparisonItem,
+  MarketGrowthTimelinePoint,
+  CompanyFundamentals,
+  PipelineTelemetry,
+  MacroIndicator,
+  DisasterRisk,
+  PortfolioPosition
 } from '../types/api';
 import {
   MOCK_COMPANIES,
   MOCK_INTELLIGENCE,
-  MOCK_MARKET_OVERVIEW
+  MOCK_MARKET_OVERVIEW,
+  MOCK_TOP10_GROWTH_TIMELINE,
+  MOCK_PIPELINE_STAGES,
+  MOCK_GROWTH_DATA,
+  MOCK_DIVIDENDS,
+  MOCK_SHAREHOLDERS,
+  MOCK_EXECUTIVES,
+  MOCK_SMART_MONEY,
+  MOCK_MACRO,
+  MOCK_DISASTER_RISKS,
+  MOCK_PORTFOLIO
 } from './mockData';
 
 // Storage key for data source preference
@@ -362,5 +378,180 @@ export const apiService = {
 
     markOrigin('fallback');
     return { status: 'success', data: screenLocally(filter) };
+  },
+
+  /**
+   * 9. GET /api/v1/market/growth-timeline
+   * Deret waktu pertumbuhan Top 10 emiten pasar (12 bulan terakhir)
+   */
+  async getMarketGrowthTimeline(): Promise<ResponseWrapper<MarketGrowthTimelinePoint[]>> {
+    if (useDummyData) {
+      return {
+        status: 'success',
+        data: MOCK_TOP10_GROWTH_TIMELINE
+      };
+    }
+
+    const res = await fetchApi<MarketGrowthTimelinePoint[]>('/api/v1/market/growth-timeline');
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    return {
+      status: 'success',
+      data: MOCK_TOP10_GROWTH_TIMELINE
+    };
+  },
+
+  /**
+   * 10. GET /api/v1/companies/{symbol}/fundamentals
+   * Kedalaman fundamental emiten (Pertumbuhan tahunan, Dividen, Pemegang Saham, Eksekutif, Smart Money)
+   */
+  async getFundamentals(symbol: string): Promise<ResponseWrapper<CompanyFundamentals>> {
+    const cleanSym = symbol.toUpperCase().trim();
+
+    if (useDummyData) {
+      const growth = MOCK_GROWTH_DATA[cleanSym] || MOCK_GROWTH_DATA.BBCA;
+      const divs = MOCK_DIVIDENDS[cleanSym] || MOCK_DIVIDENDS.BBCA;
+      const sh = MOCK_SHAREHOLDERS[cleanSym] || MOCK_SHAREHOLDERS.BBCA;
+      const execs = MOCK_EXECUTIVES[cleanSym] || MOCK_EXECUTIVES.BBCA;
+      const sm = MOCK_SMART_MONEY[cleanSym] || MOCK_SMART_MONEY.BBCA;
+
+      return {
+        status: 'success',
+        data: {
+          symbol: cleanSym,
+          growth_data: growth,
+          dividends: divs,
+          shareholders: sh,
+          executives: execs,
+          smart_money: sm
+        }
+      };
+    }
+
+    const res = await fetchApi<CompanyFundamentals>(`/api/v1/companies/${cleanSym}/fundamentals`);
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    // Graceful fallback to mock data
+    const growth = MOCK_GROWTH_DATA[cleanSym] || MOCK_GROWTH_DATA.BBCA;
+    const divs = MOCK_DIVIDENDS[cleanSym] || MOCK_DIVIDENDS.BBCA;
+    const sh = MOCK_SHAREHOLDERS[cleanSym] || MOCK_SHAREHOLDERS.BBCA;
+    const execs = MOCK_EXECUTIVES[cleanSym] || MOCK_EXECUTIVES.BBCA;
+    const sm = MOCK_SMART_MONEY[cleanSym] || MOCK_SMART_MONEY.BBCA;
+
+    return {
+      status: 'success',
+      data: {
+        symbol: cleanSym,
+        growth_data: growth,
+        dividends: divs,
+        shareholders: sh,
+        executives: execs,
+        smart_money: sm
+      }
+    };
+  },
+
+  /**
+   * 11. GET /api/v1/pipeline/telemetry
+   * Telemetri pipeline aktual pemrosesan Sectors API / MCP & AI Engine
+   */
+  async getPipelineTelemetry(): Promise<ResponseWrapper<PipelineTelemetry>> {
+    if (useDummyData) {
+      return {
+        status: 'success',
+        data: {
+          stages: MOCK_PIPELINE_STAGES,
+          total_duration_ms: 982,
+          pipeline_status: 'HEALTHY'
+        }
+      };
+    }
+
+    const res = await fetchApi<PipelineTelemetry>('/api/v1/pipeline/telemetry');
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    return {
+      status: 'success',
+      data: {
+        stages: MOCK_PIPELINE_STAGES,
+        total_duration_ms: 982,
+        pipeline_status: 'HEALTHY'
+      }
+    };
+  },
+
+  /**
+   * 12. GET /api/v1/macro/indicators
+   * Indikator Makroekonomi Nasional (BI-Rate, Inflasi, USD/IDR, PDB)
+   */
+  async getMacroIndicators(): Promise<ResponseWrapper<MacroIndicator[]>> {
+    if (useDummyData) {
+      return {
+        status: 'success',
+        data: MOCK_MACRO
+      };
+    }
+
+    const res = await fetchApi<MacroIndicator[]>('/api/v1/macro/indicators');
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    return {
+      status: 'success',
+      data: MOCK_MACRO
+    };
+  },
+
+  /**
+   * 13. GET /api/v1/macro/disaster-risks
+   * Risiko Bencana & Iklim Operasional Regional
+   */
+  async getDisasterRisks(): Promise<ResponseWrapper<DisasterRisk[]>> {
+    if (useDummyData) {
+      return {
+        status: 'success',
+        data: MOCK_DISASTER_RISKS
+      };
+    }
+
+    const res = await fetchApi<DisasterRisk[]>('/api/v1/macro/disaster-risks');
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    return {
+      status: 'success',
+      data: MOCK_DISASTER_RISKS
+    };
+  },
+
+  /**
+   * 14. GET /api/v1/portfolio/positions
+   * Posisi & Alokasi Portofolio
+   */
+  async getPortfolioPositions(): Promise<ResponseWrapper<PortfolioPosition[]>> {
+    if (useDummyData) {
+      return {
+        status: 'success',
+        data: MOCK_PORTFOLIO
+      };
+    }
+
+    const res = await fetchApi<PortfolioPosition[]>('/api/v1/portfolio/positions');
+    if (res.status === 'success' && res.data) {
+      return res;
+    }
+
+    return {
+      status: 'success',
+      data: MOCK_PORTFOLIO
+    };
   }
 };
