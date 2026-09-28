@@ -30,13 +30,14 @@ except ImportError:
 
 # Memastikan root direktori berada di sys.path
 CURRENT_DIR = Path(__file__).resolve().parent
-REPO_ROOT = CURRENT_DIR.parent.parent.parent
-for _p in [str(CURRENT_DIR), str(REPO_ROOT)]:
+AI_ENGINE_DIR = CURRENT_DIR.parent.parent
+REPO_ROOT = AI_ENGINE_DIR.parent
+for _p in [str(CURRENT_DIR), str(AI_ENGINE_DIR), str(REPO_ROOT)]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
 try:
-    from model_intellegence.derived_metrics import (
+    from ai_engine.core.derived_metrics import (
         safe_divide,
         compute_derived_metrics,
         fetch_and_compute_derived_metrics,
@@ -44,7 +45,16 @@ try:
     )
     HAS_DERIVED_METRICS = True
 except ImportError:
-    HAS_DERIVED_METRICS = False
+    try:
+        from core.derived_metrics import (
+            safe_divide,
+            compute_derived_metrics,
+            fetch_and_compute_derived_metrics,
+            _get
+        )
+        HAS_DERIVED_METRICS = True
+    except ImportError:
+        HAS_DERIVED_METRICS = False
 
 if not HAS_DERIVED_METRICS:
     def safe_divide(numerator: Any, denominator: Any) -> Optional[float]:
