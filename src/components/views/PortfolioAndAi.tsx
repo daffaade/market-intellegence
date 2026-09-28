@@ -1,212 +1,219 @@
-import React from 'react';
-import {
-  BrainCircuit,
-  ShieldCheck,
-  PieChart,
-  Flame,
-  FileText,
-  Sparkles
-} from 'lucide-react';
-import type { IntelligenceSnapshot, Company } from '../../types/api';
+import React, { useMemo } from 'react';
+import { AlertTriangle, Check } from 'lucide-react';
+import type { IntelligenceSnapshot, Company, DisasterRisk } from '../../types/api';
 import { MOCK_PORTFOLIO, MOCK_DISASTER_RISKS } from '../../services/mockData';
+import { confidenceLabel } from '../../lib/format';
+import { PageHeader, Panel, Stat, ScoreBar, Tag, DirectionTag } from '../ui/primitives';
+import { cx } from '../../lib/ui';
 
 interface PortfolioAndAiProps {
   intelligence: IntelligenceSnapshot;
   company: Company;
+  onSelectSymbol: (symbol: string) => void;
 }
 
-export const PortfolioAndAi: React.FC<PortfolioAndAiProps> = ({
-  intelligence
-}) => {
-  // Calculate portfolio stats
-  const totalAllocation = MOCK_PORTFOLIO.reduce((acc, curr) => acc + curr.allocation_pct, 0);
-  const weightedRisk = MOCK_PORTFOLIO.reduce((acc, curr) => acc + (curr.risk_score * curr.allocation_pct / 100), 0).toFixed(1);
+// Risk-management rules used to generate the notes below.
+const MAX_HIGH_RISK_WEIGHT = 10; // % allocation cap for a position with risk >= HIGH_RISK
+const HIGH_RISK = 60;
+const MAX_SECTOR_WEIGHT = 35; // % concentration before a sector is flagged
+
+const severityTone: Record<DisasterRisk['severity'], 'neutral' | 'warn' | 'down'> = {
+  LOW: 'neutral',
+  MEDIUM: 'warn',
+  HIGH: 'down',
+  SEVERE: 'down'
+};
+const severityLabel: Record<DisasterRisk['severity'], string> = {
+  LOW: 'Rendah',
+  MEDIUM: 'Sedang',
+  HIGH: 'Tinggi',
+  SEVERE: 'Parah'
+};
+
+// Allocation segments use shades of ink so they read as parts of one whole.
+const SEGMENT_SHADES = ['bg-ink', 'bg-ink-2', 'bg-ink-3', 'bg-line-strong', 'bg-surface-2'];
+
+export const PortfolioAndAi: React.FC<PortfolioAndAiProps> = ({ intelligence, company, onSelectSymbol }) => {
+  const stats = useMemo(() => {
+    const positions = [...MOCK_PORTFOLIO].sort((a, b) => b.allocation_pct - a.allocation_pct);
+    const total = positions.reduce((a, p) => a + p.allocation_pct, 0) || 1;
+    const weighted = (key: 'risk_score' | 'opportunity_score') =>
+      positions.reduce((a, p) => a + p[key] * p.allocation_pct, 0) / total;
+
+    const bySector = new Map<string, number>();
+    positions.forEach(p => bySector.set(p.sector, (bySector.get(p.sector) ?? 0) + p.allocation_pct));
+    const sectors = [...bySector.entries()].sort((a, b) => b[1] - a[1]);
+
+    const notes: Array<{ tone: 'warn' | 'ok'; title: string; body: string }> = [];
+    positions
+      .filter(p => p.risk_score >= HIGH_RISK && p.allocation_pct > MAX_HIGH_RISK_WEIGHT)
+      .forEach(p =>
+        notes.push({
+          tone: 'warn',
+          title: `${p.symbol} melebihi batas posisi berisiko tinggi`,
+          body: `Bobot ${p.allocation_pct}% dengan skor risiko ${p.risk_score}. Batas yang disarankan untuk emiten dengan risiko ≥ ${HIGH_RISK} adalah ${MAX_HIGH_RISK_WEIGHT}%.`
+        })
+      );
+    sectors
+      .filter(([, w]) => w > MAX_SECTOR_WEIGHT)
+      .forEach(([s, w]) =>
+        notes.push({
+          tone: 'warn',
+          title: `Konsentrasi di sektor ${s}`,
+          body: `${w}% portofolio berada di satu sektor, di atas ambang ${MAX_SECTOR_WEIGHT}%. Guncangan sektoral akan berdampak besar.`
+        })
+      );
+    if (notes.length === 0) {
+      notes.push({ tone: 'ok', title: 'Tidak ada pelanggaran batas risiko', body: 'Semua posisi dan sektor berada di bawah ambang yang ditetapkan.' });
+    }
+
+    return {
+      positions,
+      total,
+      risk: weighted('risk_score'),
+      opp: weighted('opportunity_score'),
+      sectors,
+      notes
+    };
+  }, []);
+
+  const [topSector, topSectorWeight] = stats.sectors[0] ?? ['—', 0];
 
   return (
     <div className="space-y-6">
-      {/* AI Research Summary Card */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 relative glow-cyan">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <BrainCircuit className="w-6 h-6 text-cyan-400 animate-pulse" />
-            <h3 className="text-base font-bold text-white tracking-wide font-mono">
-              AI Research Summary (Explanation Layer)
-            </h3>
-          </div>
-          <span className="text-xs px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 font-mono font-semibold border border-cyan-500/30">
-            Automated Synthesis Engine
-          </span>
+      <PageHeader
+        eyebrow="Portofolio"
+        title="Portofolio & riset"
+        description="Ringkasan riset AI untuk emiten yang sedang dibuka, serta evaluasi risiko portofolio contoh."
+      />
+
+      {/* AI research summary */}
+      <Panel
+        title={`Ringkasan riset · ${company.symbol}`}
+        meta={company.name}
+        actions={<DirectionTag direction={intelligence.direction} />}
+      >
+        <p className="text-[15px] leading-[1.7] text-ink max-w-3xl">
+          {intelligence.ai_research_summary || 'Ringkasan riset untuk emiten ini belum tersedia.'}
+        </p>
+        <div className="mt-4 pt-3 border-t border-line flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-3">
+          <span>Keyakinan model <span className="text-ink-2">{confidenceLabel[intelligence.confidence]}</span></span>
+          <span>Sumber data <span className="text-ink-2">Laporan keuangan & data IDX</span></span>
+          <span>Dihasilkan oleh model bahasa — verifikasi sebelum mengambil keputusan.</span>
         </div>
+        <p className="text-xs text-ink-3 mt-2 leading-relaxed max-w-3xl">{intelligence.disclaimer}</p>
+      </Panel>
 
-        <div className="bg-slate-900/80 p-5 rounded-xl border border-slate-800 space-y-4">
-          <div className="flex items-start space-x-3">
-            <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-slate-200 leading-relaxed font-sans">
-              {intelligence.ai_research_summary}
-            </p>
+      {/* Portfolio */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-lg overflow-hidden [&>*]:bg-surface [&>*]:p-4">
+        <Stat label="Posisi" value={stats.positions.length} hint={`${stats.sectors.length} sektor`} />
+        <Stat
+          label="Risiko tertimbang"
+          value={<span className={stats.risk >= HIGH_RISK ? 'text-down' : undefined}>{stats.risk.toFixed(1)}</span>}
+          hint="Rata-rata skor risiko × bobot"
+        />
+        <Stat label="Peluang tertimbang" value={stats.opp.toFixed(1)} hint="Rata-rata skor peluang × bobot" />
+        <Stat
+          label="Sektor terbesar"
+          value={<span className={topSectorWeight > MAX_SECTOR_WEIGHT ? 'text-warn' : undefined}>{topSectorWeight}%</span>}
+          hint={topSector}
+        />
+      </section>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Panel className="xl:col-span-2" title="Alokasi" meta="Portofolio contoh" flush>
+          <div className="p-4 border-b border-line">
+            <div className="flex h-2.5 rounded-full overflow-hidden gap-0.5">
+              {stats.positions.map((p, i) => (
+                <div
+                  key={p.symbol}
+                  className={SEGMENT_SHADES[i % SEGMENT_SHADES.length]}
+                  style={{ width: `${(p.allocation_pct / stats.total) * 100}%` }}
+                  title={`${p.symbol} ${p.allocation_pct}%`}
+                />
+              ))}
+            </div>
           </div>
-
-          <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-            <div className="flex items-center space-x-4">
-              <span>Kepercayaan Algoritma: <strong className="text-cyan-300">{intelligence.confidence} CONFIDENCE</strong></span>
-              <span>Sanad Data: <strong className="text-slate-200">Laporan Keuangan & IDX Feeds</strong></span>
-            </div>
-            <div className="text-[10px] text-amber-400 font-mono">
-              *Disclaimer: {intelligence.disclaimer}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Portfolio Risk & Concentration Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <PieChart className="w-5 h-5 text-indigo-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Portfolio Risk & Sector Concentration Analysis
-              </h3>
-            </div>
-            <span className="text-xs text-slate-400 font-mono">Portofolio Simulasi User</span>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="glass-card p-3 rounded-xl text-center">
-                <span className="text-[10px] text-slate-400 font-mono block">Total Alokasi</span>
-                <span className="text-base font-bold font-mono text-cyan-400">{totalAllocation}%</span>
-              </div>
-              <div className="glass-card p-3 rounded-xl text-center">
-                <span className="text-[10px] text-slate-400 font-mono block">Weighted Risk Score</span>
-                <span className="text-base font-bold font-mono text-emerald-400">{weightedRisk} / 100</span>
-              </div>
-              <div className="glass-card p-3 rounded-xl text-center">
-                <span className="text-[10px] text-slate-400 font-mono block">Diversifikasi Sektor</span>
-                <span className="text-base font-bold font-mono text-indigo-400">MODERATE</span>
-              </div>
-              <div className="glass-card p-3 rounded-xl text-center">
-                <span className="text-[10px] text-slate-400 font-mono block">Konsentrasi Tertinggi</span>
-                <span className="text-base font-bold font-mono text-amber-400">Financials (40%)</span>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-mono">
-                    <th className="pb-2 font-semibold">POSISI EMITEN</th>
-                    <th className="pb-2 font-semibold">SEKTOR</th>
-                    <th className="pb-2 font-semibold">ALOKASI (%)</th>
-                    <th className="pb-2 font-semibold">RISK SCORE</th>
-                    <th className="pb-2 font-semibold text-right">OPPORTUNITY SCORE</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="border-b border-line">
+                <tr className="text-left text-xs text-ink-3">
+                  <th className="px-4 h-9 font-medium">Emiten</th>
+                  <th className="px-4 h-9 font-medium">Sektor</th>
+                  <th className="px-4 h-9 font-medium text-right">Bobot</th>
+                  <th className="px-4 h-9 font-medium">Risiko</th>
+                  <th className="px-4 h-9 font-medium">Peluang</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {stats.positions.map((p, i) => (
+                  <tr key={p.symbol} onClick={() => onSelectSymbol(p.symbol)} className="hover:bg-surface-2 cursor-pointer">
+                    <td className="px-4 h-11">
+                      <div className="flex items-center gap-2.5 min-w-[180px]">
+                        <span className={cx('w-2 h-2 rounded-sm shrink-0', SEGMENT_SHADES[i % SEGMENT_SHADES.length])} />
+                        <span className="num font-medium text-ink">{p.symbol}</span>
+                        <span className="text-ink-2 truncate">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 h-11 text-ink-2 whitespace-nowrap">{p.sector}</td>
+                    <td className="px-4 h-11 num text-ink text-right">{p.allocation_pct}%</td>
+                    <td className="px-4 h-11"><ScoreBar value={p.risk_score} tone="risk" width="w-16" /></td>
+                    <td className="px-4 h-11"><ScoreBar value={p.opportunity_score} width="w-16" /></td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {MOCK_PORTFOLIO.map((pos, idx) => (
-                    <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-2.5 font-bold text-white font-mono">{pos.symbol} - {pos.name}</td>
-                      <td className="py-2.5 text-slate-300">{pos.sector}</td>
-                      <td className="py-2.5 font-mono text-cyan-400 font-bold">{pos.allocation_pct}%</td>
-                      <td className="py-2.5 font-mono text-slate-300">{pos.risk_score}</td>
-                      <td className="py-2.5 font-mono text-emerald-400 font-bold text-right">{pos.opportunity_score}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        </Panel>
 
-        {/* Portfolio Risk Assessment Summary */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Risk Management Assessment
-              </h3>
-            </div>
-
-            <div className="space-y-3">
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">
-                <strong>Konsentrasi Sektor Terkendali:</strong> Alokasi 40% pada sektor Financials (BBCA) didukung oleh indikator kesehatan finansial yang solid.
-              </div>
-
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
-                <strong>Peringatan Alokasi High Risk:</strong> GOTO memiliki porsi 15% dengan Risk Score 68.4. Disarankan untuk pembatasan alokasi maksimal 10%.
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400">
-            *Rekomendasi manajemen risiko secara kuantitatif untuk optimalisasi portofolio.
-          </div>
-        </div>
-      </div>
-
-      {/* External Impact: Disaster Risk & Consumer Behavior Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Disaster Risk Analysis */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <Flame className="w-5 h-5 text-amber-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Disaster Risk & Operational Impact Analysis
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            {MOCK_DISASTER_RISKS.map((risk, idx) => (
-              <div key={idx} className="glass-card p-3.5 rounded-xl border border-slate-800 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-200">{risk.region}</span>
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-semibold ${
-                    risk.severity === 'MEDIUM' ? 'bg-amber-500/20 text-amber-300' : 'bg-slate-800 text-slate-400'
-                  }`}>
-                    {risk.severity} SEVERITY
-                  </span>
+        <Panel title="Catatan risiko" meta={`${stats.notes.filter(n => n.tone === 'warn').length} peringatan`} flush>
+          <ul className="divide-y divide-line">
+            {stats.notes.map((n, i) => (
+              <li key={i} className="px-4 py-3 flex gap-2.5">
+                {n.tone === 'warn' ? (
+                  <AlertTriangle className="w-4 h-4 text-warn shrink-0 mt-0.5" />
+                ) : (
+                  <Check className="w-4 h-4 text-up shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <div className="text-[13px] font-medium text-ink">{n.title}</div>
+                  <p className="text-[13px] text-ink-2 mt-0.5 leading-relaxed">{n.body}</p>
                 </div>
-                <div className="text-xs text-slate-300">
-                  Potensi Risiko: <strong className="text-cyan-300">{risk.risk_type}</strong>
-                </div>
-                <div className="text-[10px] text-slate-400">
-                  Operasional Terdampak: {risk.impacted_operations}
-                </div>
-                <div className="text-[10px] text-emerald-400 font-medium">
-                  {risk.mitigation_status}
-                </div>
-              </div>
+              </li>
             ))}
+          </ul>
+          <div className="px-4 py-3 border-t border-line text-xs text-ink-3 leading-relaxed">
+            Aturan: posisi berisiko ≥ {HIGH_RISK} maks. {MAX_HIGH_RISK_WEIGHT}%, satu sektor maks. {MAX_SECTOR_WEIGHT}%.
           </div>
-        </div>
-
-        {/* Consumer Behavior & Digital Shift */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <FileText className="w-5 h-5 text-sky-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Consumer Behavior & Trend Analysis
-            </h3>
-          </div>
-
-          <div className="space-y-3 text-xs text-slate-300">
-            <div className="glass-card p-3 rounded-xl border border-slate-800 space-y-1">
-              <span className="font-bold text-cyan-400 block">Adopsi Digital Banking & Cashless Payment</span>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Transaksi QRIS dan mobile banking nasional tumbuh 38% YoY. Hal ini memperkuat retensi CASA emiten perbankan besar seperti BBCA.
-              </p>
-            </div>
-
-            <div className="glass-card p-3 rounded-xl border border-slate-800 space-y-1">
-              <span className="font-bold text-cyan-400 block">Pergeseran Pola Belanja FMCG vs Digital E-Commerce</span>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Konsumen cenderung memilih produk FMCG kemasan lebih kecil (downsizing strategy), sementara volume transaksi e-commerce terkonsolidasi pada platform utama.
-              </p>
-            </div>
-          </div>
-        </div>
+        </Panel>
       </div>
+
+      <Panel title="Risiko bencana & operasional" meta="Wilayah operasi emiten" flush>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead className="border-b border-line">
+              <tr className="text-left text-xs text-ink-3">
+                <th className="px-4 h-9 font-medium">Wilayah</th>
+                <th className="px-4 h-9 font-medium">Jenis risiko</th>
+                <th className="px-4 h-9 font-medium">Tingkat</th>
+                <th className="px-4 h-9 font-medium">Operasi terdampak</th>
+                <th className="px-4 h-9 font-medium">Mitigasi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {MOCK_DISASTER_RISKS.map(r => (
+                <tr key={r.region}>
+                  <td className="px-4 py-3 text-ink align-top">{r.region}</td>
+                  <td className="px-4 py-3 text-ink-2 align-top">{r.risk_type}</td>
+                  <td className="px-4 py-3 align-top"><Tag tone={severityTone[r.severity]}>{severityLabel[r.severity]}</Tag></td>
+                  <td className="px-4 py-3 text-ink-2 align-top">{r.impacted_operations}</td>
+                  <td className="px-4 py-3 text-ink-2 align-top">{r.mitigation_status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
     </div>
   );
 };

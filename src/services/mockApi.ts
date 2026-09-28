@@ -33,6 +33,39 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:808
 export const getApiBaseUrl = (): string => API_BASE_URL;
 
 /**
+ * Where the most recent data came from. 'fallback' means backend mode is on but
+ * the backend failed and mock data was served instead — the UI surfaces this so
+ * simulated numbers are never mistaken for live ones.
+ */
+export type DataOrigin = 'dummy' | 'backend' | 'fallback';
+export const DATA_ORIGIN_EVENT = 'marketidex_data_origin';
+
+const markOrigin = (origin: DataOrigin): void => {
+  window.dispatchEvent(new CustomEvent<DataOrigin>(DATA_ORIGIN_EVENT, { detail: origin }));
+};
+
+function screenLocally(filter: ScreenerFilter): IntelligenceSnapshot[] {
+  let results = Object.values(MOCK_INTELLIGENCE);
+
+  if (filter.sector) {
+    results = results.filter((item) => {
+      const company = MOCK_COMPANIES[item.symbol];
+      return company && company.sector.toLowerCase() === filter.sector?.toLowerCase();
+    });
+  }
+  if (filter.min_opportunity !== undefined) {
+    results = results.filter((item) => item.opportunity_score >= (filter.min_opportunity || 0));
+  }
+  if (filter.max_risk !== undefined) {
+    results = results.filter((item) => item.risk_score <= (filter.max_risk ?? 100));
+  }
+  if (filter.must_have_divergence) {
+    results = results.filter((item) => item.divergence_detected || item.is_anomaly);
+  }
+  return results;
+}
+
+/**
  * Universal HTTP helper with timeout.
  */
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<ResponseWrapper<T>> {
@@ -160,6 +193,7 @@ export const apiService = {
     const cleanSym = symbol.toUpperCase().trim();
 
     if (useDummyData) {
+      markOrigin('dummy');
       const company = MOCK_COMPANIES[cleanSym];
       if (!company) {
         return { status: 'error', message: `Company ${cleanSym} not found in dummy data` };
@@ -169,8 +203,10 @@ export const apiService = {
 
     const res = await fetchApi<Company>(`/api/v1/companies/${cleanSym}`);
     if (res.status === 'success' && res.data) {
+      markOrigin('backend');
       return res;
     }
+    markOrigin('fallback');
 
     // If backend fails or emiten not yet in backend DB, gracefully fall back to local mock data
     const fallback = MOCK_COMPANIES[cleanSym];
@@ -201,7 +237,8 @@ export const apiService = {
       };
     }
 
-    // Fallback if backend does not have this emiten yet
+    // Backend does not have this emiten yet
+    markOrigin('fallback');
     const fallback = MOCK_INTELLIGENCE[cleanSym] || { ...MOCK_INTELLIGENCE.BBCA, symbol: cleanSym };
     return { status: 'success', data: fallback };
   },
@@ -288,13 +325,14 @@ export const apiService = {
 
     const res = await fetchApi<any>('/api/v1/market/overview');
     if (res.status === 'success' && res.data) {
+      markOrigin('backend');
       return {
         status: 'success',
         data: normalizeMarketOverview(res.data)
       };
     }
 
-    // Fallback if backend failed
+    markOrigin('fallback');
     return {
       status: 'success',
       data: MOCK_MARKET_OVERVIEW
@@ -307,31 +345,8 @@ export const apiService = {
    */
   async runScreener(filter: ScreenerFilter): Promise<ResponseWrapper<IntelligenceSnapshot[]>> {
     if (useDummyData) {
-      let results = Object.values(MOCK_INTELLIGENCE);
-
-      if (filter.sector) {
-        results = results.filter((item) => {
-          const company = MOCK_COMPANIES[item.symbol];
-          return company && company.sector.toLowerCase() === filter.sector?.toLowerCase();
-        });
-      }
-
-      if (filter.min_opportunity !== undefined) {
-        results = results.filter((item) => item.opportunity_score >= (filter.min_opportunity || 0));
-      }
-
-      if (filter.max_risk !== undefined) {
-        results = results.filter((item) => item.risk_score <= (filter.max_risk || 100));
-      }
-
-      if (filter.must_have_divergence) {
-        results = results.filter((item) => item.divergence_detected);
-      }
-
-      return {
-        status: 'success',
-        data: results
-      };
+      markOrigin('dummy');
+      return { status: 'success', data: screenLocally(filter) };
     }
 
     const res = await fetchApi<any[]>('/api/v1/screener', {
@@ -345,11 +360,7 @@ export const apiService = {
       };
     }
 
-    // Local fallback
-    let results = Object.values(MOCK_INTELLIGENCE);
-    return {
-      status: 'success',
-      data: results
-    };
+    markOrigin('fallback');
+    return { status: 'success', data: screenLocally(filter) };
   }
 };

@@ -1,23 +1,6 @@
 import React from 'react';
-import {
-  Building2,
-  TrendingUp,
-  PieChart as PieChartIcon,
-  Users,
-  Briefcase,
-  DollarSign
-} from 'lucide-react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  CartesianGrid
-} from 'recharts';
-import type { Company } from '../../types/api';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
+import type { Company, IntelligenceSnapshot, Shareholder } from '../../types/api';
 import {
   MOCK_GROWTH_DATA,
   MOCK_DIVIDENDS,
@@ -25,220 +8,274 @@ import {
   MOCK_EXECUTIVES,
   MOCK_SMART_MONEY
 } from '../../services/mockData';
-import { EmitenSwitcherModal } from '../shared/EmitenSwitcherModal';
+import { EmitenHeader } from '../shared/EmitenHeader';
+import { useChartColors } from '../../lib/theme';
+import { Panel, Stat, Tag, EmptyState } from '../ui/primitives';
+import { cx } from '../../lib/ui';
 
 interface CompanyDashboardProps {
   company: Company;
-  onSelectSymbol?: (symbol: string) => void;
+  intelligence: IntelligenceSnapshot;
+  onOpenSearch: () => void;
+  isWatched: boolean;
+  onToggleWatchlist: (symbol: string) => void;
 }
 
-export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({ company, onSelectSymbol }) => {
-  const growthData = MOCK_GROWTH_DATA[company.symbol] || MOCK_GROWTH_DATA.BBCA;
-  const dividends = MOCK_DIVIDENDS[company.symbol] || MOCK_DIVIDENDS.BBCA;
-  const shareholders = MOCK_SHAREHOLDERS[company.symbol] || MOCK_SHAREHOLDERS.BBCA;
-  const executives = MOCK_EXECUTIVES[company.symbol] || MOCK_EXECUTIVES.BBCA;
-  const smartMoney = MOCK_SMART_MONEY[company.symbol] || MOCK_SMART_MONEY.BBCA;
+const formatBillions = (n: number) => `Rp ${(n / 1000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} T`;
 
-  const formattedMarketCap = (company.market_cap / 1000000000000).toFixed(2);
+const pctChange = (curr?: number, prev?: number) =>
+  curr !== undefined && prev ? ((curr - prev) / prev) * 100 : undefined;
+
+const Change: React.FC<{ value?: number; suffix?: string }> = ({ value, suffix = '% YoY' }) =>
+  value === undefined ? null : (
+    <span className={cx('num', value >= 0 ? 'text-up' : 'text-down')}>
+      {value >= 0 ? '+' : '−'}{Math.abs(value).toFixed(1)}{suffix}
+    </span>
+  );
+
+const ownershipColor: Record<Shareholder['category'], string> = {
+  INSTITUTIONAL: 'bg-accent',
+  GOVERNMENT: 'bg-ink-2',
+  RETAIL: 'bg-line-strong',
+  MANAGEMENT: 'bg-warn'
+};
+
+const ownershipLabel: Record<Shareholder['category'], string> = {
+  INSTITUTIONAL: 'Institusi',
+  GOVERNMENT: 'Pemerintah',
+  RETAIL: 'Publik',
+  MANAGEMENT: 'Manajemen'
+};
+
+const insiderLabel = { BOUGHT: 'Beli', SOLD: 'Jual', HELD: 'Tahan' } as const;
+
+const Missing: React.FC<{ what: string; symbol: string }> = ({ what, symbol }) => (
+  <EmptyState title={`Data ${what} ${symbol} belum tersedia`}>
+    Sumber data saat ini baru mencakup sebagian emiten. Data akan muncul otomatis setelah backend menyediakannya.
+  </EmptyState>
+);
+
+export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
+  company,
+  intelligence,
+  onOpenSearch,
+  isWatched,
+  onToggleWatchlist
+}) => {
+  const colors = useChartColors();
+  const sym = company.symbol;
+
+  // No silent fallback to another emiten's numbers — missing data is shown as missing.
+  const growth = MOCK_GROWTH_DATA[sym];
+  const dividends = MOCK_DIVIDENDS[sym];
+  const shareholders = MOCK_SHAREHOLDERS[sym];
+  const executives = MOCK_EXECUTIVES[sym];
+  const smartMoney = MOCK_SMART_MONEY[sym];
+
+  const actual = growth?.filter(g => !g.year.includes('F')) ?? [];
+  const last = actual[actual.length - 1];
+  const prev = actual[actual.length - 2];
+  const lastDiv = dividends?.[dividends.length - 1];
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400">
-              <Building2 className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white flex flex-wrap items-center gap-2">
-                <span>{company.name}</span>
-                <span className="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono font-bold">
-                  {company.symbol}
-                </span>
-                {onSelectSymbol && (
-                  <EmitenSwitcherModal
-                    currentSymbol={company.symbol}
-                    onSelectSymbol={onSelectSymbol}
-                    buttonText="Ganti Emiten"
-                  />
-                )}
-              </h1>
+      <EmitenHeader
+        company={company}
+        intelligence={intelligence}
+        section="Fundamental"
+        onOpenSearch={onOpenSearch}
+        isWatched={isWatched}
+        onToggleWatchlist={onToggleWatchlist}
+      />
 
-              <p className="text-xs text-slate-400 mt-0.5">
-                Sektor: <strong className="text-slate-300">{company.sector}</strong> | Sub-sektor: <strong className="text-slate-300">{company.sub_sector}</strong>
-              </p>
-            </div>
-          </div>
-        </div>
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-lg overflow-hidden [&>*]:bg-surface [&>*]:p-4">
+        <Stat
+          label={`Pendapatan ${last?.year ?? ''}`}
+          value={last ? formatBillions(last.revenue) : '—'}
+          hint={<Change value={pctChange(last?.revenue, prev?.revenue)} />}
+        />
+        <Stat
+          label={`Laba bersih ${last?.year ?? ''}`}
+          value={last ? formatBillions(last.net_profit) : '—'}
+          hint={<Change value={pctChange(last?.net_profit, prev?.net_profit)} />}
+        />
+        <Stat
+          label="Marjin laba bersih"
+          value={last ? `${last.margin}%` : '—'}
+          hint={last && prev ? <Change value={last.margin - prev.margin} suffix=" poin" /> : undefined}
+        />
+        <Stat
+          label={`Imbal hasil dividen ${lastDiv?.year ?? ''}`}
+          value={lastDiv ? `${lastDiv.yield_percent}%` : '—'}
+          hint={lastDiv ? `Payout ${lastDiv.payout_ratio}%` : undefined}
+        />
+      </section>
 
-        <div className="flex items-center space-x-6">
-          <div className="text-right">
-            <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider block">Kapitalisasi Pasar</span>
-            <span className="text-lg font-bold font-mono text-cyan-400">Rp {formattedMarketCap} T</span>
-          </div>
-          <div className="h-8 w-px bg-slate-800" />
-          <div className="text-right">
-            <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider block">Update Terakhir</span>
-            <span className="text-xs font-mono text-slate-300">2026-09-20 18:00 WIB</span>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Panel
+          className="xl:col-span-2"
+          title="Pendapatan dan laba bersih"
+          meta="Triliun rupiah · F = proyeksi"
+          actions={
+            growth && (
+              <div className="flex items-center gap-3 text-xs text-ink-2">
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: colors.series1 }} />Pendapatan</span>
+                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: colors.series2 }} />Laba bersih</span>
+              </div>
+            )
+          }
+        >
+          {growth ? (
+            <>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={growth} margin={{ top: 4, right: 4, left: -8, bottom: 0 }} barGap={2} barCategoryGap="28%">
+                    <CartesianGrid stroke={colors.grid} vertical={false} />
+                    <XAxis dataKey="year" stroke={colors.axis} fontSize={11} tickLine={false} axisLine={{ stroke: colors.grid }} />
+                    <YAxis
+                      stroke={colors.axis}
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={v => `${Number(v) / 1000}`}
+                    />
+                    <Tooltip
+                      cursor={{ fill: colors.grid, opacity: 0.5 }}
+                      content={({ active, payload, label }) =>
+                        active && payload?.length ? (
+                          <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs">
+                            <div className="text-ink-3 mb-1">{label}</div>
+                            {payload.map(p => (
+                              <div key={String(p.dataKey)} className="flex justify-between gap-4">
+                                <span className="text-ink-2">{p.dataKey === 'revenue' ? 'Pendapatan' : 'Laba bersih'}</span>
+                                <span className="num text-ink">{formatBillions(Number(p.value))}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null
+                      }
+                    />
+                    <Bar dataKey="revenue" fill={colors.series1} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      {growth.map(g => <Cell key={g.year} fill={colors.series1} fillOpacity={g.year.includes('F') ? 0.4 : 1} />)}
+                    </Bar>
+                    <Bar dataKey="net_profit" fill={colors.series2} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                      {growth.map(g => <Cell key={g.year} fill={colors.series2} fillOpacity={g.year.includes('F') ? 0.4 : 1} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-3 pt-3 border-t border-line grid gap-2 text-xs" style={{ gridTemplateColumns: `auto repeat(${growth.length}, minmax(0, 1fr))` }}>
+                <span className="text-ink-3 pr-2">Marjin</span>
+                {growth.map(g => (
+                  <span key={g.year} className="num text-ink-2 text-center">{g.margin}%</span>
+                ))}
+              </div>
+            </>
+          ) : (
+            <Missing what="laporan keuangan" symbol={sym} />
+          )}
+        </Panel>
+
+        <Panel title="Riwayat dividen" flush>
+          {dividends ? (
+            <table className="w-full text-[13px]">
+              <thead className="border-b border-line">
+                <tr className="text-xs text-ink-3">
+                  <th className="px-4 h-9 font-medium text-left">Tahun</th>
+                  <th className="px-4 h-9 font-medium text-right">DPS</th>
+                  <th className="px-4 h-9 font-medium text-right">Yield</th>
+                  <th className="px-4 h-9 font-medium text-right">Payout</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {[...dividends].reverse().map(d => (
+                  <tr key={d.year}>
+                    <td className="px-4 h-10 num text-ink">{d.year}</td>
+                    <td className="px-4 h-10 num text-ink text-right">Rp {d.dividend_per_share}</td>
+                    <td className="px-4 h-10 num text-ink-2 text-right">{d.yield_percent}%</td>
+                    <td className="px-4 h-10 num text-ink-2 text-right">{d.payout_ratio}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <Missing what="dividen" symbol={sym} />
+          )}
+        </Panel>
       </div>
 
-      {/* Financial Growth Analysis & Projections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Growth Analysis & Financial Projections (in Billions IDR)
-              </h3>
-            </div>
-            <span className="text-xs text-slate-400 font-mono">Histori & Konsensus 2026</span>
-          </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <Panel title="Struktur kepemilikan">
+          {shareholders ? (
+            <>
+              <div className="flex h-2 rounded-full overflow-hidden gap-0.5" aria-hidden="true">
+                {shareholders.map(s => (
+                  <div key={s.name} className={ownershipColor[s.category]} style={{ width: `${s.share_percentage}%` }} />
+                ))}
+              </div>
+              <ul className="mt-4 space-y-3">
+                {shareholders.map(s => (
+                  <li key={s.name} className="flex items-start gap-2.5 text-[13px]">
+                    <span className={cx('w-2 h-2 rounded-sm mt-1.5 shrink-0', ownershipColor[s.category])} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-ink truncate">{s.name}</span>
+                      <span className="block text-xs text-ink-3">{ownershipLabel[s.category]}</span>
+                    </span>
+                    <span className="num text-ink">{s.share_percentage}%</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <Missing what="kepemilikan" symbol={sym} />
+          )}
+        </Panel>
 
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={growthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="year" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="revenue" name="Pendapatan (Revenue)" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="net_profit" name="Laba Bersih (Net Profit)" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Dividend History */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <DollarSign className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Histori Pembagian Dividen
-              </h3>
-            </div>
-
-            <div className="space-y-3">
-              {dividends.map((div, idx) => (
-                <div key={idx} className="glass-card p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                  <div>
-                    <span className="text-xs font-bold text-slate-200 font-mono">Tahun {div.year}</span>
-                    <div className="text-[10px] text-slate-400">DPS: Rp {div.dividend_per_share}</div>
+        <Panel title="Transaksi orang dalam" meta="Direksi & komisaris" flush>
+          {executives ? (
+            <ul className="divide-y divide-line">
+              {executives.map(e => (
+                <li key={e.name} className="px-4 py-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[13px] text-ink truncate">{e.name}</div>
+                    <div className="text-xs text-ink-3">{e.position} · {e.tenure}</div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs font-mono font-bold text-emerald-400">{div.yield_percent}% Yield</span>
-                    <div className="text-[10px] text-slate-400">Payout: {div.payout_ratio}%</div>
+                  <div className="text-right shrink-0">
+                    <Tag tone={e.insider_action === 'BOUGHT' ? 'up' : e.insider_action === 'SOLD' ? 'down' : 'neutral'}>
+                      {insiderLabel[e.insider_action]}
+                    </Tag>
+                    {e.transaction_amount && <div className="num text-xs text-ink-3 mt-1">{e.transaction_amount}</div>}
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          ) : (
+            <Missing what="orang dalam" symbol={sym} />
+          )}
+        </Panel>
 
-          <div className="mt-4 pt-3 border-t border-slate-800 text-[10px] text-slate-400">
-            *Dividen konsisten dibayarkan 2 kali setahun (Interim & Final).
-          </div>
-        </div>
-      </div>
-
-      {/* Ownership & Insider Confidence & Smart Money */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Ownership Structure */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <PieChartIcon className="w-5 h-5 text-indigo-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Peta Kepemilikan Saham (Ownership)
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            {shareholders.map((sh, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-300 font-medium truncate max-w-[200px]">{sh.name}</span>
-                  <span className="font-mono font-bold text-slate-100">{sh.share_percentage}%</span>
-                </div>
-                <div className="w-full bg-slate-900 rounded-full h-2">
-                  <div
-                    className={`h-full rounded-full ${
-                      sh.category === 'INSTITUTIONAL'
-                        ? 'bg-cyan-500'
-                        : sh.category === 'RETAIL'
-                        ? 'bg-indigo-500'
-                        : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${sh.share_percentage}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Key Executives & Insider Confidence */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <Users className="w-5 h-5 text-sky-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Insider Confidence Tracker
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            {executives.map((exec, idx) => (
-              <div key={idx} className="glass-card p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div>
-                  <div className="text-xs font-semibold text-slate-200">{exec.name}</div>
-                  <div className="text-[10px] text-slate-400">{exec.position} ({exec.tenure})</div>
-                </div>
-                <div className="text-right">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                    exec.insider_action === 'BOUGHT'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-slate-800 text-slate-400'
-                  }`}>
-                    {exec.insider_action}
-                  </span>
-                  {exec.transaction_amount && (
-                    <div className="text-[9px] text-emerald-400 font-mono mt-0.5">{exec.transaction_amount}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Smart Money Analysis (Institutional Transactions) */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <Briefcase className="w-5 h-5 text-amber-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Smart Money Analysis
-            </h3>
-          </div>
-
-          <div className="space-y-3">
-            {smartMoney.map((tx, idx) => (
-              <div key={idx} className="glass-card p-3 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div>
-                  <div className="text-xs font-semibold text-slate-200">{tx.institution}</div>
-                  <div className="text-[10px] font-mono text-slate-400">{tx.date} | Vol: {tx.volume}</div>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold text-amber-400">{tx.value_idr}</span>
-                  <div className="text-[10px] text-emerald-400 font-semibold">{tx.action}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Panel title="Arus dana institusi" meta="Transaksi terbaru" flush>
+          {smartMoney ? (
+            <ul className="divide-y divide-line">
+              {smartMoney.map((tx, i) => (
+                <li key={i} className="px-4 py-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[13px] text-ink truncate">{tx.institution}</div>
+                    <div className="num text-xs text-ink-3">{tx.date} · {tx.volume} lembar</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="num text-[13px] text-ink">{tx.value_idr}</div>
+                    <div className={cx('text-xs', tx.action === 'ACCUMULATE' ? 'text-up' : 'text-down')}>
+                      {tx.action === 'ACCUMULATE' ? 'Akumulasi' : 'Distribusi'}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Missing what="arus dana institusi" symbol={sym} />
+          )}
+        </Panel>
       </div>
     </div>
   );

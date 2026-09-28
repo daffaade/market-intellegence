@@ -1,374 +1,186 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Database, 
-  ChevronRight, 
-  CheckCircle2, 
-  Loader2, 
-  Clock, 
-  X, 
-  Server, 
-  FlaskConical, 
-  RefreshCw, 
-  Wifi, 
-  AlertCircle,
-  Radio,
-  Cpu
-} from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, RefreshCw, Check, Loader2, Circle, ChevronRight } from 'lucide-react';
 import type { PipelineStage, HealthStatus } from '../../types/api';
-import { apiService, getApiBaseUrl } from '../../services/mockApi';
+import { apiService, getApiBaseUrl, type DataOrigin } from '../../services/mockApi';
+import { Button, Segmented, Tag } from '../ui/primitives';
+import { cx } from '../../lib/ui';
 
 interface SectorsPipelineInspectorProps {
   stages: PipelineStage[];
   isOpen: boolean;
   onClose: () => void;
   useDummyData: boolean;
+  dataOrigin: DataOrigin;
   onToggleDummy: (enabled: boolean) => void;
-  onRefreshData?: () => void;
 }
 
-const statusConfig = {
-  COMPLETED: { icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', label: 'Completed' },
-  PROCESSING: { icon: Loader2, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30', label: 'Processing' },
-  PENDING: { icon: Clock, color: 'text-slate-400', bg: 'bg-slate-800 border-slate-700', label: 'Pending' },
+const statusIcon = {
+  COMPLETED: <Check className="w-3.5 h-3.5 text-up" />,
+  PROCESSING: <Loader2 className="w-3.5 h-3.5 text-warn animate-spin" />,
+  PENDING: <Circle className="w-3.5 h-3.5 text-ink-3" />
 };
+
+const statusLabel = { COMPLETED: 'Selesai', PROCESSING: 'Berjalan', PENDING: 'Menunggu' };
 
 export const SectorsPipelineInspector: React.FC<SectorsPipelineInspectorProps> = ({
   stages,
   isOpen,
   onClose,
   useDummyData,
-  onToggleDummy,
-  onRefreshData
+  dataOrigin,
+  onToggleDummy
 }) => {
-  const [expandedStage, setExpandedStage] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
-  const [checkingHealth, setCheckingHealth] = useState<boolean>(false);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [checking, setChecking] = useState(false);
+  const [checked, setChecked] = useState(false);
 
-  // Ping backend health whenever inspector opens
-  const checkBackendHealth = async () => {
-    setCheckingHealth(true);
+  const checkHealth = useCallback(async () => {
+    setChecking(true);
     try {
       const res = await apiService.getHealth();
-      if (res.status === 'success' && res.data) {
-        setHealth(res.data);
-      } else {
-        setHealth(null);
-      }
+      // getHealth simulates a response in dummy mode; only a real backend counts as online.
+      setHealth(res.status === 'success' && res.data && res.data.status !== 'simulated' ? res.data : null);
     } catch {
       setHealth(null);
     } finally {
-      setCheckingHealth(false);
+      setChecking(false);
+      setChecked(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      checkBackendHealth();
-    }
-  }, [isOpen]);
+    if (isOpen) checkHealth();
+  }, [isOpen, checkHealth]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const totalDuration = stages.reduce((acc, s) => acc + (s.duration_ms || 0), 0);
-  const backendUrl = getApiBaseUrl();
-
-  const handleToggle = (newValue: boolean) => {
-    onToggleDummy(newValue);
-    if (onRefreshData) {
-      setIsRefreshing(true);
-      setTimeout(() => {
-        onRefreshData();
-        setIsRefreshing(false);
-      }, 300);
-    }
-  };
+  const totalMs = stages.reduce((a, s) => a + (s.duration_ms || 0), 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="glass-panel w-full max-w-2xl max-h-[90vh] rounded-2xl border border-slate-700 shadow-2xl shadow-cyan-500/10 overflow-hidden flex flex-col">
-        
-        {/* Modal Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/60">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-              <Database className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-bold text-white font-mono">Sectors API & Intelligence Pipeline</h2>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  CONTROL PANEL
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">Kontrol sumber data, eksekusi pipeline & verifikasi backend</p>
-            </div>
-          </div>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
-          >
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[8vh] bg-black/40" onMouseDown={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pipeline-title"
+        className="w-full max-w-xl bg-surface border border-line-strong rounded-lg shadow-2xl flex flex-col max-h-[84vh]"
+        onMouseDown={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 h-12 border-b border-line shrink-0">
+          <h2 id="pipeline-title" className="text-[14px] font-semibold text-ink">Sumber data & pipeline</h2>
+          <button onClick={onClose} className="p-1 rounded text-ink-3 hover:text-ink hover:bg-surface-2" aria-label="Tutup">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-
-          {/* ─── TOGGLE ON/OFF SOURCE MODE CARD ─── */}
-          <div className="p-4 rounded-xl border transition-all bg-gradient-to-b from-slate-900/90 to-slate-900/50 border-slate-700/80 shadow-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              
-              <div className="flex items-start space-x-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${
-                  useDummyData 
-                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-400' 
-                    : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-md shadow-emerald-500/20'
-                }`}>
-                  {useDummyData ? <FlaskConical className="w-5 h-5" /> : <Server className="w-5 h-5" />}
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                      Sumber Data Engine
-                    </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded font-mono font-bold border flex items-center space-x-1 ${
-                      useDummyData 
-                        ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' 
-                        : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${useDummyData ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
-                      <span>{useDummyData ? 'DATA DUMMY (MOCK)' : 'HANYA BACKEND GO'}</span>
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                    {useDummyData 
-                      ? 'Mode simulasi offline aktif dengan 18 emiten IDX bawaan untuk demonstrasi.' 
-                      : 'Terhubung langsung ke API Go (port 8080) dengan Sectors API & AI Provider.'}
-                  </p>
-                </div>
+        <div className="flex-1 overflow-y-auto">
+          {/* Data source */}
+          <section className="px-5 py-4 border-b border-line">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[13px] font-medium text-ink">Sumber data</div>
+                <p className="text-xs text-ink-3 mt-0.5 leading-relaxed">
+                  {useDummyData
+                    ? 'Menggunakan 18 emiten simulasi. Tidak ada permintaan ke jaringan.'
+                    : 'Mengambil data dari backend Go. Jika backend gagal, data simulasi dipakai dan ditandai.'}
+                </p>
               </div>
-
-              {/* Interactive Switch */}
-              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <span className="text-[11px] font-mono font-semibold text-slate-300">
-                    {useDummyData ? 'Dummy: ON' : 'Dummy: OFF'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(!useDummyData)}
-                    className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 transition-colors duration-200 ease-in-out focus:outline-none ${
-                      useDummyData 
-                        ? 'bg-amber-500 border-amber-400 shadow-md shadow-amber-500/30' 
-                        : 'bg-emerald-600 border-emerald-500 shadow-md shadow-emerald-600/30'
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out flex items-center justify-center ${
-                        useDummyData ? 'translate-x-7' : 'translate-x-0'
-                      }`}
-                    >
-                      {useDummyData ? (
-                        <FlaskConical className="w-3.5 h-3.5 text-amber-600" />
-                      ) : (
-                        <Server className="w-3.5 h-3.5 text-emerald-600" />
-                      )}
-                    </span>
-                  </button>
-                </div>
-                <span className="text-[9px] text-slate-500 font-mono mt-1 hidden sm:block">
-                  Klik untuk beralih mode
-                </span>
-              </div>
+              <Segmented
+                ariaLabel="Sumber data"
+                value={useDummyData ? 'dummy' : 'backend'}
+                onChange={v => onToggleDummy(v === 'dummy')}
+                options={[
+                  { value: 'backend', label: 'Backend' },
+                  { value: 'dummy', label: 'Simulasi' }
+                ]}
+              />
             </div>
-
-              {/* Segmented Button Shortcut */}
-              <div className="mt-3 pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleToggle(false)}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
-                    !useDummyData
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 shadow-sm'
-                      : 'bg-slate-900/60 text-slate-400 border border-slate-800 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`}
-                >
-                  <Server className="w-3.5 h-3.5" />
-                  <span>⚡ Hanya Backend Go</span>
-                  {!useDummyData && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleToggle(true)}
-                  className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
-                    useDummyData
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm'
-                      : 'bg-slate-900/60 text-slate-400 border border-slate-800 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`}
-                >
-                  <FlaskConical className="w-3.5 h-3.5" />
-                  <span>🧪 Pakai Data Dummy</span>
-                  {useDummyData && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                </button>
-              </div>
-          </div>
-
-          {/* ─── LIVE BACKEND DIAGNOSTIC CARD ─── */}
-          <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex flex-col space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Radio className={`w-3.5 h-3.5 ${health ? 'text-emerald-400' : 'text-slate-500'}`} />
-                <span className="text-[11px] font-bold font-mono text-slate-300 uppercase">
-                  Status Koneksi API Backend
-                </span>
-              </div>
-              <button
-                onClick={checkBackendHealth}
-                disabled={checkingHealth}
-                className="flex items-center space-x-1 text-[10px] font-mono text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-800/50 transition-colors cursor-pointer"
-              >
-                <RefreshCw className={`w-3 h-3 ${checkingHealth ? 'animate-spin' : ''}`} />
-                <span>{checkingHealth ? 'Pinging...' : 'Ping Server'}</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
-              <div className="p-2 rounded bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-500 block text-[9px]">TARGET URL</span>
-                <span className="text-slate-300 font-medium truncate block">{backendUrl}</span>
-              </div>
-              <div className="p-2 rounded bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-500 block text-[9px]">SERVER HEALTH</span>
-                {health ? (
-                  <span className="text-emerald-400 font-bold flex items-center space-x-1">
-                    <Wifi className="w-2.5 h-2.5 inline mr-1" />
-                    ONLINE (200)
-                  </span>
-                ) : (
-                  <span className="text-rose-400 font-bold flex items-center space-x-1">
-                    <AlertCircle className="w-2.5 h-2.5 inline mr-1" />
-                    OFFLINE
-                  </span>
-                )}
-              </div>
-              <div className="p-2 rounded bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-500 block text-[9px]">AI PROVIDER</span>
-                <span className="text-cyan-400 font-bold">{health?.ai_provider || 'mock'}</span>
-              </div>
-              <div className="p-2 rounded bg-slate-900/80 border border-slate-800">
-                <span className="text-slate-500 block text-[9px]">AI MODEL</span>
-                <span className="text-indigo-300 truncate block">{health?.ai_model || 'gemini-3.5-flash'}</span>
-              </div>
-            </div>
-
-            {!health && (
-              <div className="flex items-center space-x-2 text-[10px] text-amber-400/90 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>
-                  Backend Go belum merespons di port 8080. Jalankan <code className="bg-slate-900 px-1 py-0.5 rounded font-mono text-slate-200">go run cmd/api/main.go</code> atau tetap gunakan Data Dummy.
-                </span>
-              </div>
+            {dataOrigin === 'fallback' && (
+              <p className="mt-3 text-xs text-down leading-relaxed">
+                Sebagian data yang tampil saat ini adalah data simulasi karena backend tidak merespons.
+              </p>
             )}
-          </div>
+          </section>
 
-          {/* ─── PIPELINE SUMMARY & STAGES ─── */}
-          <div className="pt-2">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2 text-xs text-slate-300 font-mono">
-                <Cpu className="w-4 h-4 text-cyan-400" />
-                <span className="font-bold">Tahapan Sectors API & Engine</span>
-                <span className="text-slate-600">|</span>
-                <span className="text-slate-400">{stages.length} Stages</span>
-                <span className="text-slate-600">|</span>
-                <span className="text-cyan-400">{totalDuration}ms</span>
-              </div>
-
-              {isRefreshing && (
-                <div className="flex items-center space-x-1 text-[10px] text-cyan-400 font-mono">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  <span>Reloading data...</span>
-                </div>
-              )}
+          {/* Backend health */}
+          <section className="px-5 py-4 border-b border-line">
+            <div className="flex items-center justify-between">
+              <div className="text-[13px] font-medium text-ink">Status backend</div>
+              <Button size="sm" variant="ghost" onClick={checkHealth} disabled={checking}>
+                <RefreshCw className={cx('w-3 h-3', checking && 'animate-spin')} />
+                {checking ? 'Memeriksa…' : 'Periksa ulang'}
+              </Button>
             </div>
+            <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-[13px]">
+              <dt className="text-ink-3">Alamat</dt>
+              <dd className="num text-ink-2 truncate">{getApiBaseUrl()}</dd>
+              <dt className="text-ink-3">Status</dt>
+              <dd>
+                {!checked ? (
+                  <span className="text-ink-3">—</span>
+                ) : health ? (
+                  <span className="text-up">Online{health.version ? ` · ${health.version}` : ''}</span>
+                ) : (
+                  <span className="text-down">Tidak merespons</span>
+                )}
+              </dd>
+              <dt className="text-ink-3">Penyedia AI</dt>
+              <dd className="text-ink-2">{health?.ai_provider ?? '—'}</dd>
+              <dt className="text-ink-3">Model</dt>
+              <dd className="num text-ink-2 truncate">{health?.ai_model ?? '—'}</dd>
+            </dl>
+            {checked && !health && (
+              <p className="mt-3 text-xs text-ink-3 leading-relaxed">
+                Jalankan backend dengan <code className="num text-ink-2 bg-surface-2 px-1 py-0.5 rounded">go run cmd/api/main.go</code>,
+                atau pakai mode simulasi.
+              </p>
+            )}
+          </section>
 
-            <div className="space-y-2">
+          {/* Pipeline stages */}
+          <section className="px-5 py-4">
+            <div className="flex items-baseline justify-between mb-2">
+              <div className="text-[13px] font-medium text-ink">Tahapan pipeline</div>
+              <div className="text-xs text-ink-3">
+                {stages.length} tahap · <span className="num">{totalMs} ms</span>
+              </div>
+            </div>
+            <ol className="relative">
               {stages.map((stage, idx) => {
-                const config = statusConfig[stage.status];
-                const StatusIcon = config.icon;
-                const isExpanded = expandedStage === stage.id;
-                const isLast = idx === stages.length - 1;
-
+                const open = expanded === stage.id;
                 return (
-                  <div key={stage.id}>
+                  <li key={stage.id} className="relative pl-7">
+                    {idx < stages.length - 1 && <span className="absolute left-[9px] top-7 bottom-0 w-px bg-line" aria-hidden="true" />}
+                    <span className="absolute left-0 top-2 w-[19px] h-[19px] rounded-full bg-surface border border-line flex items-center justify-center">
+                      {statusIcon[stage.status]}
+                    </span>
                     <button
-                      onClick={() => setExpandedStage(isExpanded ? null : stage.id)}
-                      className={`w-full text-left p-3.5 rounded-xl border transition-all ${
-                        isExpanded
-                          ? 'bg-cyan-500/10 border-cyan-500/30'
-                          : 'glass-card border-slate-800/80 hover:border-slate-700'
-                      }`}
+                      onClick={() => setExpanded(open ? null : stage.id)}
+                      aria-expanded={open}
+                      className="w-full text-left py-2 flex items-center gap-3 group"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-slate-900 border border-slate-800">
-                            <span className="text-[10px] font-bold text-cyan-400 font-mono">{idx + 1}</span>
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-slate-200">{stage.label}</span>
-                            <span className="text-[10px] text-slate-400 block font-mono">{stage.data_type}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3">
-                          {stage.duration_ms && (
-                            <span className="text-[10px] text-slate-500 font-mono">{stage.duration_ms}ms</span>
-                          )}
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-semibold border flex items-center space-x-1 ${config.bg}`}>
-                            <StatusIcon className={`w-3 h-3 ${config.color} ${stage.status === 'PROCESSING' ? 'animate-spin' : ''}`} />
-                            <span className={config.color}>{config.label}</span>
-                          </span>
-                          <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-                        </div>
-                      </div>
-
-                      {isExpanded && (
-                        <div className="mt-3 pt-3 border-t border-slate-800/60">
-                          <p className="text-xs text-slate-300 leading-relaxed">{stage.description}</p>
-                        </div>
-                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] text-ink">{stage.label}</span>
+                        <span className="block text-xs text-ink-3 truncate">{stage.data_type}</span>
+                      </span>
+                      {stage.duration_ms !== undefined && <span className="num text-xs text-ink-3">{stage.duration_ms} ms</span>}
+                      {stage.status !== 'COMPLETED' && <Tag tone={stage.status === 'PROCESSING' ? 'warn' : 'neutral'}>{statusLabel[stage.status]}</Tag>}
+                      <ChevronRight className={cx('w-3.5 h-3.5 text-ink-3 transition-transform', open && 'rotate-90')} />
                     </button>
-
-                    {!isLast && (
-                      <div className="flex justify-center py-0.5">
-                        <div className="w-px h-3 bg-gradient-to-b from-cyan-500/40 to-slate-800" />
-                      </div>
-                    )}
-                  </div>
+                    {open && <p className="pb-3 text-[13px] text-ink-2 leading-relaxed">{stage.description}</p>}
+                  </li>
                 );
               })}
-            </div>
-          </div>
-
+            </ol>
+          </section>
         </div>
-
-        {/* Modal Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between text-xs shrink-0 font-mono">
-          <div className="flex items-center space-x-2 text-slate-400 text-[11px]">
-            <span>Mode Aktif:</span>
-            <span className={`font-bold ${useDummyData ? 'text-amber-400' : 'text-emerald-400'}`}>
-              {useDummyData ? 'Data Dummy (Simulasi)' : 'Hanya Backend Go'}
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium transition-colors cursor-pointer"
-          >
-            Tutup
-          </button>
-        </div>
-
       </div>
     </div>
   );

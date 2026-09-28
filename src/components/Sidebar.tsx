@@ -1,179 +1,176 @@
 import React from 'react';
 import {
-  LayoutDashboard,
-  Zap,
-  Globe2,
-  BrainCircuit,
+  LayoutGrid,
+  Activity,
+  FileBarChart,
   SlidersHorizontal,
+  Briefcase,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Star
 } from 'lucide-react';
+import type { Company } from '../types/api';
+import { MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../services/mockData';
+import { cx } from '../lib/ui';
 
 export type ViewType = 'overview' | 'signals' | 'dashboard' | 'market' | 'ai-portfolio';
 
 interface SidebarProps {
   currentView: ViewType;
   onViewChange: (view: ViewType) => void;
-  anomalyCount?: number;
-  isOpen?: boolean;
-  onToggle?: () => void;
+  anomalyCount: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
+  company: Company | null;
+  watchlist: string[];
+  selectedSymbol: string;
+  onSelectSymbol: (symbol: string) => void;
 }
+
+type NavItem = { id: ViewType; label: string; icon: React.ElementType; count?: number };
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentView,
   onViewChange,
-  anomalyCount = 2,
-  isOpen = true,
-  onToggle
+  anomalyCount,
+  isOpen,
+  onToggle,
+  isMobileOpen,
+  onCloseMobile,
+  company,
+  watchlist,
+  selectedSymbol,
+  onSelectSymbol
 }) => {
-  const navGroups = [
-    {
-      title: 'P0 - Core Analytics',
-      items: [
-        {
-          id: 'overview' as ViewType,
-          label: 'Market Overview',
-          subtitle: 'Top Opportunities & Risks',
-          icon: Globe2
-        },
-        {
-          id: 'signals' as ViewType,
-          label: 'Core Signal Engine',
-          subtitle: 'Anomali & Derived Signals',
-          icon: Zap,
-          badge: `${anomalyCount} Anomali`,
-          badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-        },
-        {
-          id: 'dashboard' as ViewType,
-          label: 'Company Intelligence',
-          subtitle: 'Valuasi, Growth, Smart Money',
-          icon: LayoutDashboard
-        }
-      ]
-    },
-    {
-      title: 'P1 - Discovery',
-      items: [
-        {
-          id: 'market' as ViewType,
-          label: 'Sector & Screener',
-          subtitle: 'Intelligence Scanner',
-          icon: SlidersHorizontal
-        }
-      ]
-    },
-    {
-      title: 'P2 - Advanced',
-      items: [
-        {
-          id: 'ai-portfolio' as ViewType,
-          label: 'Portfolio & AI Summary',
-          subtitle: 'Risk Analysis & AI Research',
-          icon: BrainCircuit
-        }
-      ]
-    }
+  const marketItems: NavItem[] = [
+    { id: 'overview', label: 'Ringkasan pasar', icon: LayoutGrid },
+    { id: 'market', label: 'Screener & sektor', icon: SlidersHorizontal }
   ];
+  const emitenItems: NavItem[] = [
+    { id: 'signals', label: 'Sinyal', icon: Activity, count: anomalyCount },
+    { id: 'dashboard', label: 'Fundamental', icon: FileBarChart }
+  ];
+  const portfolioItems: NavItem[] = [{ id: 'ai-portfolio', label: 'Portofolio & riset', icon: Briefcase }];
+
+  // On mobile the drawer is always shown expanded.
+  const expanded = isOpen || isMobileOpen;
+
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const active = currentView === item.id;
+    return (
+      <button
+        key={item.id}
+        onClick={() => onViewChange(item.id)}
+        title={!expanded ? item.label : undefined}
+        aria-current={active ? 'page' : undefined}
+        className={cx(
+          'w-full flex items-center gap-2.5 h-8 rounded-md text-[13px] transition-colors',
+          expanded ? 'px-2.5' : 'justify-center',
+          active ? 'bg-surface-2 text-ink font-medium' : 'text-ink-2 hover:text-ink hover:bg-surface-2/60'
+        )}
+      >
+        <Icon className={cx('w-4 h-4 shrink-0', active ? 'text-accent' : 'text-ink-3')} />
+        {expanded && <span className="truncate">{item.label}</span>}
+        {expanded && item.count ? (
+          <span className="ml-auto num text-[11px] text-warn" title={`${item.count} anomali terdeteksi di pasar`}>
+            {item.count}
+          </span>
+        ) : null}
+      </button>
+    );
+  };
+
+  const groupLabel = (text: React.ReactNode) =>
+    expanded ? <div className="px-2.5 pt-5 pb-1.5 text-[11px] text-ink-3">{text}</div> : <div className="h-4" />;
 
   return (
-    <aside
-      className={`glass-panel border-r border-slate-800/80 flex flex-col justify-between py-4 shrink-0 min-h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out ${
-        isOpen ? 'w-64 px-3' : 'w-14 px-2 items-center'
-      }`}
-    >
-      <div className="space-y-4 w-full">
-        {/* Top Header of Sidebar with Toggle Button */}
-        <div
-          className={`flex items-center pb-3 border-b border-slate-800/60 transition-all ${
-            isOpen ? 'justify-between px-1' : 'justify-center'
-          }`}
-        >
-          {isOpen && (
-            <div className="flex items-center space-x-2">
-              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-                Navigasi
-              </span>
-            </div>
-          )}
-          {onToggle && (
-            <button
-              onClick={onToggle}
-              title={isOpen ? "Sembunyikan Sidebar" : "Tampilkan Sidebar"}
-              className={`p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer group ${
-                !isOpen ? 'text-cyan-400 shadow-lg shadow-cyan-500/10' : ''
-              }`}
-              aria-label="Toggle Sidebar"
-            >
-              {isOpen ? (
-                <PanelLeftClose className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-              ) : (
-                <PanelLeftOpen className="w-4 h-4 text-cyan-400 transition-transform group-hover:scale-110" />
-              )}
-            </button>
-          )}
-        </div>
+    <>
+      {isMobileOpen && (
+        <div className="fixed inset-0 top-12 z-20 bg-black/40 md:hidden" onClick={onCloseMobile} aria-hidden="true" />
+      )}
+      <aside
+        className={cx(
+          'bg-surface border-r border-line flex flex-col shrink-0 overflow-y-auto no-scrollbar transition-[width] duration-200',
+          'fixed md:static top-12 bottom-0 left-0 z-20 md:z-auto',
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          expanded ? 'w-[228px] px-2' : 'w-[52px] px-1.5'
+        )}
+      >
+        <nav className="flex-1 pt-1" aria-label="Navigasi utama">
+          {groupLabel('Pasar')}
+          <div className="space-y-0.5">{marketItems.map(renderItem)}</div>
 
-        {/* Navigation Content (Only shown when expanded) */}
-        {isOpen && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {navGroups.map((group, gIdx) => (
-              <div key={gIdx} className="space-y-2">
-                <div className="px-3">
-                  <h2 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider font-mono">
-                    {group.title}
-                  </h2>
-                </div>
-                <nav className="space-y-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = currentView === item.id;
+          {groupLabel(
+            <span className="flex items-center justify-between">
+              <span>Emiten</span>
+              {company && <span className="num text-ink-2">{company.symbol}</span>}
+            </span>
+          )}
+          <div className="space-y-0.5">{emitenItems.map(renderItem)}</div>
+
+          {groupLabel('Portofolio')}
+          <div className="space-y-0.5">{portfolioItems.map(renderItem)}</div>
+
+          {expanded && (
+            <>
+              <div className="px-2.5 pt-5 pb-1.5 text-[11px] text-ink-3 flex items-center justify-between">
+                <span>Watchlist</span>
+                <span className="num">{watchlist.length}</span>
+              </div>
+              {watchlist.length === 0 ? (
+                <p className="px-2.5 text-xs text-ink-3 leading-relaxed">
+                  Tandai emiten dengan <Star className="inline w-3 h-3 -mt-0.5" /> untuk memantau di sini.
+                </p>
+              ) : (
+                <ul className="space-y-0.5">
+                  {watchlist.map(sym => {
+                    const intel = MOCK_INTELLIGENCE[sym];
+                    const active = sym === selectedSymbol;
                     return (
-                      <button
-                        key={item.id}
-                        onClick={() => onViewChange(item.id)}
-                        className={`w-full text-left px-3.5 py-3 rounded-xl transition-all duration-200 flex items-start space-x-3 group relative ${
-                          isActive
-                            ? 'bg-gradient-to-r from-cyan-500/15 to-blue-500/10 text-cyan-300 border border-cyan-500/30 shadow-lg shadow-cyan-500/5'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
-                        }`}
-                      >
-                        {isActive && (
-                          <span className="absolute left-0 top-3 bottom-3 w-1 bg-cyan-400 rounded-r-full shadow-glow" />
-                        )}
-                        <Icon
-                          className={`w-5 h-5 mt-0.5 shrink-0 transition-colors ${
-                            isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-200'
-                          }`}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold tracking-wide truncate">
-                              {item.label}
+                      <li key={sym}>
+                        <button
+                          onClick={() => onSelectSymbol(sym)}
+                          title={MOCK_COMPANIES[sym]?.name}
+                          className={cx(
+                            'w-full h-7 px-2.5 rounded-md flex items-center gap-2 text-[13px] transition-colors',
+                            active ? 'bg-surface-2 text-ink' : 'text-ink-2 hover:bg-surface-2/60 hover:text-ink'
+                          )}
+                        >
+                          <span className="num font-medium">{sym}</span>
+                          {intel && (
+                            <span
+                              className={cx(
+                                'ml-auto num text-xs',
+                                intel.direction === 'BULLISH' ? 'text-up' : intel.direction === 'BEARISH' ? 'text-down' : 'text-ink-3'
+                              )}
+                            >
+                              {intel.opportunity_score}
                             </span>
-                            {item.badge && (
-                              <span
-                                className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full border ${item.badgeColor}`}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] text-slate-400 block truncate mt-0.5">
-                            {item.subtitle}
-                          </span>
-                        </div>
-                      </button>
+                          )}
+                        </button>
+                      </li>
                     );
                   })}
-                </nav>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </aside>
+                </ul>
+              )}
+            </>
+          )}
+        </nav>
+
+        <div className={cx('py-2 border-t border-line hidden md:flex', expanded ? 'justify-end' : 'justify-center')}>
+          <button
+            onClick={onToggle}
+            title={isOpen ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}
+            aria-label={isOpen ? 'Ciutkan sidebar' : 'Lebarkan sidebar'}
+            className="p-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-surface-2"
+          >
+            {isOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
-
-

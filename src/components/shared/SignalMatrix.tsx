@@ -1,190 +1,163 @@
 import React, { useMemo } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine, Label } from 'recharts';
-import { Crosshair, AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import {
+  ScatterChart,
+  Scatter,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  ReferenceLine,
+  ReferenceArea,
+  LabelList
+} from 'recharts';
 import type { SignalMatrixPoint } from '../../types/api';
+import { useChartColors } from '../../lib/theme';
+import { OPP_THRESHOLD, RISK_THRESHOLD, quadrantLabel, quadrantShort } from '../../lib/format';
+import { Panel } from '../ui/primitives';
 
 interface SignalMatrixProps {
   data: SignalMatrixPoint[];
+  selectedSymbol?: string;
   onSelectSymbol?: (symbol: string) => void;
 }
 
-const QUADRANT_LABELS = {
-  PRIME_VALUE: { label: 'Prime Value', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30' },
-  HIGH_GROWTH: { label: 'High Growth / Speculative', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' },
-  CONSERVATIVE: { label: 'Conservative', color: 'text-sky-400', bg: 'bg-sky-500/10 border-sky-500/30' },
-  WARNING_ZONE: { label: 'Warning Zone', color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/30' },
-};
+const QUADRANTS: SignalMatrixPoint['quadrant'][] = ['PRIME_VALUE', 'HIGH_GROWTH', 'CONSERVATIVE', 'WARNING_ZONE'];
 
-const getPointColor = (point: SignalMatrixPoint) => {
-  switch (point.quadrant) {
-    case 'PRIME_VALUE': return '#10b981';
-    case 'HIGH_GROWTH': return '#f59e0b';
-    case 'CONSERVATIVE': return '#0ea5e9';
-    case 'WARNING_ZONE': return '#f43f5e';
-    default: return '#64748b';
-  }
-};
+/**
+ * Opportunity vs risk scatter. Points are one neutral color; only the selected
+ * emiten gets the accent and anomalies get a warning ring, so color always
+ * carries meaning.
+ */
+export const SignalMatrix: React.FC<SignalMatrixProps> = ({ data, selectedSymbol, onSelectSymbol }) => {
+  const c = useChartColors();
 
-const DirectionIcon = ({ direction }: { direction: string }) => {
-  if (direction === 'BULLISH') return <TrendingUp className="w-3 h-3 text-emerald-400" />;
-  if (direction === 'BEARISH') return <TrendingDown className="w-3 h-3 text-rose-400" />;
-  return <Minus className="w-3 h-3 text-slate-400" />;
-};
-
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{ payload: SignalMatrixPoint }>;
-}
-
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
-  if (!active || !payload || !payload.length) return null;
-  const point = payload[0].payload;
-  const q = QUADRANT_LABELS[point.quadrant];
-  return (
-    <div className="glass-panel p-3 rounded-xl border border-slate-700 text-xs space-y-1.5 max-w-[220px]">
-      <div className="flex items-center justify-between">
-        <span className="font-bold text-white font-mono">{point.symbol}</span>
-        {point.is_anomaly && <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
-      </div>
-      <div className="text-slate-400 truncate">{point.name}</div>
-      <div className="flex items-center space-x-2 pt-1 border-t border-slate-800">
-        <span className="text-cyan-400 font-mono">Opp: {point.opportunity_score}</span>
-        <span className="text-slate-600">|</span>
-        <span className="text-rose-400 font-mono">Risk: {point.risk_score}</span>
-      </div>
-      <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-semibold border ${q.bg}`}>
-        {q.label}
-      </span>
-    </div>
-  );
-};
-
-export const SignalMatrix: React.FC<SignalMatrixProps> = ({ data, onSelectSymbol }) => {
-  const quadrantCounts = useMemo(() => {
-    const counts = { PRIME_VALUE: 0, HIGH_GROWTH: 0, CONSERVATIVE: 0, WARNING_ZONE: 0 };
-    data.forEach(d => { counts[d.quadrant]++; });
-    return counts;
+  const counts = useMemo(() => {
+    const out = { PRIME_VALUE: 0, HIGH_GROWTH: 0, CONSERVATIVE: 0, WARNING_ZONE: 0 };
+    data.forEach(d => out[d.quadrant]++);
+    return out;
   }, [data]);
 
+  const quadrantLabelProps = (value: string, position: 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight') => ({
+    value,
+    position,
+    fill: c.axis,
+    fontSize: 11
+  });
+
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Crosshair className="w-5 h-5 text-cyan-400" />
-          <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-            Signal Matrix — Opportunity vs. Risk Quadrant
-          </h3>
+    <Panel
+      title="Peta peluang vs risiko"
+      meta={`${data.length} emiten`}
+      actions={
+        <div className="hidden sm:flex items-center gap-3 text-xs text-ink-2">
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: c.muted }} />Emiten</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ background: c.series1 }} />Sedang dibuka</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: c.warn }} />Anomali</span>
         </div>
-        <span className="text-xs text-slate-400 font-mono">{data.length} Emiten Diplotkan</span>
-      </div>
-
-      {/* Quadrant Legend */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {(Object.keys(QUADRANT_LABELS) as Array<keyof typeof QUADRANT_LABELS>).map((key) => {
-          const q = QUADRANT_LABELS[key];
-          return (
-            <div key={key} className={`p-2.5 rounded-xl border text-center ${q.bg}`}>
-              <span className={`text-[10px] font-bold font-mono uppercase ${q.color}`}>{q.label}</span>
-              <span className="block text-lg font-black text-white font-mono">{quadrantCounts[key]}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 2D Scatter Plot */}
-      <div className="h-[380px] w-full">
+      }
+    >
+      <div className="h-[360px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+          <ScatterChart margin={{ top: 8, right: 16, bottom: 16, left: -8 }}>
+            <CartesianGrid stroke={c.grid} />
+            <ReferenceArea x1={0} x2={RISK_THRESHOLD} y1={OPP_THRESHOLD} y2={100} fill="transparent" label={quadrantLabelProps(quadrantShort.PRIME_VALUE, 'insideTopLeft')} />
+            <ReferenceArea x1={RISK_THRESHOLD} x2={100} y1={OPP_THRESHOLD} y2={100} fill="transparent" label={quadrantLabelProps(quadrantShort.HIGH_GROWTH, 'insideTopRight')} />
+            <ReferenceArea x1={0} x2={RISK_THRESHOLD} y1={0} y2={OPP_THRESHOLD} fill="transparent" label={quadrantLabelProps(quadrantShort.CONSERVATIVE, 'insideBottomLeft')} />
+            <ReferenceArea x1={RISK_THRESHOLD} x2={100} y1={0} y2={OPP_THRESHOLD} fill="transparent" label={quadrantLabelProps(quadrantShort.WARNING_ZONE, 'insideBottomRight')} />
             <XAxis
               type="number"
               dataKey="risk_score"
-              name="Risk Score"
+              name="Risiko"
               domain={[0, 100]}
-              stroke="#64748b"
-              fontSize={10}
+              stroke={c.axis}
+              fontSize={11}
               tickLine={false}
-            >
-              <Label value="← Low Risk                Risk Score                High Risk →" position="bottom" offset={0} style={{ fill: '#64748b', fontSize: 10 }} />
-            </XAxis>
+              axisLine={{ stroke: c.grid }}
+              label={{ value: 'Skor risiko →', position: 'insideBottomRight', offset: -10, fill: c.axis, fontSize: 11 }}
+            />
             <YAxis
               type="number"
               dataKey="opportunity_score"
-              name="Opportunity Score"
+              name="Peluang"
               domain={[0, 100]}
-              stroke="#64748b"
-              fontSize={10}
+              stroke={c.axis}
+              fontSize={11}
               tickLine={false}
+              axisLine={false}
+              label={{ value: 'Skor peluang →', angle: -90, position: 'insideLeft', offset: 20, fill: c.axis, fontSize: 11 }}
+            />
+            <ReferenceLine x={RISK_THRESHOLD} stroke={c.context} />
+            <ReferenceLine y={OPP_THRESHOLD} stroke={c.context} />
+            <Tooltip
+              cursor={false}
+              content={({ active, payload }) => {
+                const p = payload?.[0]?.payload as SignalMatrixPoint | undefined;
+                if (!active || !p) return null;
+                return (
+                  <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs space-y-1 min-w-[170px]">
+                    <div className="flex justify-between gap-3">
+                      <span className="num font-medium text-ink">{p.symbol}</span>
+                      {p.is_anomaly && <span className="text-warn">Anomali</span>}
+                    </div>
+                    <div className="text-ink-3 truncate">{p.name}</div>
+                    <div className="flex justify-between num text-ink-2 pt-1 border-t border-line">
+                      <span>Peluang {p.opportunity_score}</span>
+                      <span>Risiko {p.risk_score}</span>
+                    </div>
+                    <div className="text-ink-3">{quadrantLabel[p.quadrant]}</div>
+                  </div>
+                );
+              }}
+            />
+            <Scatter
+              data={data}
+              isAnimationActive={false}
+              onClick={(entry: { payload?: SignalMatrixPoint; symbol?: string }) =>
+                onSelectSymbol?.(entry.symbol ?? entry.payload?.symbol ?? '')
+              }
             >
-              <Label value="Opportunity Score" angle={-90} position="insideLeft" offset={15} style={{ fill: '#64748b', fontSize: 10 }} />
-            </YAxis>
-            <ReferenceLine x={50} stroke="#334155" strokeDasharray="6 4" />
-            <ReferenceLine y={50} stroke="#334155" strokeDasharray="6 4" />
-            <Tooltip content={<CustomTooltip />} cursor={{ strokeDasharray: '3 3', stroke: '#475569' }} />
-            <Scatter data={data} onClick={(entry: any) => onSelectSymbol?.(entry.symbol || entry.payload?.symbol)}>
-              {data.map((point, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={getPointColor(point)}
-                  stroke={point.is_anomaly ? '#fbbf24' : 'transparent'}
-                  strokeWidth={point.is_anomaly ? 2 : 0}
-                  r={point.is_anomaly ? 8 : 6}
-                  style={{ cursor: 'pointer' }}
-                />
-              ))}
+              {data.map(p => {
+                const selected = p.symbol === selectedSymbol;
+                return (
+                  <Cell
+                    key={p.symbol}
+                    fill={selected ? c.series1 : c.muted}
+                    stroke={p.is_anomaly ? c.warn : c.surface}
+                    strokeWidth={2}
+                    style={{ cursor: 'pointer' }}
+                  />
+                );
+              })}
+              <LabelList
+                dataKey="symbol"
+                content={({ x, y, value, index }) => {
+                  const p = data[index as number];
+                  if (!p || (p.symbol !== selectedSymbol && !p.is_anomaly)) return null;
+                  return (
+                    <text x={Number(x) + 14} y={Number(y) + 8} fontSize={11} fontFamily="IBM Plex Mono" fill={c.ink}>
+                      {String(value)}
+                    </text>
+                  );
+                }}
+              />
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Detailed List */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr className="border-b border-slate-800 text-slate-400 font-mono">
-              <th className="pb-2 font-semibold">EMITEN</th>
-              <th className="pb-2 font-semibold">SEKTOR</th>
-              <th className="pb-2 font-semibold">OPP SCORE</th>
-              <th className="pb-2 font-semibold">RISK SCORE</th>
-              <th className="pb-2 font-semibold">DIRECTION</th>
-              <th className="pb-2 font-semibold text-right">KUADRAN</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/60">
-            {data.map((point, idx) => {
-              const q = QUADRANT_LABELS[point.quadrant];
-              return (
-                <tr
-                  key={idx}
-                  className="hover:bg-slate-800/30 transition-colors cursor-pointer"
-                  onClick={() => onSelectSymbol?.(point.symbol)}
-                >
-                  <td className="py-2.5">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-white font-mono">{point.symbol}</span>
-                      {point.is_anomaly && <AlertTriangle className="w-3 h-3 text-amber-400" />}
-                    </div>
-                  </td>
-                  <td className="py-2.5 text-slate-400">{point.sector}</td>
-                  <td className="py-2.5 font-mono font-bold text-cyan-400">{point.opportunity_score}</td>
-                  <td className="py-2.5 font-mono text-slate-300">{point.risk_score}</td>
-                  <td className="py-2.5">
-                    <div className="flex items-center space-x-1">
-                      <DirectionIcon direction={point.direction} />
-                      <span className="text-[10px] font-semibold text-slate-300">{point.direction}</span>
-                    </div>
-                  </td>
-                  <td className="py-2.5 text-right">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-semibold border ${q.bg}`}>
-                      {q.label}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-line">
+        {QUADRANTS.map(q => (
+          <div key={q}>
+            <div className="text-xs text-ink-3">{quadrantShort[q]}</div>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="num text-lg text-ink">{counts[q]}</span>
+              <span className="text-xs text-ink-3 truncate">{quadrantLabel[q].toLowerCase()}</span>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </Panel>
   );
 };

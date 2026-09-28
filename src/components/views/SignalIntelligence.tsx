@@ -1,382 +1,212 @@
 import React from 'react';
-import {
-  Zap,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  ArrowRightLeft,
-  CheckCircle2,
-  XCircle,
-  Info,
-  ShieldCheck,
-  Layers,
-  Sparkles
-} from 'lucide-react';
-import type { IntelligenceSnapshot, Company, StandardizedSignalOutput } from '../../types/api';
+import { AlertTriangle } from 'lucide-react';
+import type { IntelligenceSnapshot, Company, StandardizedSignalOutput, WhatChangedItem } from '../../types/api';
 import { EvidencePanel } from '../shared/EvidencePanel';
-import { EmitenSwitcherModal } from '../shared/EmitenSwitcherModal';
+import { EmitenHeader } from '../shared/EmitenHeader';
+import { confidenceLabel, opportunityBand, riskLevelLabel } from '../../lib/format';
+import { Panel, Tag, EmptyState } from '../ui/primitives';
+import { cx } from '../../lib/ui';
 
 interface SignalIntelligenceProps {
   intelligence: IntelligenceSnapshot;
   company: Company;
   signalOutput?: StandardizedSignalOutput;
-  onSelectSymbol?: (symbol: string) => void;
+  onOpenSearch: () => void;
+  isWatched: boolean;
+  onToggleWatchlist: (symbol: string) => void;
 }
+
+const impactTag: Record<WhatChangedItem['impact'], { label: string; tone: 'up' | 'down' | 'neutral' }> = {
+  HIGH_BULLISH: { label: 'Positif kuat', tone: 'up' },
+  MODERATE_BULLISH: { label: 'Positif', tone: 'up' },
+  NEUTRAL: { label: 'Netral', tone: 'neutral' },
+  MODERATE_BEARISH: { label: 'Negatif', tone: 'down' },
+  HIGH_BEARISH: { label: 'Negatif kuat', tone: 'down' }
+};
+
+const ScoreCell: React.FC<{
+  label: string;
+  value: number;
+  verdict: string;
+  verdictClass?: string;
+  fill: string;
+  caption: string;
+}> = ({ label, value, verdict, verdictClass, fill, caption }) => (
+  <div>
+    <div className="flex items-baseline justify-between">
+      <span className="text-xs text-ink-3">{label}</span>
+      <span className={cx('text-xs font-medium', verdictClass ?? 'text-ink-2')}>{verdict}</span>
+    </div>
+    <div className="num text-[40px] leading-none text-ink mt-3">
+      {Number.isInteger(value) ? value : value.toFixed(1)}
+      <span className="text-base text-ink-3 ml-1">/100</span>
+    </div>
+    <div className="h-1.5 rounded-full bg-surface-2 mt-4 overflow-hidden">
+      <div className={cx('h-full rounded-full', fill)} style={{ width: `${Math.min(100, value)}%` }} />
+    </div>
+    <p className="text-xs text-ink-3 mt-2.5 leading-relaxed">{caption}</p>
+  </div>
+);
+
+const FactorList: React.FC<{ items: string[]; marker: string; empty: string }> = ({ items, marker, empty }) =>
+  items.length ? (
+    <ul className="space-y-2.5">
+      {items.map((f, i) => (
+        <li key={i} className="flex gap-2.5 text-[13px] text-ink-2 leading-relaxed">
+          <span className={cx('mt-[7px] w-1.5 h-1.5 rounded-full shrink-0', marker)} />
+          <span>{f}</span>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-[13px] text-ink-3">{empty}</p>
+  );
 
 export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
   intelligence,
   company,
   signalOutput,
-  onSelectSymbol
+  onOpenSearch,
+  isWatched,
+  onToggleWatchlist
 }) => {
-  const isBullish = intelligence.direction === 'BULLISH';
   const isHighRisk = intelligence.risk_level === 'HIGH' || intelligence.risk_level === 'CRITICAL';
 
   return (
     <div className="space-y-6">
-      {/* Core Signal Summary Header */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 relative overflow-hidden">
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-3 mb-2">
-              <span className="text-2xl font-bold tracking-tight text-white font-mono">{company.symbol}</span>
-              <span className="text-sm text-slate-300 font-semibold">({company.name})</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300 font-medium border border-slate-700/60">
-                {company.sector}
-              </span>
-              {onSelectSymbol && (
-                <EmitenSwitcherModal
-                  currentSymbol={company.symbol}
-                  onSelectSymbol={onSelectSymbol}
-                  buttonText="Ganti Emiten"
-                />
+      <EmitenHeader
+        company={company}
+        intelligence={intelligence}
+        section="Sinyal"
+        onOpenSearch={onOpenSearch}
+        isWatched={isWatched}
+        onToggleWatchlist={onToggleWatchlist}
+      />
+
+      {/* Scores */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-px bg-line border border-line rounded-lg overflow-hidden [&>*]:bg-surface [&>*]:p-5">
+        <ScoreCell
+          label="Skor peluang"
+          value={intelligence.opportunity_score}
+          verdict={opportunityBand(intelligence.opportunity_score)}
+          fill="bg-accent"
+          caption="Gabungan arus dana asing, profitabilitas, dan momentum pertumbuhan."
+        />
+        <ScoreCell
+          label="Skor risiko"
+          value={intelligence.risk_score}
+          verdict={`Risiko ${riskLevelLabel[intelligence.risk_level].toLowerCase()}`}
+          verdictClass={isHighRisk ? 'text-down' : intelligence.risk_level === 'MODERATE' ? 'text-warn' : 'text-ink-2'}
+          fill={isHighRisk ? 'bg-down' : intelligence.risk_level === 'MODERATE' ? 'bg-warn' : 'bg-ink-3'}
+          caption="Volatilitas valuasi, eksposur makro, dan tekanan distribusi."
+        />
+        <div className="flex flex-col">
+          <div className="text-xs text-ink-3">Keyakinan model</div>
+          <div className="text-[28px] leading-none text-ink mt-3 font-medium">
+            {confidenceLabel[intelligence.confidence]}
+          </div>
+          <div className="mt-auto pt-5 space-y-2 text-[13px]">
+            <div className="flex justify-between">
+              <span className="text-ink-3">Anomali</span>
+              {intelligence.is_anomaly ? (
+                <span className="text-warn num">Ya · {intelligence.anomaly_score}</span>
+              ) : (
+                <span className="text-ink-2">Tidak</span>
               )}
             </div>
+            <div className="flex justify-between">
+              <span className="text-ink-3">Divergensi fundamental</span>
+              <span className={intelligence.divergence_detected ? 'text-warn' : 'text-ink-2'}>
+                {intelligence.divergence_detected ? 'Terdeteksi' : 'Tidak'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-ink-3">Sumber</span>
+              <span className="text-ink-2">{intelligence.is_cached ? 'Cache' : 'Hasil baru'}</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <p className="text-xs text-slate-400 max-w-2xl">
-              Derived intelligence snapshot berdasarkan pemrosesan data real-time, deteksi deviasi fundamental, dan pelacakan arus modal institusional.
+      {intelligence.divergence_detected && (
+        <div className="flex gap-3 p-4 rounded-lg border border-warn/30 bg-warn-soft">
+          <AlertTriangle className="w-4 h-4 text-warn shrink-0 mt-0.5" />
+          <div className="text-[13px] leading-relaxed">
+            <div className="font-medium text-ink">Fundamental dan harga bergerak berlawanan</div>
+            <p className="text-ink-2 mt-0.5">
+              {intelligence.direction === 'BEARISH'
+                ? `Perbaikan sebagian indikator ${company.symbol} belum diikuti arus dana; tekanan jual tetap dominan. Divergensi negatif seperti ini sering mendahului koreksi lanjutan.`
+                : `Data fundamental ${company.symbol} menguat sementara pergerakan harga jangka pendek tidak mengikuti. Pola ini kerap muncul saat terjadi akumulasi yang belum tercermin di harga.`}{' '}
+              Periksa bukti di bawah sebelum menyimpulkan.
             </p>
           </div>
-
-          <div className="flex items-center space-x-3">
-            {/* Direction & Confidence Badge */}
-            <div className={`px-4 py-2 rounded-xl border flex items-center space-x-2 ${
-              isBullish 
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
-                : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-            }`}>
-              {isBullish ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-              <div>
-                <div className="text-xs font-bold leading-tight">{intelligence.direction} SIGNAL</div>
-                <div className="text-[10px] opacity-80">Confidence: {intelligence.confidence}</div>
-              </div>
-            </div>
-
-            {/* Anomaly Indicator */}
-            {intelligence.is_anomaly && (
-              <div className="px-4 py-2 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-400 flex items-center space-x-2 animate-pulse">
-                <AlertTriangle className="w-5 h-5" />
-                <div>
-                  <div className="text-xs font-bold leading-tight">ANOMALY DETECTED</div>
-                  <div className="text-[10px] opacity-90">Score: {intelligence.anomaly_score}/100</div>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
-      </div>
-
-      {/* Main Indicators: Opportunity vs Risk Score */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Opportunity Score Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800 relative glow-cyan">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Opportunity Signal Score
-              </h3>
-            </div>
-            <span className="text-xs text-cyan-400 font-mono font-medium">Algorithmic Score</span>
-          </div>
-
-          <div className="flex items-end justify-between my-4">
-            <div>
-              <div className="text-5xl font-black text-white tracking-tight font-mono">
-                {intelligence.opportunity_score}
-                <span className="text-xl text-slate-500 font-normal">/100</span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Kombinasi nilai akumulasi asing, marjin profitabilitas & momentum pertumbuhan.
-              </p>
-            </div>
-            <div className="text-right">
-              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                STRONG SIGNAL
-              </span>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-900 rounded-full h-3 p-0.5 border border-slate-800">
-            <div
-              className="bg-gradient-to-r from-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-1000"
-              style={{ width: `${intelligence.opportunity_score}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Risk Score Card */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800 relative glow-rose">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Risk Signal Score
-              </h3>
-            </div>
-            <span className="text-xs text-emerald-400 font-mono font-medium">Risk Level: {intelligence.risk_level}</span>
-          </div>
-
-          <div className="flex items-end justify-between my-4">
-            <div>
-              <div className="text-5xl font-black text-white tracking-tight font-mono">
-                {intelligence.risk_score}
-                <span className="text-xl text-slate-500 font-normal">/100</span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Mengukur volatilitas valuasi, eksposur makro & potensi tekanan distribusi modal.
-              </p>
-            </div>
-            <div className="text-right">
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${
-                isHighRisk 
-                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
-                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-              }`}>
-                {intelligence.risk_level} RISK
-              </span>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-900 rounded-full h-3 p-0.5 border border-slate-800">
-            <div
-              className="bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 h-full rounded-full transition-all duration-1000"
-              style={{ width: `${intelligence.risk_score}%` }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Fundamental Divergence Alert & What Changed Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: What Changed? Timeline */}
-        <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <ArrowRightLeft className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                What Changed? (Perubahan Antar-Periode)
-              </h3>
-            </div>
-            <span className="text-xs text-slate-400">Instan Delta Monitor</span>
-          </div>
-
-          <div className="space-y-3">
-            {intelligence.what_changed.map((change, index) => (
-              <div
-                key={index}
-                className="glass-card p-4 rounded-xl border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-all"
-              >
-                <div className="space-y-1">
-                  <div className="text-xs font-semibold text-slate-200">{change.metric}</div>
-                  <div className="flex items-center space-x-3 text-xs font-mono text-slate-400">
-                    <span>Prev: <strong className="text-slate-300">{change.previous}</strong></span>
-                    <span>→</span>
-                    <span>Curr: <strong className="text-cyan-300">{change.current}</strong></span>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <div className="text-sm font-bold font-mono text-emerald-400">{change.delta}</div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    {change.impact}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right 1 Col: Fundamental Divergence & Catalyst Box */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-              <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-                Catalyst & Divergence
-              </h3>
-            </div>
-
-            {intelligence.divergence_detected ? (
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 space-y-2 mb-4">
-                <div className="flex items-center space-x-2 font-semibold text-xs">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span>Divergensi Fundamental Terdeteksi</span>
-                </div>
-                <p className="text-[11px] leading-relaxed opacity-90">
-                  Data fundamental emiten bergerak berlawanan arah dengan tren aksi transaksi ritel / harga jangka pendek. Hal ini sering menandakan pola akumulasi tersembunyi.
-                </p>
-              </div>
-            ) : (
-              <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 text-xs mb-4">
-                Tidak ada divergensi esensial yang terdeteksi pada siklus saat ini.
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <div className="text-xs font-semibold text-slate-300">Catalyst Detector:</div>
-              <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
-                <li>Akumulasi Asing Beruntun (&gt;Rp 500B)</li>
-                <li>Ekspansi Margin Efisiensi Operasional (CIR 34%)</li>
-                <li>Pertumbuhan Kredit Konsumer Kuartal II</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-slate-800/80">
-            <span className="text-[10px] text-slate-500 block font-mono">
-              Last System Scan: {intelligence.created_at}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Signal Evidence & Peer Comparison Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Evidence Matrix */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <Layers className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Signal Relationship & Evidence (Bukti Analitis)
-            </h3>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-mono">
-                  <th className="pb-3 font-semibold">METRIK</th>
-                  <th className="pb-3 font-semibold">NILAI EMITEN</th>
-                  <th className="pb-3 font-semibold">MEDIAN PEER</th>
-                  <th className="pb-3 font-semibold text-right">POSISI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {intelligence.evidence.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 font-medium text-slate-200">{item.metric}</td>
-                    <td className="py-3 font-mono font-bold text-cyan-400">{item.company_value}</td>
-                    <td className="py-3 font-mono text-slate-400">{item.peer_median}</td>
-                    <td className="py-3 text-right">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                        {item.position}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Peer Comparison */}
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-4">
-            <Info className="w-5 h-5 text-sky-400" />
-            <h3 className="text-sm font-semibold text-slate-200 uppercase tracking-wider font-mono">
-              Valuation Peer Matrix
-            </h3>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 font-mono">
-                  <th className="pb-3 font-semibold">METRIK VALUASI</th>
-                  <th className="pb-3 font-semibold">TARGET ({company.symbol})</th>
-                  <th className="pb-3 font-semibold">MEDIAN INDUSTRI</th>
-                  <th className="pb-3 font-semibold text-right">STATUS VALUASI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {intelligence.peer_comparison.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 font-medium text-slate-200">{item.metric}</td>
-                    <td className="py-3 font-mono font-bold text-slate-100">{item.target}</td>
-                    <td className="py-3 font-mono text-slate-400">{item.peer_median}</td>
-                    <td className="py-3 text-right">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                        item.position === 'PREMIUM'
-                          ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                          : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
-                      }`}>
-                        {item.position}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Factors Breakdown: Positive vs Negative */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 text-emerald-400 mb-4">
-            <CheckCircle2 className="w-5 h-5" />
-            <h3 className="text-sm font-semibold uppercase tracking-wider font-mono">
-              Positive Contributing Factors ({intelligence.positive_factors.length})
-            </h3>
-          </div>
-          <ul className="space-y-2.5">
-            {intelligence.positive_factors.map((factor, idx) => (
-              <li key={idx} className="flex items-start space-x-2 text-xs text-slate-300 leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                <span>{factor}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-          <div className="flex items-center space-x-2 text-rose-400 mb-4">
-            <XCircle className="w-5 h-5" />
-            <h3 className="text-sm font-semibold uppercase tracking-wider font-mono">
-              Risk & Risk Factors ({intelligence.negative_factors.length})
-            </h3>
-          </div>
-          <ul className="space-y-2.5">
-            {intelligence.negative_factors.map((factor, idx) => (
-              <li key={idx} className="flex items-start space-x-2 text-xs text-slate-300 leading-relaxed">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5 shrink-0" />
-                <span>{factor}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Standardized Evidence Panel */}
-      {signalOutput && (
-        <EvidencePanel signal={signalOutput} symbol={company.symbol} />
       )}
+
+      {/* Finding — standardized output when available, otherwise the AI summary */}
+      <Panel title="Temuan utama" meta={signalOutput ? `Skor komposit ${signalOutput.score.composite}` : 'Ringkasan AI'}>
+        <p className="text-[15px] leading-relaxed text-ink max-w-3xl">
+          {signalOutput?.finding ?? (intelligence.ai_research_summary || 'Belum ada ringkasan untuk emiten ini.')}
+        </p>
+        {signalOutput?.explanation && (
+          <p className="text-[13px] leading-relaxed text-ink-2 mt-3 max-w-3xl">{signalOutput.explanation}</p>
+        )}
+      </Panel>
+
+      {/* Factors */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Panel title="Faktor pendorong" meta={String(intelligence.positive_factors.length)}>
+          <FactorList items={intelligence.positive_factors} marker="bg-up" empty="Tidak ada faktor pendorong yang tercatat." />
+        </Panel>
+        <Panel title="Faktor penekan" meta={String(intelligence.negative_factors.length)}>
+          <FactorList items={intelligence.negative_factors} marker="bg-down" empty="Tidak ada faktor penekan yang tercatat." />
+        </Panel>
+        <Panel title="Katalis pendukung" meta={String(intelligence.supporting_factors.length)}>
+          <FactorList items={intelligence.supporting_factors} marker="bg-ink-3" empty="Belum ada katalis yang teridentifikasi." />
+        </Panel>
+      </div>
+
+      {/* What changed */}
+      <Panel title="Yang berubah" meta="Dibanding periode sebelumnya" flush>
+        {intelligence.what_changed.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="border-b border-line">
+                <tr className="text-left text-xs text-ink-3">
+                  <th className="px-4 h-9 font-medium">Metrik</th>
+                  <th className="px-4 h-9 font-medium text-right">Sebelum</th>
+                  <th className="px-4 h-9 font-medium text-right">Sekarang</th>
+                  <th className="px-4 h-9 font-medium text-right">Perubahan</th>
+                  <th className="px-4 h-9 font-medium text-right">Dampak</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {intelligence.what_changed.map((c, i) => {
+                  const tag = impactTag[c.impact] ?? impactTag.NEUTRAL;
+                  return (
+                    <tr key={i}>
+                      <td className="px-4 h-10 text-ink">{c.metric}</td>
+                      <td className="px-4 h-10 num text-ink-3 text-right">{c.previous}</td>
+                      <td className="px-4 h-10 num text-ink text-right">{c.current}</td>
+                      <td className={cx('px-4 h-10 num text-right', tag.tone === 'up' ? 'text-up' : tag.tone === 'down' ? 'text-down' : 'text-ink-2')}>
+                        {c.delta}
+                      </td>
+                      <td className="px-4 h-10 text-right"><Tag tone={tag.tone}>{tag.label}</Tag></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState title="Belum ada data perubahan antar-periode" />
+        )}
+      </Panel>
+
+      {/* Evidence vs peers & valuation */}
+      <EvidencePanel intelligence={intelligence} signal={signalOutput} symbol={company.symbol} />
+
+      <p className="text-xs text-ink-3 leading-relaxed max-w-3xl">{intelligence.disclaimer}</p>
     </div>
   );
 };

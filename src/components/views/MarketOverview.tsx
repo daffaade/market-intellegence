@@ -2,767 +2,490 @@ import React, { useState, useMemo } from 'react';
 import {
   LineChart,
   Line,
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
+  Tooltip,
   ResponsiveContainer,
-  Legend
+  LabelList
 } from 'recharts';
-import {
-  Zap,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  Globe2,
-  ArrowRight,
-  ShieldCheck,
-  Star,
-  Search,
-  SlidersHorizontal,
-  Building2,
-  Activity
-} from 'lucide-react';
-import type { MarketOverview as MarketOverviewType, IntelligenceSnapshot } from '../../types/api';
+import { Search, ArrowRight } from 'lucide-react';
+import type { MarketOverview as MarketOverviewType, IntelligenceSnapshot, Company } from '../../types/api';
 import { MOCK_COMPANIES, MOCK_INTELLIGENCE, MOCK_TOP10_GROWTH_TIMELINE } from '../../services/mockData';
 import { WatchlistButton } from '../shared/WatchlistButton';
 import type { ViewType } from '../Sidebar';
+import { formatMarketCap, formatScore } from '../../lib/format';
+import { useChartColors } from '../../lib/theme';
+import {
+  PageHeader,
+  Panel,
+  Stat,
+  Segmented,
+  ScoreBar,
+  DirectionTag,
+  Tag,
+  SortHeader,
+  EmptyState
+} from '../ui/primitives';
+import { cx } from '../../lib/ui';
 
 interface MarketOverviewProps {
   marketOverview: MarketOverviewType;
+  companies: Company[];
   onSelectSymbol: (symbol: string) => void;
   onNavigate: (view: ViewType) => void;
   watchlist: string[];
   onToggleWatchlist: (symbol: string) => void;
 }
 
-const EMITEN_COLORS: Record<string, string> = {
-  BBCA: '#06b6d4', // Cyan
-  BBRI: '#3b82f6', // Blue
-  BMRI: '#6366f1', // Indigo
-  BBNI: '#8b5cf6', // Purple
-  TLKM: '#ec4899', // Pink
-  AMMN: '#f59e0b', // Amber
-  ICBP: '#10b981', // Emerald
-  ASII: '#14b8a6', // Teal
-  ADRO: '#f97316', // Orange
-  KLBF: '#84cc16', // Lime
-};
-
 const TOP_10_SYMBOLS = ['BBCA', 'BBRI', 'BMRI', 'BBNI', 'TLKM', 'AMMN', 'ICBP', 'ASII', 'ADRO', 'KLBF'];
 
-const SnapshotCard: React.FC<{
+type SortKey = 'symbol' | 'sector' | 'market_cap' | 'opportunity' | 'risk';
+
+/** Compact ranked row used by the opportunity / risk / anomaly lists. */
+const RankRow: React.FC<{
+  rank: number;
   intel: IntelligenceSnapshot;
-  onSelect: (symbol: string) => void;
-  variant: 'opportunity' | 'risk' | 'anomaly';
-  watchlist: string[];
-  onToggleWatchlist: (symbol: string) => void;
-}> = ({ intel, onSelect, variant, watchlist, onToggleWatchlist }) => {
+  metric: 'opportunity' | 'risk' | 'anomaly';
+  onSelect: (s: string) => void;
+}> = ({ rank, intel, metric, onSelect }) => {
   const company = MOCK_COMPANIES[intel.symbol];
-  const borderColor = variant === 'opportunity'
-    ? 'border-emerald-500/30 hover:border-emerald-500/50'
-    : variant === 'risk'
-    ? 'border-rose-500/30 hover:border-rose-500/50'
-    : 'border-amber-500/30 hover:border-amber-500/50';
-
   return (
-    <div
-      className={`glass-card p-4 rounded-xl border cursor-pointer transition-all group ${borderColor}`}
-      onClick={() => onSelect(intel.symbol)}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-bold text-white font-mono">{intel.symbol}</span>
-          <WatchlistButton
-            symbol={intel.symbol}
-            isInWatchlist={watchlist.includes(intel.symbol)}
-            onToggle={onToggleWatchlist}
-          />
-        </div>
-        <div className="flex items-center space-x-1.5">
-          {intel.direction === 'BULLISH'
-            ? <TrendingUp className="w-4 h-4 text-emerald-400" />
-            : <TrendingDown className="w-4 h-4 text-rose-400" />
-          }
-          <span className={`text-[10px] font-bold ${
-            intel.direction === 'BULLISH' ? 'text-emerald-400' : 'text-rose-400'
-          }`}>
-            {intel.direction}
-          </span>
-        </div>
-      </div>
-
-      <div className="text-[10px] text-slate-400 mb-2 truncate">
-        {company?.name || intel.symbol} — {company?.sector || ''}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 mb-3">
-        <div className="bg-slate-900/60 p-2 rounded-lg text-center">
-          <span className="text-[9px] text-slate-400 font-mono block">OPPORTUNITY</span>
-          <span className="text-base font-black text-cyan-400 font-mono">{intel.opportunity_score}</span>
-        </div>
-        <div className="bg-slate-900/60 p-2 rounded-lg text-center">
-          <span className="text-[9px] text-slate-400 font-mono block">RISK</span>
-          <span className="text-base font-black text-slate-200 font-mono">{intel.risk_score}</span>
-        </div>
-      </div>
-
-      {intel.is_anomaly && (
-        <div className="flex items-center space-x-1.5 text-amber-400 text-[10px] font-semibold">
-          <AlertTriangle className="w-3 h-3" />
-          <span>Anomaly Detected (Score: {intel.anomaly_score})</span>
-        </div>
-      )}
-
-      <div className="mt-2 pt-2 border-t border-slate-800/50 flex items-center justify-between">
-        <span className="text-[10px] text-slate-400 font-mono">Confidence: {intel.confidence}</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors" />
-      </div>
-    </div>
+    <li>
+      <button
+        onClick={() => onSelect(intel.symbol)}
+        className="w-full flex items-center gap-3 px-4 h-11 text-left hover:bg-surface-2 transition-colors group"
+      >
+        <span className="num text-xs text-ink-3 w-4 shrink-0">{rank}</span>
+        <span className="num text-[13px] font-medium text-ink w-12 shrink-0">{intel.symbol}</span>
+        <span className="text-[13px] text-ink-2 truncate flex-1 min-w-0">{company?.name ?? '—'}</span>
+        <span className="hidden sm:inline-flex"><DirectionTag direction={intel.direction} /></span>
+        {metric === 'opportunity' && <ScoreBar value={intel.opportunity_score} width="w-16" />}
+        {metric === 'risk' && <ScoreBar value={intel.risk_score} tone="risk" width="w-16" />}
+        {metric === 'anomaly' && <ScoreBar value={intel.anomaly_score} tone="risk" width="w-16" />}
+      </button>
+    </li>
   );
 };
 
 export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
   marketOverview,
+  companies,
   onSelectSymbol,
   onNavigate,
   watchlist,
   onToggleWatchlist
 }) => {
-  // Chart Controls State
+  const colors = useChartColors();
   const [timeframe, setTimeframe] = useState<'3M' | '6M' | '1Y'>('1Y');
-  const [selectedEmiten, setSelectedEmiten] = useState<string>('ALL');
+  const [focus, setFocus] = useState<string>(TOP_10_SYMBOLS[0]);
 
-  // Directory Filters State
-  const [directorySearch, setDirectorySearch] = useState('');
-  const [selectedSector, setSelectedSector] = useState<string>('ALL');
-  const [sortBy, setSortBy] = useState<'opportunity' | 'market_cap' | 'risk' | 'name'>('opportunity');
+  const [search, setSearch] = useState('');
+  const [sector, setSector] = useState('ALL');
+  const [sortKey, setSortKey] = useState<SortKey>('opportunity');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
-  // Filtered timeline data for charts
-  const filteredTimelineData = useMemo(() => {
-    if (timeframe === '3M') {
-      return MOCK_TOP10_GROWTH_TIMELINE.slice(-3);
-    }
-    if (timeframe === '6M') {
-      return MOCK_TOP10_GROWTH_TIMELINE.slice(-6);
-    }
+  const rows = useMemo(() => {
+    const list = companies.length ? companies : Object.values(MOCK_COMPANIES);
+    return list.map(c => ({ ...c, intel: MOCK_INTELLIGENCE[c.symbol] as IntelligenceSnapshot | undefined }));
+  }, [companies]);
+
+  // ── Market-wide summary numbers ──
+  const summary = useMemo(() => {
+    const intels = rows.map(r => r.intel).filter((i): i is IntelligenceSnapshot => !!i);
+    const count = (d: IntelligenceSnapshot['direction']) => intels.filter(i => i.direction === d).length;
+    const avg = intels.reduce((a, i) => a + i.opportunity_score, 0) / (intels.length || 1);
+    return {
+      total: rows.length,
+      bullish: count('BULLISH'),
+      neutral: count('NEUTRAL'),
+      bearish: count('BEARISH'),
+      avgOpp: avg,
+      scored: intels.length
+    };
+  }, [rows]);
+
+  // ── Trend chart ──
+  const timeline = useMemo(() => {
+    if (timeframe === '3M') return MOCK_TOP10_GROWTH_TIMELINE.slice(-3);
+    if (timeframe === '6M') return MOCK_TOP10_GROWTH_TIMELINE.slice(-6);
     return MOCK_TOP10_GROWTH_TIMELINE;
   }, [timeframe]);
 
-  // Delta calculation for single focus mode
-  const singleFocusMetrics = useMemo(() => {
-    if (selectedEmiten === 'ALL' || filteredTimelineData.length === 0) return null;
-    const startVal = Number(filteredTimelineData[0][selectedEmiten] || 0);
-    const endVal = Number(filteredTimelineData[filteredTimelineData.length - 1][selectedEmiten] || 0);
-    const delta = endVal - startVal;
-    const deltaPct = startVal > 0 ? (delta / startVal) * 100 : 0;
-    return {
-      start: startVal.toFixed(1),
-      end: endVal.toFixed(1),
-      delta: (delta >= 0 ? '+' : '') + delta.toFixed(1),
-      deltaPct: (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(1) + '%'
+  const focusDelta = useMemo(() => {
+    const start = Number(timeline[0]?.[focus] ?? 0);
+    const end = Number(timeline[timeline.length - 1]?.[focus] ?? 0);
+    return { start, end, delta: end - start };
+  }, [timeline, focus]);
+
+  // ── Directory ──
+  const sectors = useMemo(() => Array.from(new Set(rows.map(r => r.sector))).sort(), [rows]);
+
+  const directory = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    let list = rows.filter(
+      r =>
+        (sector === 'ALL' || r.sector === sector) &&
+        (!q ||
+          r.symbol.toLowerCase().includes(q) ||
+          r.name.toLowerCase().includes(q) ||
+          r.sub_sector.toLowerCase().includes(q))
+    );
+    const val = (r: (typeof rows)[number]): number | string => {
+      switch (sortKey) {
+        case 'symbol': return r.symbol;
+        case 'sector': return r.sector;
+        case 'market_cap': return r.market_cap;
+        case 'opportunity': return r.intel?.opportunity_score ?? -1;
+        case 'risk': return r.intel?.risk_score ?? -1;
+      }
     };
-  }, [selectedEmiten, filteredTimelineData]);
-
-  // All Available Markets List
-  const allCompaniesList = useMemo(() => {
-    return Object.values(MOCK_COMPANIES).map(comp => {
-      const intel = MOCK_INTELLIGENCE[comp.symbol] || {
-        opportunity_score: 50,
-        risk_score: 50,
-        direction: 'NEUTRAL' as const,
-        confidence: 'MEDIUM' as const,
-        risk_level: 'MODERATE' as const,
-        is_anomaly: false,
-        anomaly_score: 0,
-        positive_factors: ['Data operasional stabil'],
-      };
-      return {
-        ...comp,
-        intel
-      };
+    list = [...list].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      const cmp = typeof va === 'string' ? va.localeCompare(vb as string) : (va as number) - (vb as number);
+      return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, []);
+    return list;
+  }, [rows, search, sector, sortKey, sortDir]);
 
-  // Unique Sectors for Directory Filter
-  const availableSectors = useMemo(() => {
-    const set = new Set<string>();
-    allCompaniesList.forEach(c => set.add(c.sector));
-    return Array.from(set);
-  }, [allCompaniesList]);
-
-  // Filtered and Sorted Directory List
-  const filteredDirectoryMarkets = useMemo(() => {
-    let list = allCompaniesList;
-
-    // Search filter
-    if (directorySearch.trim()) {
-      const q = directorySearch.toLowerCase().trim();
-      list = list.filter(item =>
-        item.symbol.toLowerCase().includes(q) ||
-        item.name.toLowerCase().includes(q) ||
-        item.sector.toLowerCase().includes(q) ||
-        item.sub_sector.toLowerCase().includes(q)
-      );
+  const onSort = (k: SortKey) => {
+    if (k === sortKey) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(k);
+      setSortDir(k === 'symbol' || k === 'sector' ? 'asc' : 'desc');
     }
-
-    // Sector filter
-    if (selectedSector !== 'ALL') {
-      list = list.filter(item => item.sector === selectedSector);
-    }
-
-    // Sorting
-    return [...list].sort((a, b) => {
-      if (sortBy === 'opportunity') {
-        return b.intel.opportunity_score - a.intel.opportunity_score;
-      }
-      if (sortBy === 'risk') {
-        return a.intel.risk_score - b.intel.risk_score;
-      }
-      if (sortBy === 'market_cap') {
-        return b.market_cap - a.market_cap;
-      }
-      return a.symbol.localeCompare(b.symbol);
-    });
-  }, [allCompaniesList, directorySearch, selectedSector, sortBy]);
-
-  // Helper formatting for Market Cap
-  const formatMarketCap = (cap: number) => {
-    if (cap >= 1000000000000000) {
-      return `Rp ${(cap / 1000000000000000).toFixed(2)} Ribu Triliun`;
-    }
-    if (cap >= 1000000000000) {
-      return `Rp ${(cap / 1000000000000).toFixed(1)} Triliun`;
-    }
-    return `Rp ${(cap / 1000000000).toFixed(0)} Miliar`;
   };
 
+  const topOpps = [...marketOverview.top_opportunities].sort((a, b) => b.opportunity_score - a.opportunity_score);
+  const topRisks = [...marketOverview.top_risks].sort((a, b) => b.risk_score - a.risk_score);
+  const anomalies = [...marketOverview.detected_anomalies].sort((a, b) => b.anomaly_score - a.anomaly_score);
+
+  const pct = (n: number) => `${(n / (summary.scored || 1)) * 100}%`;
+
   return (
-    <div className="space-y-8">
-      {/* Hero Header */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 relative overflow-hidden">
-        <div className="absolute -right-24 -top-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -left-24 -bottom-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative">
-          <div className="flex items-center space-x-2 mb-1">
-            <Activity className="w-5 h-5 text-cyan-400" />
-            <h1 className="text-xl font-bold text-white">Market Intelligence Overview</h1>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Pasar · Bursa Efek Indonesia"
+        title="Ringkasan pasar"
+        description="Skor peluang dan risiko untuk setiap emiten yang diproses pipeline, beserta anomali yang perlu diperiksa lebih lanjut."
+      />
+
+      {/* Summary strip */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line rounded-lg overflow-hidden [&>*]:bg-surface [&>*]:p-4">
+        <Stat label="Emiten dianalisis" value={summary.total} hint={`${sectors.length} sektor`} />
+        <div>
+          <div className="text-xs text-ink-3">Arah sinyal</div>
+          <div className="num text-[22px] leading-tight text-ink mt-1">
+            <span className="text-up">{summary.bullish}</span>
+            <span className="text-ink-3 mx-1.5">/</span>
+            <span className="text-ink-2">{summary.neutral}</span>
+            <span className="text-ink-3 mx-1.5">/</span>
+            <span className="text-down">{summary.bearish}</span>
           </div>
-          <p className="text-xs text-slate-400 max-w-3xl">
-            Ringkasan kondisi pasar modal berbasis pemrosesan data Sectors API & Pipeline MCP.
-            Menyajikan analisis tren deret waktu (*time-series*), komparasi pertumbuhan kuantitatif antar-emiten,
-            deteksi anomali data, dan direktori lengkap pasar saham Indonesia.
-          </p>
+          <div className="flex h-1.5 mt-2 rounded-full overflow-hidden gap-0.5" aria-hidden="true">
+            <div className="bg-up" style={{ width: pct(summary.bullish) }} />
+            <div className="bg-line-strong" style={{ width: pct(summary.neutral) }} />
+            <div className="bg-down" style={{ width: pct(summary.bearish) }} />
+          </div>
+          <div className="text-xs text-ink-3 mt-1.5">Bullish / netral / bearish</div>
+        </div>
+        <Stat label="Rata-rata skor peluang" value={formatScore(Number(summary.avgOpp.toFixed(1)))} hint="Skala 0–100" />
+        <Stat
+          label="Anomali terdeteksi"
+          value={<span className={anomalies.length ? 'text-warn' : undefined}>{anomalies.length}</span>}
+          hint="Harga dan fundamental tidak searah"
+        />
+      </section>
+
+      {/* Ranked lists */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        <Panel
+          className="xl:col-span-3"
+          title="Peluang tertinggi"
+          meta="Skor peluang"
+          flush
+          actions={
+            <button onClick={() => onNavigate('market')} className="text-xs text-ink-2 hover:text-ink inline-flex items-center gap-1">
+              Buka screener <ArrowRight className="w-3 h-3" />
+            </button>
+          }
+        >
+          <ol className="divide-y divide-line py-1">
+            {topOpps.map((intel, i) => (
+              <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="opportunity" onSelect={onSelectSymbol} />
+            ))}
+          </ol>
+        </Panel>
+
+        <div className="xl:col-span-2 space-y-6">
+          <Panel title="Risiko tertinggi" meta="Skor risiko" flush>
+            {topRisks.length ? (
+              <ol className="divide-y divide-line py-1">
+                {topRisks.map((intel, i) => (
+                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="risk" onSelect={onSelectSymbol} />
+                ))}
+              </ol>
+            ) : (
+              <EmptyState title="Tidak ada emiten berisiko tinggi" />
+            )}
+          </Panel>
+
+          <Panel title="Anomali & divergensi" meta="Skor anomali" flush>
+            {anomalies.length ? (
+              <ol className="divide-y divide-line py-1">
+                {anomalies.map((intel, i) => (
+                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="anomaly" onSelect={onSelectSymbol} />
+                ))}
+              </ol>
+            ) : (
+              <EmptyState title="Tidak ada anomali pada siklus ini" />
+            )}
+          </Panel>
         </div>
       </div>
 
-      {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card p-4 rounded-xl border border-slate-800 glow-cyan">
-          <div className="flex items-center space-x-2 mb-2">
-            <Zap className="w-4 h-4 text-cyan-400" />
-            <span className="text-[10px] text-slate-400 font-mono uppercase">Top Opportunities</span>
+      {/* Trend chart — one highlighted series against the rest in gray */}
+      <Panel
+        title="Tren skor peluang"
+        meta="10 emiten teratas, bulanan"
+        actions={
+          <Segmented
+            ariaLabel="Rentang waktu"
+            value={timeframe}
+            onChange={setTimeframe}
+            options={[
+              { value: '3M', label: '3 bln' },
+              { value: '6M', label: '6 bln' },
+              { value: '1Y', label: '12 bln' }
+            ]}
+          />
+        }
+      >
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-4">
+          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Sorot emiten">
+            {TOP_10_SYMBOLS.map(sym => (
+              <button
+                key={sym}
+                role="radio"
+                aria-checked={focus === sym}
+                onClick={() => setFocus(sym)}
+                className={cx(
+                  'num h-7 px-2.5 rounded-md text-xs border transition-colors',
+                  focus === sym
+                    ? 'border-accent text-accent bg-accent-soft'
+                    : 'border-line text-ink-2 hover:border-line-strong hover:text-ink'
+                )}
+              >
+                {sym}
+              </button>
+            ))}
           </div>
-          <span className="text-2xl font-black text-white font-mono">{marketOverview.top_opportunities.length}</span>
-          <span className="text-[10px] text-slate-400 block mt-1">Emiten dengan skor peluang tertinggi</span>
-        </div>
 
-        <div className="glass-card p-4 rounded-xl border border-slate-800 glow-rose">
-          <div className="flex items-center space-x-2 mb-2">
-            <ShieldCheck className="w-4 h-4 text-rose-400" />
-            <span className="text-[10px] text-slate-400 font-mono uppercase">Top Risks</span>
-          </div>
-          <span className="text-2xl font-black text-white font-mono">{marketOverview.top_risks.length}</span>
-          <span className="text-[10px] text-slate-400 block mt-1">Emiten dengan sinyal risiko tinggi</span>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800 glow-amber">
-          <div className="flex items-center space-x-2 mb-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span className="text-[10px] text-slate-400 font-mono uppercase">Anomalies</span>
-          </div>
-          <span className="text-2xl font-black text-white font-mono">{marketOverview.detected_anomalies.length}</span>
-          <span className="text-[10px] text-slate-400 block mt-1">Ketidaksesuaian pola terdeteksi</span>
-        </div>
-
-        <div className="glass-card p-4 rounded-xl border border-slate-800">
-          <div className="flex items-center space-x-2 mb-2">
-            <Star className="w-4 h-4 text-amber-400" />
-            <span className="text-[10px] text-slate-400 font-mono uppercase">Watchlist</span>
-          </div>
-          <span className="text-2xl font-black text-white font-mono">{watchlist.length}</span>
-          <span className="text-[10px] text-slate-400 block mt-1">Emiten dalam radar pantauan Anda</span>
-        </div>
-      </div>
-
-      {/* Top 10 Opportunities Growth Chart (Time-Series) */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-base font-bold text-white tracking-wide">
-                Top 10 Market Opportunities: Tren Pertumbuhan Waktu ke Waktu
-              </h2>
+          <div className="flex items-end gap-6 shrink-0">
+            <div>
+              <div className="text-xs text-ink-3">{timeline[0]?.period}</div>
+              <div className="num text-[15px] text-ink-2">{focusDelta.start.toFixed(1)}</div>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Historis dinamika Opportunity Score bulanan untuk 10 emiten berprospek tertinggi di pasar modal Indonesia.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Timeframe Selector */}
-            <div className="flex items-center bg-slate-900/80 p-1 rounded-lg border border-slate-800 text-xs">
-              {(['3M', '6M', '1Y'] as const).map(tf => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1 rounded-md font-mono text-xs transition-all ${
-                    timeframe === tf
-                      ? 'bg-cyan-500 text-white font-bold shadow-lg shadow-cyan-500/20'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {tf === '1Y' ? '12 Bulan' : tf}
-                </button>
-              ))}
+            <div>
+              <div className="text-xs text-ink-3">{timeline[timeline.length - 1]?.period}</div>
+              <div className="num text-[15px] text-ink">{focusDelta.end.toFixed(1)}</div>
             </div>
-
-            {/* Mode Focus Selector */}
+            <div>
+              <div className="text-xs text-ink-3">Perubahan</div>
+              <div className={cx('num text-[15px]', focusDelta.delta >= 0 ? 'text-up' : 'text-down')}>
+                {focusDelta.delta >= 0 ? '+' : '−'}{Math.abs(focusDelta.delta).toFixed(1)}
+              </div>
+            </div>
             <button
-              onClick={() => setSelectedEmiten('ALL')}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-mono transition-all ${
-                selectedEmiten === 'ALL'
-                  ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-300 font-bold'
-                  : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white'
-              }`}
+              onClick={() => onSelectSymbol(focus)}
+              className="text-xs text-accent hover:underline inline-flex items-center gap-1 pb-1"
             >
-              Multi-Line (Semua Top 10)
+              Buka {focus} <ArrowRight className="w-3 h-3" />
             </button>
           </div>
         </div>
 
-        {/* Emiten Filter Chips */}
-        <div className="flex flex-wrap gap-2 mb-6 pt-2 border-t border-slate-800/60">
-          <span className="text-[11px] font-mono text-slate-500 self-center mr-1">Fokus Emiten:</span>
-          {TOP_10_SYMBOLS.map(sym => {
-            const isFocus = selectedEmiten === sym;
-            const color = EMITEN_COLORS[sym] || '#06b6d4';
-            return (
-              <button
-                key={sym}
-                onClick={() => setSelectedEmiten(sym === selectedEmiten ? 'ALL' : sym)}
-                className={`px-2.5 py-1 rounded-md text-xs font-mono transition-all flex items-center space-x-1.5 border ${
-                  isFocus
-                    ? 'border-cyan-400/80 bg-slate-800 text-white font-bold shadow-md'
-                    : selectedEmiten === 'ALL'
-                    ? 'border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700'
-                    : 'border-slate-800/40 bg-slate-950/40 text-slate-500 opacity-60 hover:opacity-100'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                <span>{sym}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Single Focus Metrics Card */}
-        {selectedEmiten !== 'ALL' && singleFocusMetrics && (
-          <div className="mb-6 p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center font-mono font-bold text-white text-sm"
-                style={{ backgroundColor: `${EMITEN_COLORS[selectedEmiten]}33`, border: `1px solid ${EMITEN_COLORS[selectedEmiten]}` }}
-              >
-                {selectedEmiten}
-              </div>
-              <div>
-                <span className="text-sm font-bold text-white block">
-                  {MOCK_COMPANIES[selectedEmiten]?.name || selectedEmiten}
-                </span>
-                <span className="text-xs text-slate-400">
-                  {MOCK_COMPANIES[selectedEmiten]?.sector} • Sub-sektor: {MOCK_COMPANIES[selectedEmiten]?.sub_sector}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-6 font-mono text-xs">
-              <div>
-                <span className="text-slate-500 block text-[10px]">SKOR AWAL ({filteredTimelineData[0]?.period})</span>
-                <span className="text-slate-200 font-bold text-sm">{singleFocusMetrics.start}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">SKOR TERKINI ({filteredTimelineData[filteredTimelineData.length - 1]?.period})</span>
-                <span className="text-cyan-400 font-bold text-sm">{singleFocusMetrics.end}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block text-[10px]">DELTA PERTUMBUHAN</span>
-                <span className="text-emerald-400 font-bold text-sm">
-                  {singleFocusMetrics.delta} ({singleFocusMetrics.deltaPct})
-                </span>
-              </div>
-              <button
-                onClick={() => onSelectSymbol(selectedEmiten)}
-                className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-sans font-bold px-3 py-1.5 rounded-lg text-xs flex items-center space-x-1 transition-colors ml-auto"
-              >
-                <span>Analisis Penuh</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Chart Canvas */}
-        <div className="h-80 w-full">
+        <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            {selectedEmiten !== 'ALL' ? (
-              <AreaChart data={filteredTimelineData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id={`gradient-${selectedEmiten}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={EMITEN_COLORS[selectedEmiten]} stopOpacity={0.4} />
-                    <stop offset="95%" stopColor={EMITEN_COLORS[selectedEmiten]} stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="period" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} domain={[50, 100]} />
-                <RechartsTooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}
-                  formatter={(value: any) => [`${value} Poin`, 'Opportunity Score']}
-                  labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                />
-                <Area
+            <LineChart data={timeline} margin={{ top: 8, right: 44, left: -16, bottom: 0 }}>
+              <CartesianGrid stroke={colors.grid} vertical={false} />
+              <XAxis dataKey="period" stroke={colors.axis} fontSize={11} tickLine={false} axisLine={{ stroke: colors.grid }} />
+              <YAxis stroke={colors.axis} fontSize={11} tickLine={false} axisLine={false} domain={[55, 95]} />
+              <Tooltip
+                cursor={{ stroke: colors.context }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null;
+                  const sorted = [...payload].sort((a, b) => Number(b.value) - Number(a.value));
+                  return (
+                    <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs min-w-[140px]">
+                      <div className="text-ink-3 mb-1">{label}</div>
+                      {sorted.map(p => (
+                        <div
+                          key={String(p.dataKey)}
+                          className={cx('flex justify-between gap-4 num', p.dataKey === focus ? 'text-ink font-medium' : 'text-ink-3')}
+                        >
+                          <span>{String(p.dataKey)}</span>
+                          <span>{Number(p.value).toFixed(1)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
+              {TOP_10_SYMBOLS.filter(s => s !== focus).map(sym => (
+                <Line
+                  key={sym}
                   type="monotone"
-                  dataKey={selectedEmiten}
-                  stroke={EMITEN_COLORS[selectedEmiten]}
-                  strokeWidth={3}
-                  fillOpacity={1}
-                  fill={`url(#gradient-${selectedEmiten})`}
-                  dot={{ fill: EMITEN_COLORS[selectedEmiten], r: 4 }}
-                  activeDot={{ r: 6, stroke: '#fff', strokeWidth: 2 }}
+                  dataKey={sym}
+                  stroke={colors.context}
+                  strokeWidth={1.25}
+                  dot={false}
+                  activeDot={false}
+                  isAnimationActive={false}
                 />
-              </AreaChart>
-            ) : (
-              <LineChart data={filteredTimelineData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="period" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} domain={[50, 100]} />
-                <RechartsTooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '11px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}
-                  labelStyle={{ color: '#94a3b8', fontWeight: 'bold', marginBottom: '4px' }}
+              ))}
+              <Line
+                key={focus}
+                type="monotone"
+                dataKey={focus}
+                stroke={colors.series1}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, stroke: colors.surface, strokeWidth: 2 }}
+                isAnimationActive={false}
+              >
+                <LabelList
+                  dataKey={focus}
+                  content={({ x, y, index }) =>
+                    index === timeline.length - 1 ? (
+                      <text x={Number(x) + 8} y={Number(y) + 4} fontSize={11} fill={colors.ink} fontFamily="IBM Plex Mono">
+                        {focus}
+                      </text>
+                    ) : null
+                  }
                 />
-                <Legend
-                  wrapperStyle={{ paddingTop: '16px', fontSize: '11px' }}
-                  iconType="circle"
-                />
-                {TOP_10_SYMBOLS.map(sym => (
-                  <Line
-                    key={sym}
-                    type="monotone"
-                    dataKey={sym}
-                    stroke={EMITEN_COLORS[sym]}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 5 }}
-                  />
-                ))}
-              </LineChart>
-            )}
+              </Line>
+            </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Panel>
 
-      {/* Top Opportunities Grid Cards */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <Zap className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider font-mono">
-              Top 10 High Opportunity Signals
-            </h2>
-          </div>
-          <button
-            onClick={() => onNavigate('signals')}
-            className="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center space-x-1 transition-colors"
-          >
-            <span>Lihat Core Signal Engine</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+      {/* Sector summary */}
+      <Panel
+        title="Sektor"
+        meta={`${marketOverview.sector_summary.length} sektor`}
+        flush
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead className="border-b border-line">
+              <tr className="text-left">
+                <th className="px-4 h-9 font-medium text-xs text-ink-3">Sektor</th>
+                <th className="px-4 h-9 font-medium text-xs text-ink-3">Sentimen</th>
+                <th className="px-4 h-9 font-medium text-xs text-ink-3">Rata-rata peluang</th>
+                <th className="px-4 h-9 font-medium text-xs text-ink-3 text-right">Anomali</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {[...marketOverview.sector_summary]
+                .sort((a, b) => b.avg_opportunity - a.avg_opportunity)
+                .map(sec => (
+                  <tr key={sec.sector} className="hover:bg-surface-2">
+                    <td className="px-4 h-10 text-ink">{sec.sector}</td>
+                    <td className="px-4 h-10">
+                      <Tag tone={sec.sentiment === 'Bullish' ? 'up' : sec.sentiment === 'Bearish' ? 'down' : 'neutral'}>
+                        {sec.sentiment === 'Neutral' ? 'Netral' : sec.sentiment}
+                      </Tag>
+                    </td>
+                    <td className="px-4 h-10"><ScoreBar value={sec.avg_opportunity} width="w-28" /></td>
+                    <td className={cx('px-4 h-10 num text-right', sec.anomaly_count ? 'text-warn' : 'text-ink-3')}>
+                      {sec.anomaly_count}
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {marketOverview.top_opportunities.map((intel) => (
-            <SnapshotCard
-              key={intel.symbol}
-              intel={intel}
-              onSelect={onSelectSymbol}
-              variant="opportunity"
-              watchlist={watchlist}
-              onToggleWatchlist={onToggleWatchlist}
-            />
-          ))}
-        </div>
-      </div>
+      </Panel>
 
-      {/* Top Anomalies Grid Cards */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <AlertTriangle className="w-5 h-5 text-amber-400" />
-            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider font-mono">
-              Detected Anomalies & Divergence
-            </h2>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {marketOverview.detected_anomalies.map((intel) => (
-            <SnapshotCard
-              key={`anomaly-${intel.symbol}`}
-              intel={intel}
-              onSelect={onSelectSymbol}
-              variant="anomaly"
-              watchlist={watchlist}
-              onToggleWatchlist={onToggleWatchlist}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Sector Intelligence Summary */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <Globe2 className="w-5 h-5 text-sky-400" />
-            <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider font-mono">
-              Sector Intelligence Summary
-            </h2>
-          </div>
-          <button
-            onClick={() => onNavigate('market')}
-            className="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center space-x-1 transition-colors"
-          >
-            <span>Lihat Screener Sektoral</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {marketOverview.sector_summary.map((sec, idx) => (
-            <div
-              key={idx}
-              className={`p-4 rounded-xl border flex flex-col justify-between transition-all ${
-                sec.sentiment === 'Bullish'
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                  : sec.sentiment === 'Bearish'
-                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
-              }`}
-            >
-              <div>
-                <span className="text-xs font-bold block truncate">{sec.sector}</span>
-                <span className="text-[10px] uppercase font-mono opacity-80 mt-0.5 block">
-                  {sec.sentiment}
-                </span>
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between">
-                <span className="text-xs font-mono font-bold">{sec.avg_opportunity} Poin</span>
-                {sec.anomaly_count > 0 && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    {sec.anomaly_count} Anomali
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          SECTION PALING BAWAH: DIREKTORI SELURUH MARKET & EMITEN
-          ───────────────────────────────────────────────────────────── */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center space-x-2">
-              <Building2 className="w-5 h-5 text-cyan-400" />
-              <h2 className="text-base font-bold text-white tracking-wide">
-                Direktori Pasar & Seluruh Emiten Terdaftar
-              </h2>
-            </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Katalog seluruh emiten yang telah terindeks dan diproses oleh pipeline intelijen.
-              Pilih emiten untuk melihat detail fundamental, matriks sinyal, dan proyeksi risiko.
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-400 font-mono">
-              Total Emiten: <strong className="text-cyan-400">{filteredDirectoryMarkets.length}</strong> / {allCompaniesList.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Directory Controls: Search, Sector Tabs & Sort */}
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pt-2 border-t border-slate-800/60">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Directory */}
+      <Panel
+        title="Semua emiten"
+        meta={`${directory.length} dari ${rows.length}`}
+        flush
+      >
+        <div className="flex flex-col sm:flex-row gap-2 p-3 border-b border-line">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="w-3.5 h-3.5 text-ink-3 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
-              type="text"
-              value={directorySearch}
-              onChange={(e) => setDirectorySearch(e.target.value)}
-              placeholder="Cari pasar (e.g. BBCA, perbankan, batubara)..."
-              className="bg-slate-900/90 text-xs text-slate-200 pl-9 pr-4 py-2 rounded-lg border border-slate-800 focus:outline-none focus:border-cyan-500/50 w-full"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Saring kode, nama, sub-sektor"
+              className="w-full h-8 pl-8 pr-3 rounded-md bg-canvas border border-line text-[13px] text-ink placeholder:text-ink-3 outline-none focus:border-accent"
             />
           </div>
-
-          {/* Sort Selector */}
-          <div className="flex items-center space-x-2 shrink-0">
-            <SlidersHorizontal className="w-4 h-4 text-slate-400" />
-            <span className="text-xs text-slate-400">Urutkan:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500"
-            >
-              <option value="opportunity">Opportunity Tertinggi</option>
-              <option value="market_cap">Kapitalisasi Pasar Terbesar</option>
-              <option value="risk">Risk Terendah</option>
-              <option value="name">Kode Saham (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Sector Filter Chips */}
-        <div className="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-thin">
-          <button
-            onClick={() => setSelectedSector('ALL')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-              selectedSector === 'ALL'
-                ? 'bg-cyan-500 text-slate-950 font-bold'
-                : 'bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800'
-            }`}
+          <select
+            value={sector}
+            onChange={e => setSector(e.target.value)}
+            className="h-8 px-2 rounded-md bg-canvas border border-line text-[13px] text-ink outline-none focus:border-accent"
+            aria-label="Filter sektor"
           >
-            Semua Sektor ({allCompaniesList.length})
-          </button>
-          {availableSectors.map(sec => {
-            const count = allCompaniesList.filter(c => c.sector === sec).length;
-            return (
-              <button
-                key={sec}
-                onClick={() => setSelectedSector(sec)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  selectedSector === sec
-                    ? 'bg-cyan-500 text-slate-950 font-bold'
-                    : 'bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                {sec} ({count})
-              </button>
-            );
-          })}
+            <option value="ALL">Semua sektor</option>
+            {sectors.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
 
-        {/* Directory Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDirectoryMarkets.map(item => {
-            const isBullish = item.intel.direction === 'BULLISH';
-            const isBearish = item.intel.direction === 'BEARISH';
-
-            return (
-              <div
-                key={item.symbol}
-                className="glass-card p-4 rounded-xl border border-slate-800 hover:border-slate-700 transition-all flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-base font-bold font-mono text-white group-hover:text-cyan-400 transition-colors">
-                        {item.symbol}
-                      </span>
-                      <WatchlistButton
-                        symbol={item.symbol}
-                        isInWatchlist={watchlist.includes(item.symbol)}
-                        onToggle={onToggleWatchlist}
-                      />
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px]">
+            <thead className="border-b border-line">
+              <tr className="text-left">
+                <th className="w-8" />
+                <SortHeader label="Kode" sortKey="symbol" current={sortKey} dir={sortDir} onSort={onSort} />
+                <SortHeader label="Sektor" sortKey="sector" current={sortKey} dir={sortDir} onSort={onSort} />
+                <SortHeader label="Kap. pasar" sortKey="market_cap" current={sortKey} dir={sortDir} onSort={onSort} align="right" />
+                <th className="px-4 h-9 font-medium text-xs text-ink-3">Arah</th>
+                <SortHeader label="Peluang" sortKey="opportunity" current={sortKey} dir={sortDir} onSort={onSort} />
+                <SortHeader label="Risiko" sortKey="risk" current={sortKey} dir={sortDir} onSort={onSort} />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {directory.map(r => (
+                <tr
+                  key={r.symbol}
+                  onClick={() => onSelectSymbol(r.symbol)}
+                  className="hover:bg-surface-2 cursor-pointer"
+                >
+                  <td className="pl-3 h-11">
+                    <WatchlistButton
+                      symbol={r.symbol}
+                      isInWatchlist={watchlist.includes(r.symbol)}
+                      onToggle={onToggleWatchlist}
+                    />
+                  </td>
+                  <td className="px-4 h-11">
+                    <div className="flex items-baseline gap-2.5 min-w-[200px]">
+                      <span className="num font-medium text-ink">{r.symbol}</span>
+                      <span className="text-ink-2 truncate">{r.name}</span>
+                      {r.intel?.is_anomaly && <span className="text-warn text-xs" title="Anomali terdeteksi">●</span>}
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center space-x-1 ${
-                      isBullish
-                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                        : isBearish
-                        ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                        : 'bg-slate-800 text-slate-400 border border-slate-700'
-                    }`}>
-                      {isBullish && <TrendingUp className="w-3 h-3 mr-0.5 inline" />}
-                      {isBearish && <TrendingDown className="w-3 h-3 mr-0.5 inline" />}
-                      {item.intel.direction}
-                    </span>
-                  </div>
-
-                  <h3 className="text-xs font-semibold text-slate-200 line-clamp-1">
-                    {item.name}
-                  </h3>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    {item.sector} • {item.sub_sector}
-                  </p>
-
-                  {/* Market Cap & Key Signal */}
-                  <div className="mt-3 grid grid-cols-2 gap-2 bg-slate-900/60 p-2.5 rounded-lg">
-                    <div>
-                      <span className="text-[9px] text-slate-400 font-mono block">OPPORTUNITY</span>
-                      <span className="text-sm font-black font-mono text-cyan-400">
-                        {item.intel.opportunity_score}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 font-mono block">RISK LEVEL</span>
-                      <span className={`text-sm font-black font-mono ${
-                        item.intel.risk_level === 'LOW' ? 'text-emerald-400' :
-                        item.intel.risk_level === 'MODERATE' ? 'text-amber-400' : 'text-rose-400'
-                      }`}>
-                        {item.intel.risk_level}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 text-[10px] text-slate-400 flex items-center justify-between">
-                    <span>Kapitalisasi Pasar:</span>
-                    <span className="font-mono text-slate-200 font-semibold">{formatMarketCap(item.market_cap)}</span>
-                  </div>
-
-                  {item.intel.is_anomaly && (
-                    <div className="mt-2 text-[10px] text-amber-400 font-medium flex items-center space-x-1">
-                      <AlertTriangle className="w-3 h-3 shrink-0" />
-                      <span>Anomali Terdeteksi (Skor {item.intel.anomaly_score})</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    Confidence: {item.intel.confidence}
-                  </span>
-                  <button
-                    onClick={() => onSelectSymbol(item.symbol)}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center space-x-1 transition-colors group-hover:translate-x-0.5"
-                  >
-                    <span>Buka Analisis</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                  </td>
+                  <td className="px-4 h-11 text-ink-2 whitespace-nowrap">{r.sector}</td>
+                  <td className="px-4 h-11 num text-ink-2 text-right whitespace-nowrap">{formatMarketCap(r.market_cap)}</td>
+                  <td className="px-4 h-11">{r.intel ? <DirectionTag direction={r.intel.direction} /> : <span className="text-ink-3">—</span>}</td>
+                  <td className="px-4 h-11">{r.intel ? <ScoreBar value={r.intel.opportunity_score} width="w-16" /> : '—'}</td>
+                  <td className="px-4 h-11">{r.intel ? <ScoreBar value={r.intel.risk_score} tone="risk" width="w-16" /> : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {directory.length === 0 && (
+            <EmptyState title="Tidak ada emiten yang cocok">Ubah kata kunci atau pilih sektor lain.</EmptyState>
+          )}
         </div>
-
-        {filteredDirectoryMarkets.length === 0 && (
-          <div className="p-12 text-center text-slate-400 text-xs">
-            Tidak ada emiten yang sesuai dengan kriteria pencarian Anda.
-          </div>
-        )}
-      </div>
+      </Panel>
     </div>
   );
 };
-

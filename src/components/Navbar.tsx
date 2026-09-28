@@ -1,225 +1,106 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Cpu, X, TrendingUp, TrendingDown, ArrowRight } from 'lucide-react';
-import { MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../services/mockData';
+import React from 'react';
+import { Search, Menu, Moon, Sun } from 'lucide-react';
+import type { DataOrigin } from '../services/mockApi';
+import type { Theme } from '../lib/theme';
+import { Kbd } from './ui/primitives';
+import { cx } from '../lib/ui';
 
 interface NavbarProps {
-  activeView?: string;
-  onOpenPipeline?: () => void;
-  onSelectSymbol?: (symbol: string) => void;
-  useDummyData?: boolean;
+  onOpenSearch: () => void;
+  onOpenPipeline: () => void;
+  onToggleMobileNav: () => void;
+  dataOrigin: DataOrigin;
+  theme: Theme;
+  onToggleTheme: () => void;
+  loading?: boolean;
 }
 
+const originCopy: Record<DataOrigin, { label: string; dot: string; title: string }> = {
+  backend: {
+    label: 'Live',
+    dot: 'bg-up',
+    title: 'Data berasal dari backend Go'
+  },
+  dummy: {
+    label: 'Simulasi',
+    dot: 'bg-warn',
+    title: 'Mode data dummy aktif'
+  },
+  fallback: {
+    label: 'Backend offline',
+    dot: 'bg-down',
+    title: 'Backend tidak merespons, sebagian data diganti dengan data simulasi'
+  }
+};
+
 export const Navbar: React.FC<NavbarProps> = ({
+  onOpenSearch,
   onOpenPipeline,
-  onSelectSymbol,
-  useDummyData = false
+  onToggleMobileNav,
+  dataOrigin,
+  theme,
+  onToggleTheme,
+  loading
 }) => {
-  const [query, setQuery] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
-
-  // Filter companies based on query
-  const filteredCompanies = React.useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase().trim();
-    return Object.values(MOCK_COMPANIES).filter(comp =>
-      comp.symbol.toLowerCase().includes(q) ||
-      comp.name.toLowerCase().includes(q) ||
-      comp.sector.toLowerCase().includes(q) ||
-      comp.sub_sector.toLowerCase().includes(q)
-    ).slice(0, 7); // Max 7 results for clean dropdown
-  }, [query]);
-
-  // Handle outside click to close dropdown
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSelect = (symbol: string) => {
-    if (onSelectSymbol) {
-      onSelectSymbol(symbol);
-    }
-    setQuery('');
-    setIsOpen(false);
-    setActiveIndex(-1);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!isOpen || filteredCompanies.length === 0) return;
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex(prev => (prev < filteredCompanies.length - 1 ? prev + 1 : 0));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex(prev => (prev > 0 ? prev - 1 : filteredCompanies.length - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIndex >= 0 && activeIndex < filteredCompanies.length) {
-        handleSelect(filteredCompanies[activeIndex].symbol);
-      } else if (filteredCompanies.length > 0) {
-        handleSelect(filteredCompanies[0].symbol);
-      }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
+  const origin = originCopy[dataOrigin];
 
   return (
-    <header className="h-16 glass-panel border-b border-slate-800/80 px-6 flex items-center space-x-6 sticky top-0 z-40">
-      {/* Brand */}
-      <div className="flex items-center space-x-3 shrink-0">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <Cpu className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <span className="font-bold text-lg bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 bg-clip-text text-transparent">
-            Marketidex
-          </span>
-          <span className="text-xs text-slate-400 block -mt-1 font-mono tracking-wider">
-            Analisis Saham Lokal
-          </span>
-        </div>
+    <header className="h-12 shrink-0 bg-surface border-b border-line px-3 md:px-4 flex items-center gap-3 relative z-30">
+      <button
+        onClick={onToggleMobileNav}
+        className="md:hidden p-1.5 -ml-1 rounded text-ink-2 hover:bg-surface-2"
+        aria-label="Buka navigasi"
+      >
+        <Menu className="w-4 h-4" />
+      </button>
+
+      {/* Wordmark */}
+      <div className="flex items-center gap-2 shrink-0 md:w-[204px]">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" className="text-ink">
+          <rect x="1" y="9" width="3" height="8" fill="currentColor" />
+          <rect x="7.5" y="5" width="3" height="12" fill="currentColor" />
+          <rect x="14" y="1" width="3" height="16" fill="var(--accent)" />
+        </svg>
+        <span className="font-semibold text-[15px] tracking-tight">Marketidex</span>
+        <span className="hidden sm:inline text-[11px] text-ink-3 num">IDX</span>
       </div>
 
+      {/* Search trigger — opens the command palette */}
+      <button
+        onClick={onOpenSearch}
+        className="flex-1 max-w-md h-8 px-2.5 flex items-center gap-2 rounded-md border border-line bg-canvas text-ink-3 hover:border-line-strong transition-colors text-left min-w-0"
+      >
+        <Search className="w-3.5 h-3.5 shrink-0" />
+        <span className="text-[13px] truncate">Cari kode atau nama emiten</span>
+        <span className="ml-auto hidden sm:flex items-center gap-1">
+          <Kbd>/</Kbd>
+        </span>
+      </button>
 
-      <div className="h-6 w-px bg-slate-800 shrink-0 hidden md:block" />
-
-      {/* Search Bar (Fills ALL remaining empty space completely) */}
-      <div className="flex-1 flex items-center min-w-0">
-        <div ref={searchContainerRef} className="relative w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setIsOpen(true);
-              setActiveIndex(-1);
-            }}
-            onFocus={() => {
-              if (query.trim()) setIsOpen(true);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Cari kode emiten (e.g. BBCA, TLKM), nama emiten, atau sektor industri..."
-            className="w-full bg-slate-900/90 text-xs text-slate-200 pl-10 pr-10 py-2.5 rounded-xl border border-slate-800/90 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all placeholder:text-slate-500 shadow-inner"
-          />
-          {query && (
-            <button
-              onClick={() => {
-                setQuery('');
-                setIsOpen(false);
-              }}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 rounded-md transition-colors"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-
-
-          {/* Autocomplete Dropdown */}
-          {isOpen && query.trim().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-slate-700/70 rounded-xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-800/60 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-3 py-2 text-[10px] font-mono text-slate-400 uppercase tracking-wider bg-slate-950/40 flex items-center justify-between">
-                <span>Hasil Pencarian Saham ({filteredCompanies.length})</span>
-                <span className="text-[9px] text-slate-500">Tekan Enter untuk memilih</span>
-              </div>
-
-              {filteredCompanies.length > 0 ? (
-                <div className="max-h-80 overflow-y-auto">
-                  {filteredCompanies.map((comp, idx) => {
-                    const intel = MOCK_INTELLIGENCE[comp.symbol];
-                    const isSelected = activeIndex === idx;
-
-                    return (
-                      <div
-                        key={comp.symbol}
-                        onClick={() => handleSelect(comp.symbol)}
-                        onMouseEnter={() => setActiveIndex(idx)}
-                        className={`px-4 py-2.5 flex items-center justify-between cursor-pointer transition-colors ${
-                          isSelected ? 'bg-cyan-950/40 text-white' : 'hover:bg-slate-800/50 text-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center font-mono font-bold text-xs text-cyan-400 border border-slate-700/50">
-                            {comp.symbol}
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xs font-semibold text-white">{comp.name}</span>
-                              {intel && (
-                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-bold flex items-center space-x-1 ${
-                                  intel.direction === 'BULLISH'
-                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                    : intel.direction === 'BEARISH'
-                                    ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                                    : 'bg-slate-800 text-slate-400'
-                                }`}>
-                                  {intel.direction === 'BULLISH' && <TrendingUp className="w-2.5 h-2.5 mr-0.5 inline" />}
-                                  {intel.direction === 'BEARISH' && <TrendingDown className="w-2.5 h-2.5 mr-0.5 inline" />}
-                                  {intel.direction}
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">
-                              {comp.sector} • {comp.sub_sector}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3 text-right">
-                          {intel && (
-                            <div>
-                              <span className="text-[9px] text-slate-400 block font-mono">OPPORTUNITY</span>
-                              <span className="text-xs font-bold font-mono text-cyan-400">
-                                {intel.opportunity_score}
-                              </span>
-                            </div>
-                          )}
-                          <ArrowRight className={`w-3.5 h-3.5 transition-transform ${
-                            isSelected ? 'text-cyan-400 translate-x-1' : 'text-slate-600'
-                          }`} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-6 text-center text-xs text-slate-400">
-                  Tidak ada emiten yang cocok dengan kata kunci &quot;<span className="text-slate-200">{query}</span>&quot;
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Global Indicators & Status */}
-      <div className="flex items-center space-x-4 shrink-0 ml-auto">
+      <div className="ml-auto flex items-center gap-1">
         <button
           onClick={onOpenPipeline}
-          className="flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-xs transition-colors cursor-pointer group"
-          title="Buka Pipeline Inspector & Kontrol Mode Data"
+          title={`${origin.title} — klik untuk mengatur sumber data`}
+          className="h-8 px-2.5 rounded-md flex items-center gap-2 text-[13px] text-ink-2 hover:bg-surface-2 transition-colors"
         >
-          <span className={`w-2 h-2 rounded-full ${useDummyData ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'}`} />
-          <span className="text-slate-300 font-medium group-hover:text-cyan-400 transition-colors">Pipeline</span>
-          <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold border ${
-            useDummyData 
-              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' 
-              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-          }`}>
-            {useDummyData ? 'DUMMY' : 'BACKEND'}
-          </span>
+          <span className={cx('w-1.5 h-1.5 rounded-full', origin.dot)} />
+          <span className="hidden sm:inline">{origin.label}</span>
+        </button>
+        <button
+          onClick={onToggleTheme}
+          className="h-8 w-8 rounded-md flex items-center justify-center text-ink-2 hover:bg-surface-2"
+          aria-label={theme === 'dark' ? 'Gunakan tema terang' : 'Gunakan tema gelap'}
+          title={theme === 'dark' ? 'Tema terang' : 'Tema gelap'}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
       </div>
+
+      {loading && (
+        <div className="absolute left-0 right-0 bottom-[-1px] h-px overflow-hidden">
+          <div className="loading-bar h-full w-1/3 bg-accent" />
+        </div>
+      )}
     </header>
   );
 };
-
