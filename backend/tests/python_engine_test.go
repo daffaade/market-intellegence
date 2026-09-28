@@ -137,3 +137,23 @@ func TestPythonEngineClient_FallbackWhenOffline(t *testing.T) {
 		t.Fatalf("expected %d default sectors, got %d", len(python_engine.DefaultSectors), len(sectors))
 	}
 }
+
+func TestPythonEngineClient_AnalyzeNon200Fallback(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+	}))
+	defer ts.Close()
+
+	client := python_engine.NewClient(ts.URL)
+	snap, err := client.Analyze(context.Background(), domain.AnalyzeRequest{Symbol: "BBCA"})
+	if err != nil {
+		t.Fatalf("expected fallback snapshot on 500 error, got error: %v", err)
+	}
+	if snap == nil || snap.Symbol != "BBCA" {
+		t.Fatalf("expected BBCA fallback snapshot, got %+v", snap)
+	}
+	if snap.SmartMoney == nil {
+		t.Fatalf("expected non-nil fallback SmartMoney")
+	}
+}
+

@@ -163,11 +163,15 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(httpReq)
-	if err != nil || resp.StatusCode != http.StatusOK {
+	if err != nil {
 		// Fallback to local deterministic Prototype 3 heuristics if Python service is offline
 		return fallbackDeterministicSnapshot(req.Symbol), nil
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fallbackDeterministicSnapshot(req.Symbol), nil
+	}
 
 	var pyResp pythonAnalyzeResponse
 	if err := json.NewDecoder(resp.Body).Decode(&pyResp); err != nil {
