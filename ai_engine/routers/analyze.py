@@ -124,3 +124,33 @@ async def run_screener(request: ScreenerRequest, data_loader: UnifiedDataLoader 
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class SummaryRequest(BaseModel):
+    ticker: str
+    include: Optional[list[str]] = None
+
+from ai_engine.models.ai_summary.summary_service import SummaryService
+# Use a separate cache for summaries to avoid overlapping with basic AI result cache
+_summary_cache = AIResultCache(ttl_seconds=3600)
+
+@router.post("/summary")
+async def generate_summary(request: SummaryRequest, data_loader: UnifiedDataLoader = Depends(get_data_loader)):
+    try:
+        symbol = request.ticker.upper()
+        cache_key_tuple = (symbol, str(request.include))
+        
+        # Check cache
+        cached_result = _summary_cache.get(*cache_key_tuple)
+        if cached_result is not None:
+            return {**cached_result, "cached": True}
+            
+        summary_service = SummaryService(data_loader)
+        result = summary_service.generate_summary(symbol, request.include)
+        
+        if result.get("status") == "SUCCESS":
+            _summary_cache.set(symbol, str(request.include), result)
+            return {**result, "cached": False}
+        else:
+            raise HTTPException(status_code=500, detail=result.get("message", "Unknown error"))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

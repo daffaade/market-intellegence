@@ -16,7 +16,8 @@ class ScreenerRule(BaseModel):
     value: Any
 
 class ScreenerRequest(BaseModel):
-    universe: List[str]
+    universe: Optional[List[str]] = None
+    tickers: Optional[List[str]] = None
     logic: str = "AND"
     rules: List[ScreenerRule]
     sort_by: Optional[str] = None
@@ -107,19 +108,19 @@ class IntelligenceScreener:
         if field_value is None:
             return False
             
-        op = rule.operator.lower()
+        op = rule.operator.lower().strip()
         try:
-            if op == "gt":
+            if op in ("gt", ">"):
                 return float(field_value) > float(rule.value)
-            elif op == "gte":
+            elif op in ("gte", ">="):
                 return float(field_value) >= float(rule.value)
-            elif op == "lt":
+            elif op in ("lt", "<"):
                 return float(field_value) < float(rule.value)
-            elif op == "lte":
+            elif op in ("lte", "<="):
                 return float(field_value) <= float(rule.value)
-            elif op == "eq":
+            elif op in ("eq", "==", "="):
                 return field_value == rule.value
-            elif op == "neq":
+            elif op in ("neq", "!="):
                 return field_value != rule.value
             elif op == "between":
                 return float(rule.value[0]) <= float(field_value) <= float(rule.value[1])
@@ -131,10 +132,11 @@ class IntelligenceScreener:
 
     def screen(self, request: ScreenerRequest) -> Dict[str, Any]:
         results = []
+        target_universe = request.universe if request.universe is not None else (request.tickers or [])
         
         # Parallel Execution to scan universe efficiently
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            future_to_symbol = {executor.submit(self._get_flattened_metrics, sym): sym for sym in request.universe}
+            future_to_symbol = {executor.submit(self._get_flattened_metrics, sym): sym for sym in target_universe}
             
             for future in concurrent.futures.as_completed(future_to_symbol):
                 sym = future_to_symbol[future]
