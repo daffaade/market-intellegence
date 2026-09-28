@@ -85,8 +85,8 @@ func TestDomainStructures(t *testing.T) {
 		},
 		AIResearchSummary: "Deterministic synthesis shows strong fundamental tailwinds.",
 		Disclaimer:        "Bukan rekomendasi Beli/Jual.",
-		IsCached:           false,
-		CreatedAt:          now,
+		IsCached:          false,
+		CreatedAt:         now,
 	}
 	if snap.Symbol != "BBCA" || snap.OpportunityScore != 84.5 || snap.Direction != "Bullish" {
 		t.Errorf("domain struct mismatch: %+v", snap)
@@ -212,5 +212,68 @@ func TestDomainInterfaces(t *testing.T) {
 	summary, err := aiClient.GenerateSummary(ctx, engSnap)
 	if err != nil || summary != "Mock summary for BBCA" {
 		t.Errorf("mockAIExplanationClient failed")
+	}
+}
+
+func TestDomainEntitiesInitialization(t *testing.T) {
+	snap := domain.IntelligenceSnapshot{
+		Symbol:           "BBCA",
+		OpportunityScore: 78.5,
+		RiskScore:        22.1,
+		RiskLevel:        "Low",
+		Direction:        "Bullish",
+		Confidence:       "High",
+		SmartMoney: &domain.SmartMoneySnapshot{
+			State: "Accumulation",
+			Score: 0.65,
+			Components: map[string]float64{
+				"cmf":                   0.4,
+				"obv_trend":             0.7,
+				"price_flow_divergence": 0.8,
+			},
+			Confidence: "medium",
+			Evidence:   []string{"Hidden accumulation (harga turun, OBV naik)"},
+		},
+		Catalysts: &domain.CatalystSnapshot{
+			CatalystScore: 0.8,
+			NetDirection:  "Positive",
+			Events: []domain.CatalystEvent{
+				{
+					Date:       "2026-09-28",
+					Type:       "volume_shock",
+					Layer:      "market",
+					Direction:  "Positive",
+					Strength:   0.85,
+					Confidence: "high",
+					Evidence:   []string{"Volume melonjak 2.3x dari median 20 hari"},
+				},
+			},
+		},
+		CreatedAt: time.Now(),
+	}
+
+	if snap.SmartMoney.State != "Accumulation" {
+		t.Fatalf("expected SmartMoney state Accumulation, got %s", snap.SmartMoney.State)
+	}
+	if snap.Catalysts.CatalystScore != 0.8 {
+		t.Fatalf("expected CatalystScore 0.8, got %f", snap.Catalysts.CatalystScore)
+	}
+
+	sec := domain.SectorIntelligence{
+		Sector:         "Financials",
+		AsOf:           "2026-09-28",
+		NConstituents:  4,
+		MomentumScore:  0.45,
+		SentimentLabel: "Bullish",
+		Metrics: domain.SectorMetrics{
+			RsVsIhsg20d: 0.035,
+			BreadthMa50: 0.75,
+			AvgRisk:     "Low",
+		},
+		Evidence: []string{"3 dari 4 saham di atas MA50"},
+	}
+
+	if sec.SentimentLabel != "Bullish" {
+		t.Fatalf("expected Bullish sentiment, got %s", sec.SentimentLabel)
 	}
 }
