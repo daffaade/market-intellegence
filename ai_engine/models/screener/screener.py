@@ -88,7 +88,7 @@ class IntelligenceScreener:
         try:
             sm_model = SmartMoneyModel(self.data_loader)
             sm_res = sm_model.analyze(symbol)
-            metrics["smart_money_score"] = sm_res.get("smart_money_score", 0.0)
+            metrics["smart_money_score"] = sm_res.get("score") if sm_res.get("score") is not None else sm_res.get("smart_money_score", 0.0)
             metrics["smart_money_state"] = sm_res.get("state", "Neutral")
         except Exception:
             pass
