@@ -2,6 +2,9 @@
 .env
 .env.*
 *.env
+!.env.example
+!*.env.example
+!**/.env.example
 
 # Python cache & Jupyter
 __pycache__/
@@ -29,3 +32,8 @@ model-intellegence/
 
 # Notes & Specs
 *.txt
+
+# Go build artifacts
+backend/bin/
+backend/*.exe
+*.exe

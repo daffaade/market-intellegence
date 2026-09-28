@@ -453,18 +453,18 @@ class SectorsDataMiner:
         if not api_key:
             env = load_env()
             api_key = env.get("SECTORS_API_KEY")
-        if not api_key:
-            raise ValueError("SECTORS_API_KEY not found in environment or .env file.")
         
         self.api_key = api_key
         self.headers = {
-            "Authorization": self.api_key,
+            "Authorization": self.api_key or "",
             "User-Agent": "MarketIntelligenceMiner/1.0"
         }
         self.validator = SectorsDataValidator()
 
     def _get(self, endpoint: str) -> Optional[Union[dict, list]]:
         """Helper to send HTTP GET request to Sectors API v2."""
+        if not self.api_key:
+            return None
         url = f"{self.BASE_URL}/{endpoint.lstrip('/')}"
         req = urllib.request.Request(url, headers=self.headers)
         try:

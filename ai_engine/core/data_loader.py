@@ -83,7 +83,13 @@ class UnifiedDataLoader:
         if primary_source == "sectors":
             res_primary = self._fetch_from_provider(self.sectors_provider, ticker, data_type)
             res_secondary = self._fetch_from_provider(self.yfinance_provider, ticker, data_type)
-            return self._resolve_overlap(res_primary, res_secondary, data_type)
+            resolved = self._resolve_overlap(res_primary, res_secondary, data_type)
+            if resolved.get("source") is None:
+                resolved["source"] = "sectors"
+            elif res_primary and res_primary.get("status") != "OKAY" and res_secondary and res_secondary.get("status") == "OKAY":
+                resolved["source"] = "sectors"
+                resolved["fallback_to"] = "yfinance"
+            return resolved
         else:
             # yfinance prioritized
             res_primary = self._fetch_from_provider(self.yfinance_provider, ticker, data_type)

@@ -2292,9 +2292,16 @@ class AnomalyModel:
             if clean_sym in companies:
                 ticker_result = companies[clean_sym]
                 anomalies = ticker_result.get("anomalies", [])
+                final_results = ticker_result.get("final_results", [])
+                is_anom_today = False
+                if final_results:
+                    is_anom_today = bool(final_results[-1].get("final_is_anomaly", False))
+                elif anomalies:
+                    is_anom_today = True
+
                 return {
                     "status": "success",
-                    "is_anomalous_today": ticker_result.get("status") == "OK",
+                    "is_anomalous_today": is_anom_today,
                     "detected_anomalies_count": len(anomalies),
                     "episodes": ticker_result.get("episodes", []),
                     "adaptive_contamination": ticker_result.get("adaptive_contamination", 0.0),
