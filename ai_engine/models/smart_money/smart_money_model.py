@@ -45,8 +45,8 @@ class SmartMoneyModel:
             }
 
     def _get_ohlcv(self, symbol: str) -> pd.DataFrame:
-        if self.data_loader and self.data_loader.yfinance_provider:
-            df = self.data_loader.yfinance_provider.get_historical_data(f"{symbol}.JK", period="1y")
+        if self.data_loader and hasattr(self.data_loader, "get_historical_data"):
+            df = self.data_loader.get_historical_data(symbol, period="1y")
             if df is not None and not df.empty:
                 return df
         # Fallback to yfinance directly if no data_loader
@@ -55,9 +55,16 @@ class SmartMoneyModel:
         return df
 
     def _get_transactions(self, symbol: str) -> pd.DataFrame:
-        if self.data_loader and self.data_loader.sectors_provider:
-            # We don't have real endpoint for smart money in sectors yet, return empty
-            pass
+        if self.data_loader:
+            try:
+                res = self.data_loader.get_institutional_transactions(symbol, period="1y")
+                val = res.get("value")
+                if isinstance(val, list) and val:
+                    return pd.DataFrame(val)
+                elif isinstance(val, dict) and val:
+                    return pd.DataFrame([val])
+            except Exception:
+                pass
         return pd.DataFrame()
 
     def _compute_obv(self, df: pd.DataFrame) -> pd.Series:

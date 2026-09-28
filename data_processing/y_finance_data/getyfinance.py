@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+import pandas as pd
+
 # Ensure UTF-8 output on Windows consoles
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -294,6 +296,22 @@ class YFinanceDataProvider:
             "categories": rows,
             "raw_dataset": dataset
         }
+
+    def get_historical_data(self, ticker: str, period: str = "1y") -> Optional[pd.DataFrame]:
+        """
+        Retrieves historical OHLCV data as a pandas DataFrame.
+        """
+        try:
+            import yfinance as yf
+            clean_sym = ticker.strip().upper()
+            if not clean_sym.startswith("^") and not clean_sym.endswith(".JK"):
+                sym = f"{clean_sym}.JK"
+            else:
+                sym = clean_sym
+            df = yf.download(sym, period=period, progress=False, auto_adjust=False)
+            return df
+        except Exception:
+            return None
 
     def display_summary_table(self, ticker: str, rows: List[dict], source: str):
         """Displays data in formatted table with OKAY / WARNING / ERROR tags."""

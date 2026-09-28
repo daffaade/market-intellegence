@@ -11,11 +11,12 @@ class AIResultCache:
         self._cache: Dict[str, Dict[str, Any]] = {}
         self.ttl = ttl_seconds
 
-    def _get_key(self, symbol: str, include_forecast: bool, include_anomaly: bool, include_divergence: bool) -> str:
-        return f"{symbol}_{include_forecast}_{include_anomaly}_{include_divergence}"
+    def _get_key(self, symbol: str, *flags: Any) -> str:
+        flags_str = "_".join(str(f) for f in flags)
+        return f"{symbol}_{flags_str}"
 
-    def get(self, symbol: str, include_forecast: bool, include_anomaly: bool, include_divergence: bool) -> Optional[Dict[str, Any]]:
-        key = self._get_key(symbol, include_forecast, include_anomaly, include_divergence)
+    def get(self, symbol: str, *flags: Any) -> Optional[Dict[str, Any]]:
+        key = self._get_key(symbol, *flags)
         if key in self._cache:
             entry = self._cache[key]
             if time.time() - entry["timestamp"] < self.ttl:
@@ -24,8 +25,11 @@ class AIResultCache:
                 del self._cache[key]
         return None
 
-    def set(self, symbol: str, include_forecast: bool, include_anomaly: bool, include_divergence: bool, data: Dict[str, Any]) -> None:
-        key = self._get_key(symbol, include_forecast, include_anomaly, include_divergence)
+    def set(self, symbol: str, *args: Any) -> None:
+        if not args:
+            return
+        *flags, data = args
+        key = self._get_key(symbol, *flags)
         self._cache[key] = {
             "timestamp": time.time(),
             "data": data

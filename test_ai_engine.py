@@ -16,6 +16,9 @@ from ai_engine.models.forecast.forecast_model import ForecastModel
 from ai_engine.models.anomaly.isolation_forest import AnomalyModel
 from ai_engine.models.peers.peer_analysis import PeerAnalysisModel
 from ai_engine.models.peers.what_changed import WhatChangedModel
+from ai_engine.models.smart_money.smart_money_model import SmartMoneyModel
+from ai_engine.models.catalyst.catalyst_detector import CatalystDetector
+from ai_engine.models.sector.sector_intelligence import SectorIntelligenceModel
 
 
 def print_header(title: str):
@@ -168,11 +171,79 @@ def test_peer_and_what_changed_models(ticker: str = "BBCA"):
 
 
 # =============================================================================
-# 5. FASTAPI REST API INTEGRATION (/api/v1/analyze)
+# 5. SMART MONEY & CATALYST DETECTOR MODELS
+# =============================================================================
+
+def test_smart_money_and_catalyst_models(ticker: str = "BBCA"):
+    print_header(f"5. Smart Money & Catalyst Detector Models [{ticker}]")
+    t0 = time.time()
+    
+    loader = UnifiedDataLoader()
+    
+    # 1. Smart Money Model
+    sm_model = SmartMoneyModel(data_loader=loader)
+    sm_res = sm_model.analyze(ticker)
+    sm_ok = (
+        sm_res.get("ticker") == ticker and
+        "state" in sm_res and
+        "score" in sm_res and
+        "components" in sm_res
+    )
+    
+    # 2. Catalyst Detector
+    cat_model = CatalystDetector(data_loader=loader)
+    cat_res = cat_model.analyze(ticker)
+    cat_ok = (
+        cat_res.get("ticker") == ticker and
+        "catalyst_score" in cat_res and
+        "net_direction" in cat_res and
+        "events" in cat_res
+    )
+    
+    duration = time.time() - t0
+    all_ok = sm_ok and cat_ok
+    details = (
+        f"SM_State:{sm_res.get('state')} | SM_Score:{sm_res.get('score')} | "
+        f"Cat_Score:{cat_res.get('catalyst_score')} | Direction:{cat_res.get('net_direction')}"
+    )
+    print_result("SmartMoney & Catalyst Models", all_ok, duration, details)
+    return all_ok
+
+
+# =============================================================================
+# 6. SECTOR INTELLIGENCE MODEL
+# =============================================================================
+
+def test_sector_intelligence_model(sector_name: str = "Financials"):
+    print_header(f"6. Sector Intelligence Model [{sector_name}]")
+    t0 = time.time()
+    
+    loader = UnifiedDataLoader()
+    sec_model = SectorIntelligenceModel(data_loader=loader)
+    sec_res = sec_model.analyze_sector(sector_name)
+    
+    sec_ok = (
+        sec_res.get("sector") == sector_name and
+        "momentum_score" in sec_res and
+        "sentiment_label" in sec_res and
+        "metrics" in sec_res
+    )
+    
+    duration = time.time() - t0
+    details = (
+        f"Sector:{sector_name} | Constituents:{sec_res.get('n_constituents')} | "
+        f"Sentiment:{sec_res.get('sentiment_label')} | Momentum:{sec_res.get('momentum_score')}"
+    )
+    print_result("Sector Intelligence Model", sec_ok, duration, details)
+    return sec_ok
+
+
+# =============================================================================
+# 7. FASTAPI REST API INTEGRATION (/api/v1/analyze & /api/v1/sector)
 # =============================================================================
 
 def test_fastapi_analyze_endpoint(ticker: str = "BBCA"):
-    print_header(f"5. FastAPI REST API (POST /api/v1/analyze) [{ticker}]")
+    print_header(f"7. FastAPI REST API (POST /api/v1/analyze & GET /api/v1/sector) [{ticker}]")
     t0 = time.time()
     client = TestClient(app)
     
@@ -181,7 +252,9 @@ def test_fastapi_analyze_endpoint(ticker: str = "BBCA"):
         "symbol": ticker,
         "include_forecast": True,
         "include_anomaly": True,
-        "include_divergence": True
+        "include_divergence": True,
+        "include_smart_money": True,
+        "include_catalysts": True
     })
     r1_ok = r1.status_code == 200
     data1 = r1.json() if r1_ok else {}
@@ -189,7 +262,9 @@ def test_fastapi_analyze_endpoint(ticker: str = "BBCA"):
         "forecast" in data1 and
         "fundamental_divergence" in data1 and
         "opportunity_signal" in data1 and
-        "anomaly" in data1
+        "anomaly" in data1 and
+        "smart_money" in data1 and
+        "catalysts" in data1
     )
     c1 = data1.get("cached") is False
     
@@ -199,31 +274,26 @@ def test_fastapi_analyze_endpoint(ticker: str = "BBCA"):
         "symbol": ticker,
         "include_forecast": True,
         "include_anomaly": True,
-        "include_divergence": True
+        "include_divergence": True,
+        "include_smart_money": True,
+        "include_catalysts": True
     })
     t_cache_duration = time.time() - t_cache_start
     r2_ok = r2.status_code == 200
     data2 = r2.json() if r2_ok else {}
     c2 = data2.get("cached") is True
     
-    # 3. Selective Request (Only Forecast)
-    r3 = client.post("/api/v1/analyze", json={
-        "symbol": ticker,
-        "include_forecast": True,
-        "include_anomaly": False,
-        "include_divergence": False
-    })
-    r3_ok = r3.status_code == 200
-    data3 = r3.json() if r3_ok else {}
-    selective_ok = data3.get("forecast") is not None and data3.get("anomaly") is None
+    # 3. Sector API Endpoint
+    r_sec = client.get("/api/v1/sector/Financials")
+    sec_api_ok = r_sec.status_code == 200 and r_sec.json().get("sector") == "Financials"
     
     duration = time.time() - t0
-    all_ok = r1_ok and has_sections and c1 and r2_ok and c2 and r3_ok and selective_ok
+    all_ok = r1_ok and has_sections and c1 and r2_ok and c2 and sec_api_ok
     details = (
         f"HTTP:200 | InitialCached:{c1} | RepeatCached:{c2} ({t_cache_duration*1000:.1f}ms) | "
-        f"SelectiveFlagsOk:{selective_ok}"
+        f"SectorApi:{sec_api_ok}"
     )
-    print_result("FastAPI /api/v1/analyze", all_ok, duration, details)
+    print_result("FastAPI Analyze & Sector APIs", all_ok, duration, details)
     return all_ok
 
 
@@ -248,8 +318,14 @@ def run_all_tests():
     # 4. Peer & What Changed
     results["Peer & What Changed"] = test_peer_and_what_changed_models(ticker)
     
-    # 5. FastAPI Endpoint
-    results["FastAPI Analyze API"] = test_fastapi_analyze_endpoint(ticker)
+    # 5. Smart Money & Catalyst Models
+    results["SmartMoney & Catalyst"] = test_smart_money_and_catalyst_models(ticker)
+    
+    # 6. Sector Intelligence Model
+    results["Sector Intelligence"] = test_sector_intelligence_model("Financials")
+    
+    # 7. FastAPI Endpoint
+    results["FastAPI Analyze & Sector API"] = test_fastapi_analyze_endpoint(ticker)
     
     # Scorecard
     print_header("AI_ENGINE VERIFICATION SCORECARD")

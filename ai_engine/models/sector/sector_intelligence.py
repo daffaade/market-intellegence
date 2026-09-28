@@ -44,8 +44,8 @@ class SectorIntelligenceModel:
             }
 
     def _get_benchmark(self, as_of: Optional[str] = None) -> pd.DataFrame:
-        if self.data_loader and self.data_loader.yfinance_provider:
-            df = self.data_loader.yfinance_provider.get_historical_data("^JKSE", period="1y")
+        if self.data_loader and hasattr(self.data_loader, "get_historical_data"):
+            df = self.data_loader.get_historical_data("^JKSE", period="1y")
             if df is not None and not df.empty:
                 if as_of:
                     return df.loc[:as_of]
@@ -58,6 +58,13 @@ class SectorIntelligenceModel:
         return df
 
     def _get_ohlcv(self, symbol: str, as_of: Optional[str] = None) -> pd.DataFrame:
+        if self.data_loader and hasattr(self.data_loader, "get_historical_data"):
+            df = self.data_loader.get_historical_data(symbol, period="1y")
+            if df is not None and not df.empty:
+                if as_of:
+                    df = df.loc[:as_of]
+                return df
+                
         import yfinance as yf
         df = yf.download(f"{symbol}.JK", period="1y", progress=False, auto_adjust=False)
         if as_of and not df.empty:

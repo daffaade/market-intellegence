@@ -184,3 +184,20 @@ class UnifiedDataLoader:
         if self.unified_provider:
             return self.unified_provider.get_section(ticker, section)
         return {}
+
+    def get_historical_data(self, ticker: str, period: str = "1y"):
+        """
+        Retrieves historical OHLCV data as a pandas DataFrame via yfinance_provider.
+        """
+        if self.yfinance_provider and hasattr(self.yfinance_provider, "get_historical_data"):
+            return self.yfinance_provider.get_historical_data(ticker, period=period)
+        try:
+            import yfinance as yf
+            clean_sym = ticker.strip().upper()
+            if not clean_sym.startswith("^") and not clean_sym.endswith(".JK"):
+                sym = f"{clean_sym}.JK"
+            else:
+                sym = clean_sym
+            return yf.download(sym, period=period, progress=False, auto_adjust=False)
+        except Exception:
+            return None
