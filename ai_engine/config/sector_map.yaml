@@ -1,0 +1,14 @@
+# Sector Map and Config for Sector Intelligence
+
+universe:
+  Financials: ["BBCA", "BBRI", "BMRI", "BBNI", "ARTO", "BRIS"]
+  Technology: ["GOTO", "BUKA", "EMTK"]
+  Infrastructure: ["TLKM", "ISAT", "EXCL", "TOWR", "TBIG"]
+  BasicMaterials: ["ANTM", "MDKA", "INCO", "TPIA", "BRPT"]
+  ConsumerNonCyclical: ["ICBP", "INDF", "AMRT", "UNVR", "MYOR"]
+  Energy: ["ADRO", "ITMG", "PTBA", "PGAS", "MEDC"]
+
+thresholds:
+  momentum_bullish: 0.5
+  momentum_bearish: -0.5
+  min_constituents: 3

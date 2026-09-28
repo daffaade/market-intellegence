@@ -27,6 +27,11 @@ FEATURE_COLS = [
     "growth_proxy", "valuation_proxy", "forecast_proxy", "institutional_flow",
 ]
 
+# Configurable flag for using smart money
+USE_SMART_MONEY = False
+if USE_SMART_MONEY:
+    FEATURE_COLS.append("smart_money_score")
+
 RF_CLF = dict(n_estimators=100, max_depth=6, random_state=42, n_jobs=-1)
 RF_REG = dict(n_estimators=100, max_depth=6, random_state=42, n_jobs=-1)
 
@@ -88,6 +93,10 @@ def build_features(
     else:
         raw_flow = pd.Series(0.0, index=df.index)
     df["institutional_flow"] = 1 / (1 + np.exp(-raw_flow.fillna(0)))
+
+    # Optional Smart Money Feature integration
+    if USE_SMART_MONEY:
+        df["smart_money_score"] = 0.0
 
     # Labels for H+1 .. H+7
     for h in HORIZONS:

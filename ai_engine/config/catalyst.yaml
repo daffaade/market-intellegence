@@ -1,0 +1,21 @@
+# Catalyst Detector Configuration
+
+market_layer:
+  volume_spike:
+    window: 60
+    z_score_threshold: 3.0
+  gap_up_down:
+    atr_window: 14
+    atr_multiplier: 1.5
+  abnormal_return:
+    window: 20
+    residual_threshold: 0.05
+  breakout:
+    window: 252
+
+text_layer:
+  enabled: false
+  keywords:
+    positive: ["laba", "dividen", "akuisisi", "ekspansi", "buyback", "kontrak baru"]
+    negative: ["rugi", "suspensi", "gugatan", "denda", "pkpu", "default"]
+    mixed: ["right issue", "regulasi", "rups"]

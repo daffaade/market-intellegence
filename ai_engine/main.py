@@ -11,6 +11,7 @@ from fastapi import FastAPI
 import uvicorn
 
 from ai_engine.routers import analyze
+from ai_engine.routers import sector
 
 app = FastAPI(
     title="Market Intelligence AI Engine",
@@ -20,6 +21,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(analyze.router)
+app.include_router(sector.router)
 
 @app.get("/health")
 def health_check():

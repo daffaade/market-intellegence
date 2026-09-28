@@ -1,0 +1,22 @@
+# Smart Money Model Configuration
+
+windows:
+  short: 5
+  medium: 20
+  long: 60
+
+thresholds:
+  accumulation: 0.25
+  distribution: -0.25
+
+weights:
+  actor_type:
+    insider: 1.0
+    foreign: 0.8
+    institution: 0.5
+    retail-unknown: 0.1
+  components:
+    transaction_flow: 0.3
+    cmf: 0.3
+    obv_trend: 0.2
+    price_flow_divergence: 0.2
