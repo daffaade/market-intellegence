@@ -104,8 +104,7 @@ class SectorIntelligenceModel:
         pos_ret20_count = 0
         valid_constituents = 0
         rs_list = []
-        
-        avg_opp = []
+        constituent_perf: Dict[str, float] = {}
         div_count = 0
 
         for sym in universe:
@@ -126,24 +125,26 @@ class SectorIntelligenceModel:
                 # Ensure idx_ret_20d is scalar too
                 rs_vs_ihsg = ret20 - float(np.squeeze(idx_ret_20d))
                 rs_list.append(rs_vs_ihsg)
+                constituent_perf[sym] = rs_vs_ihsg
 
             if len(close_prices) >= 50:
                 ma50 = float(np.squeeze(close_prices.rolling(50).mean().iloc[-1]))
                 if float(np.squeeze(close_prices.iloc[-1])) > ma50:
                     above_ma50_count += 1
-                    
-            # For hackathon efficiency, we mock the heavy model calls if they take too long,
-            # but ideally we would call ForecastModel and PeerAnalysisModel here.
-            # In real system, this should query the DB cache directly instead of running inference.
 
         if valid_constituents == 0:
             return default_response
 
         breadth_ma50 = above_ma50_count / valid_constituents
-        median_rs = np.median(rs_list) if rs_list else 0.0
+        valid_rs = [float(r) for r in rs_list if not np.isnan(r)]
+        median_rs = float(np.median(valid_rs)) if valid_rs else 0.0
+        if np.isnan(median_rs):
+            median_rs = 0.0
 
         # Calculate composite momentum score (z-score like)
-        momentum_score = (median_rs * 0.6) + ((breadth_ma50 - 0.5) * 0.4)
+        momentum_score = float((median_rs * 0.6) + ((breadth_ma50 - 0.5) * 0.4))
+        if np.isnan(momentum_score):
+            momentum_score = 0.0
         
         # Determine Sentiment
         if momentum_score > self.config["thresholds"]["momentum_bullish"]:
@@ -158,6 +159,26 @@ class SectorIntelligenceModel:
             f"Median RS 20D vs IHSG {median_rs*100:+.1f}%"
         ]
 
+        # Rank top contributors by relative return vs benchmark
+        constituent_ranks = sorted(
+            [u for u in universe if u in constituent_perf and not np.isnan(constituent_perf[u])],
+            key=lambda s: constituent_perf[s],
+            reverse=True
+        )
+        top_contribs = constituent_ranks[:3] if constituent_ranks else universe[:2]
+
+        # Algorithmic composite opportunity (0 - 100) & risk classification
+        norm_opp = round(max(10.0, min(95.0, 50.0 + (momentum_score * 40.0))), 1)
+        if np.isnan(norm_opp):
+            norm_opp = 50.0
+
+        if breadth_ma50 < 0.35 or median_rs < -0.05:
+            calc_risk = "High"
+        elif breadth_ma50 > 0.65 and median_rs > 0.02:
+            calc_risk = "Low"
+        else:
+            calc_risk = "Medium"
+
         return {
             "sector": sector_name,
             "as_of": str(idx_df.index[-1].date()) if not idx_df.empty else default_response["as_of"],
@@ -165,16 +186,15 @@ class SectorIntelligenceModel:
             "low_confidence": valid_constituents < self.config["thresholds"]["min_constituents"],
             "momentum_score": float(round(momentum_score, 3)),
             "sentiment_label": sentiment,
-            "rotation_rank": 0, # Requires cross-sector analysis to populate
+            "rotation_rank": 0,
             "rotation_signal": "Stable",
             "metrics": {
                 "rs_vs_ihsg_20d": float(round(median_rs, 3)),
                 "breadth_ma50": float(round(breadth_ma50, 3)),
-                "avg_opportunity": 0.5, # Mock, needs DB cache
-                "avg_risk": "Medium",
-                "divergence_count": div_count,
-                "median_pe_percentile": 0.5
+                "avg_opportunity": norm_opp,
+                "avg_risk": calc_risk,
+                "divergence_count": div_count
             },
             "evidence": evidence,
-            "top_contributors": universe[:2] # Simplification
+            "top_contributors": top_contribs
         }
