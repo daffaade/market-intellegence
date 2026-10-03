@@ -121,12 +121,19 @@ result = run_macro_impact("ASII")   # returns dict
 
 ## Data Files & Getters
 
-Kedua modul ini mengambil data alternatif secara dinamis menggunakan **Getters** (`ai_engine/core/data_events.py` & `ai_engine/core/data_macro.py`). Getter ini mengambil data *live* dari sumber (seperti YFinance/BPS API) lalu membuat *cache* ke dalam CSV di `ai_engine/data/`. Jika gagal mengambil data live, sistem akan membaca cache tersebut; namun jika file cache tidak ada, sistem akan mereturn array kosong/dataframe kosong tanpa error.
+Kedua modul ini mengambil data alternatif secara dinamis menggunakan **Getters** (`ai_engine/core/data_events.py` & `ai_engine/core/data_macro.py`). Getter ini mengambil data *live* dari sumber eksternal lalu membuat *cache* ke dalam CSV di `ai_engine/data/`. Jika gagal mengambil data live, sistem akan membaca cache tersebut; namun jika file cache tidak ada, sistem akan mereturn array kosong/dataframe kosong tanpa error.
+
+### Sumber Data Eksternal
+- **Data Event (Corporate Actions):** Diambil secara live dari **Yahoo Finance** (`yfinance`). Data yang diekstrak meliputi aksi korporasi seperti pembagian dividen (*cash dividend*) dan pemecahan saham (*stock split*).
+- **Data Makro Ekonomi:**
+  - **USD/IDR & Brent Crude Oil:** Diambil dari **Yahoo Finance** (`yfinance`).
+  - **Tingkat Inflasi Indonesia:** Diambil menggunakan API dari **Badan Pusat Statistik (BPS)**.
+  - **Suku Bunga BI (BI Rate/BI7DRR):** Diambil via scraping langsung dari situs resmi **Bank Indonesia (BI)** (`bi.go.id`).
 
 | File / Modul               | Isi                          | Keterangan |
 | -------------------------- | ---------------------------- | ---------- |
-| `core/data_events.py`      | **Dynamic Getter**           | Mengambil *Corporate Events* via `yfinance`. |
-| `core/data_macro.py`       | **Dynamic Getter**           | Mengambil *Macro* (USD/IDR, Brent, Inflation, BI Rate). |
+| `core/data_events.py`      | **Dynamic Getter**           | Mengambil data event dari Yahoo Finance (`yfinance`). |
+| `core/data_macro.py`       | **Dynamic Getter**           | Mengambil makro (YFinance, BPS API, Web BI). |
 | `data/events.csv`          | Cache kalender event korporasi | Ter-generate otomatis jika folder kosong |
 | `data/macro_series.csv`    | Cache makro ekonomi          | Ter-generate otomatis jika folder kosong |
 
