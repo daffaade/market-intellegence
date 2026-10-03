@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Dict, Any
 
 from ai_engine.core.cache import AIResultCache
+from ai_engine.core.data_loader import UnifiedDataLoader
 from ai_engine.models.consumer_behavior.consumer_behavior_model import ConsumerBehaviorModel
 
 router = APIRouter(prefix="/api/v1/consumer-behavior", tags=["consumer-behavior"])
@@ -12,8 +13,11 @@ class ConsumerBehaviorRequest(BaseModel):
     keyword: str
     industry: str
 
+def get_data_loader():
+    return UnifiedDataLoader()
+
 @router.post("/analyze")
-async def analyze_consumer_behavior(request: ConsumerBehaviorRequest):
+async def analyze_consumer_behavior(request: ConsumerBehaviorRequest, data_loader: UnifiedDataLoader = Depends(get_data_loader)):
     keyword = request.keyword.lower().strip()
     industry = request.industry.lower().strip()
     cache_key = f"{keyword}_{industry}"
@@ -23,7 +27,7 @@ async def analyze_consumer_behavior(request: ConsumerBehaviorRequest):
         return {**cached_result, "cached": True}
         
     try:
-        model = ConsumerBehaviorModel()
+        model = ConsumerBehaviorModel(data_loader=data_loader)
         result = model.analyze(keyword=keyword, industry=industry)
         
         # Store result in cache

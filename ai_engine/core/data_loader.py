@@ -15,6 +15,7 @@ for _p in [str(ROOT_DIR), str(DATA_PROC_DIR)]:
 from data_processing.data_sectors.getdata import SectorsDataProvider
 from data_processing.y_finance_data.getyfinance import YFinanceDataProvider
 from data_processing.getunified import UnifiedDataProvider
+from data_processing.macro_data.macro_provider import MacroDataProvider
 
 
 class UnifiedDataLoader:
@@ -27,6 +28,7 @@ class UnifiedDataLoader:
         self.sectors_provider = SectorsDataProvider() if SectorsDataProvider else None
         self.yfinance_provider = YFinanceDataProvider() if YFinanceDataProvider else None
         self.unified_provider = UnifiedDataProvider()
+        self.macro_provider = MacroDataProvider()
 
     def _route_source(self, data_type: str, period: str) -> str:
         """
@@ -201,3 +203,11 @@ class UnifiedDataLoader:
             return yf.download(sym, period=period, progress=False, auto_adjust=False)
         except Exception:
             return None
+
+    def get_consumer_data(self, keyword: str, timeframe: str = 'today 12-m') -> Dict[str, Any]:
+        """
+        Retrieves macro economic indicators and search trends.
+        """
+        if self.macro_provider:
+            return self.macro_provider.get_consumer_data(keyword, timeframe)
+        return {}

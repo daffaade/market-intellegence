@@ -5,13 +5,14 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from models.consumer_behavior.consumer_behavior_model import ConsumerBehaviorModel
-from models.consumer_behavior.consumer_data import CACHE
+from core.data_loader import UnifiedDataLoader
 
 def test_consumer_behavior():
     print("Testing Consumer Behavior Model...")
     
     # Initialize the model
-    model = ConsumerBehaviorModel()
+    data_loader = UnifiedDataLoader()
+    model = ConsumerBehaviorModel(data_loader=data_loader)
     
     # Perform an analysis
     keyword = "makanan"
@@ -35,8 +36,6 @@ def test_consumer_behavior():
         print(f"  - [{item.get('source')}] {item.get('metric')} ({item.get('value')}): {item.get('description')}")
         
     print(f"\nDisclaimer: {result.get('disclaimer')}")
-    
-    print(f"\nCache Size: {len(CACHE)}")
     
 if __name__ == "__main__":
     test_consumer_behavior()

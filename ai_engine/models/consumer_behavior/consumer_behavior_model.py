@@ -1,6 +1,5 @@
 import logging
 from typing import Dict, Any
-from .consumer_data import get_consumer_data
 from .company_analysis import CompanyAnalyzer
 from .industry_impact import IndustryImpactCalculator
 from .evidence import EvidenceFormatter
@@ -8,7 +7,8 @@ from .evidence import EvidenceFormatter
 logger = logging.getLogger(__name__)
 
 class ConsumerBehaviorModel:
-    def __init__(self, sector_map_path: str = None):
+    def __init__(self, data_loader=None, sector_map_path: str = None):
+        self.data_loader = data_loader
         self.company_analyzer = CompanyAnalyzer(sector_map_path)
         self.impact_calculator = IndustryImpactCalculator()
         self.evidence_formatter = EvidenceFormatter()
@@ -20,7 +20,11 @@ class ConsumerBehaviorModel:
         logger.info(f"Starting Consumer Behavior Analysis for Keyword: {keyword}, Industry: {industry}")
         
         # 1. Fetch Consumer Data (PyTrends & BPS)
-        consumer_data = get_consumer_data(keyword)
+        if self.data_loader:
+            consumer_data = self.data_loader.get_consumer_data(keyword)
+        else:
+            logger.warning("No data_loader provided. Using empty consumer_data.")
+            consumer_data = {"search_trend": {"error": "No data_loader"}, "macro_indicators": {"error": "No data_loader"}}
         
         # 2. Get Top 3-5 Companies for the industry
         top_companies = self.company_analyzer.get_top_companies(industry, limit=5)
