@@ -19,6 +19,7 @@ from ai_engine.models.peers.what_changed import WhatChangedModel
 from ai_engine.models.smart_money.smart_money_model import SmartMoneyModel
 from ai_engine.models.catalyst.catalyst_detector import CatalystDetector
 from ai_engine.models.sector.sector_intelligence import SectorIntelligenceModel
+from ai_engine.models.screener.screener import IntelligenceScreener, ScreenerRequest, ScreenerRule
 
 
 def print_header(title: str):
@@ -298,6 +299,45 @@ def test_fastapi_analyze_endpoint(ticker: str = "BBCA"):
 
 
 # =============================================================================
+# 8. INTELLIGENCE SCREENER MODEL (P1 FEATURE)
+# =============================================================================
+
+def test_screener_model():
+    print_header("8. Intelligence Screener Model (P1 Feature)")
+    t0 = time.time()
+    
+    loader = UnifiedDataLoader()
+    screener = IntelligenceScreener(data_loader=loader)
+    
+    # 1. Preset test
+    req1 = ScreenerRequest(preset="undervalued_growth", tickers=["BBCA", "BMRI", "GOTO"])
+    res1 = screener.screen(req1)
+    preset_ok = res1.get("status") == "SUCCESS" and "results" in res1
+    
+    # 2. Custom rule test
+    req2 = ScreenerRequest(
+        tickers=["BBCA", "BMRI", "TLKM", "GOTO"],
+        rules=[
+            ScreenerRule(field="opportunity_score", operator="gte", value=50.0),
+            ScreenerRule(field="risk_score", operator="lte", value=50.0)
+        ]
+    )
+    res2 = screener.screen(req2)
+    rule_ok = res2.get("status") == "SUCCESS" and len(res2.get("results", [])) > 0
+    
+    # 3. Check ranking, key findings and disclaimer
+    first_res = res2["results"][0] if res2.get("results") else {}
+    has_rank = "rank" in first_res and "key_findings" in first_res
+    has_disclaimer = "disclaimer" in res2
+    
+    duration = time.time() - t0
+    all_ok = preset_ok and rule_ok and has_rank and has_disclaimer
+    details = f"PresetOk:{preset_ok} | RulesOk:{rule_ok} | Ranked:{has_rank} | Disclaimer:{has_disclaimer}"
+    print_result("Intelligence Screener", all_ok, duration, details)
+    return all_ok
+
+
+# =============================================================================
 # MAIN RUNNER
 # =============================================================================
 
@@ -326,6 +366,9 @@ def run_all_tests():
     
     # 7. FastAPI Endpoint
     results["FastAPI Analyze & Sector API"] = test_fastapi_analyze_endpoint(ticker)
+    
+    # 8. Intelligence Screener (P1)
+    results["Intelligence Screener (P1)"] = test_screener_model()
     
     # Scorecard
     print_header("AI_ENGINE VERIFICATION SCORECARD")

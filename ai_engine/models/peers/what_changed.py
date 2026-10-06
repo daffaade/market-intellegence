@@ -144,17 +144,9 @@ class WhatChangedModel:
         """
         clean_sym = symbol.upper().replace(".JK", "").strip()
 
-        # Baseline sample context as robust fallback
-        now_snap = {
-            "valuation_metrics": {"pe": 18.5, "pbv": 2.1},
-            "growth_metrics": {"revenue_growth_yoy": 12.4, "net_income_growth_yoy": 15.2},
-            "ownership_metrics": {"foreign_flow_pct": 5.4}
-        }
-        prev_snap = {
-            "valuation_metrics": {"pe": 21.0, "pbv": 2.4},
-            "growth_metrics": {"revenue_growth_yoy": 8.1, "net_income_growth_yoy": 9.5},
-            "ownership_metrics": {"foreign_flow_pct": 2.1}
-        }
+        # Initialize snapshots dynamically (no hardcoded mock metrics)
+        now_snap: Dict[str, Any] = {}
+        prev_snap: Dict[str, Any] = {}
 
         # Dynamic computation using derived metrics when available
         if HAS_DERIVED_METRICS:

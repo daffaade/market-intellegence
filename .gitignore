@@ -33,6 +33,12 @@ model-intellegence/
 # Notes & Specs
 *.txt
 
+# Ignore all Markdown files except README.md
+*.md
+**/*.md
+!README.md
+!**/README.md
+
 # Go build artifacts
 backend/bin/
 backend/*.exe

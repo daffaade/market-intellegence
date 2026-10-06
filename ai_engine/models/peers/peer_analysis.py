@@ -135,20 +135,20 @@ class PeerAnalysisModel:
             except Exception:
                 pass
 
-        # Baseline snapshots as robust fallback
-        ticker_snap = {
-            "growth_proxy": 0.035,
-            "valuation_proxy": 0.012,
-            "institutional_flow": 0.62,
-            "forecast_proxy": 0.045,
-            "vol_20d": 0.018
+        # Initialize snapshots dynamically (no hardcoded mock values)
+        ticker_snap: Dict[str, float] = {
+            "growth_proxy": 0.0,
+            "valuation_proxy": 0.0,
+            "institutional_flow": 0.0,
+            "forecast_proxy": 0.0,
+            "vol_20d": 0.0
         }
-        peer_medians = {
-            "growth_proxy": 0.020,
-            "valuation_proxy": 0.010,
-            "institutional_flow": 0.50,
-            "forecast_proxy": 0.030,
-            "vol_20d": 0.022
+        peer_medians: Dict[str, float] = {
+            "growth_proxy": 0.0,
+            "valuation_proxy": 0.0,
+            "institutional_flow": 0.0,
+            "forecast_proxy": 0.0,
+            "vol_20d": 0.0
         }
 
         # Dynamic computation using derived metrics when available
@@ -209,7 +209,7 @@ class PeerAnalysisModel:
             raw_score = sum(diff_vals) / len(diff_vals) * 10.0
             divergence_score = round(min(0.95, max(0.15, raw_score)), 2)
         else:
-            divergence_score = 0.72
+            divergence_score = 0.50
 
         # Dynamic insights generation
         insights = []
@@ -223,8 +223,7 @@ class PeerAnalysisModel:
 
         if not insights:
             insights = [
-                f"{clean_sym} is positioned favorably in growth vs peer group median",
-                f"Institutional flow for {clean_sym} is above the peer median benchmark"
+                f"{clean_sym} metrics are within the peer group median range"
             ]
 
         return {
