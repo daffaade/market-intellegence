@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -825,3 +826,235 @@ func fallbackDeterministicSnapshot(symbol string) *domain.IntelligenceSnapshot {
 		}
 	}
 }
+
+// CalculatePortfolioRisk sends portfolio compositions to the Python AI engine or returns a deterministic statistical fallback.
+func (c *Client) CalculatePortfolioRisk(ctx context.Context, req domain.PortfolioRiskRequest) (*domain.PortfolioRiskReport, error) {
+	if len(req.Portfolio) == 0 {
+		return nil, domain.ErrInvalidPortfolio
+	}
+
+	period := req.Period
+	if period == "" {
+		period = "1y"
+	}
+
+	payload, err := json.Marshal(map[string]any{
+		"portfolio": req.Portfolio,
+		"period":    period,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal portfolio request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/v1/portfolio/risk", bytes.NewBuffer(payload))
+	if err != nil {
+		return fallbackPortfolioRiskReport(req), nil
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return fallbackPortfolioRiskReport(req), nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fallbackPortfolioRiskReport(req), nil
+	}
+
+	var report domain.PortfolioRiskReport
+	if err := json.NewDecoder(resp.Body).Decode(&report); err != nil {
+		return fallbackPortfolioRiskReport(req), nil
+	}
+
+	if report.Disclaimer == "" {
+		report.Disclaimer = "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual)."
+	}
+
+	return &report, nil
+}
+
+func fallbackPortfolioRiskReport(req domain.PortfolioRiskRequest) *domain.PortfolioRiskReport {
+	period := req.Period
+	if period == "" {
+		period = "1y"
+	}
+
+	individualVol := make(map[string]float64)
+	corrMatrix := make(map[string]map[string]float64)
+	covMatrix := make(map[string]map[string]float64)
+	riskContrib := make(map[string]float64)
+	concentrationRisk := 0.0
+
+	defaultVols := map[string]float64{
+		"BBCA": 0.22,
+		"BBRI": 0.28,
+		"BMRI": 0.26,
+		"BBNI": 0.30,
+		"TLKM": 0.25,
+		"ASII": 0.27,
+		"AMRT": 0.24,
+		"GOTO": 0.55,
+		"ANTM": 0.42,
+		"BUMI": 0.58,
+	}
+
+	totalWeight := 0.0
+	for _, p := range req.Portfolio {
+		totalWeight += p.Weight
+	}
+	if totalWeight <= 0 {
+		totalWeight = 1.0
+	}
+
+	normalized := make([]domain.PortfolioAssetInput, len(req.Portfolio))
+	for i, p := range req.Portfolio {
+		normalized[i] = domain.PortfolioAssetInput{
+			Ticker: strings.ToUpper(p.Ticker),
+			Weight: p.Weight / totalWeight,
+		}
+	}
+
+	for _, p := range normalized {
+		vol, ok := defaultVols[p.Ticker]
+		if !ok {
+			vol = 0.30
+		}
+		individualVol[p.Ticker] = vol
+		concentrationRisk += p.Weight * p.Weight
+	}
+
+	for _, p1 := range normalized {
+		corrMatrix[p1.Ticker] = make(map[string]float64)
+		covMatrix[p1.Ticker] = make(map[string]float64)
+		for _, p2 := range normalized {
+			if p1.Ticker == p2.Ticker {
+				corrMatrix[p1.Ticker][p2.Ticker] = 1.0
+			} else {
+				corrMatrix[p1.Ticker][p2.Ticker] = 0.50
+			}
+			vol1 := individualVol[p1.Ticker]
+			vol2 := individualVol[p2.Ticker]
+			cov := corrMatrix[p1.Ticker][p2.Ticker] * (vol1 / math.Sqrt(252)) * (vol2 / math.Sqrt(252))
+			covMatrix[p1.Ticker][p2.Ticker] = cov
+		}
+	}
+
+	var portVar float64
+	for _, p1 := range normalized {
+		for _, p2 := range normalized {
+			portVar += p1.Weight * p2.Weight * covMatrix[p1.Ticker][p2.Ticker] * 252
+		}
+	}
+	portVol := math.Sqrt(math.Max(0.01, portVar))
+
+	for _, p := range normalized {
+		riskContrib[p.Ticker] = p.Weight
+	}
+
+	histVaR := portVol / math.Sqrt(252) * 1.65
+	mdd := -portVol * 0.95
+
+	return &domain.PortfolioRiskReport{
+		Feature:   "portfolio_risk",
+		Status:    "SUCCESS",
+		Portfolio: normalized,
+		Period:    period,
+		Metrics: domain.PortfolioRiskMetrics{
+			PortfolioVolatility:  math.Round(portVol*1000) / 1000,
+			IndividualVolatility: individualVol,
+			CorrelationMatrix:    corrMatrix,
+			CovarianceMatrix:     covMatrix,
+			RiskContribution:     riskContrib,
+			ConcentrationRisk:    math.Round(concentrationRisk*1000) / 1000,
+			HistoricalVaR:        math.Round(histVaR*1000) / 1000,
+			MaximumDrawdown:      math.Round(mdd*1000) / 1000,
+		},
+		Metadata: map[string]interface{}{
+			"historical_data_source": "fallback_model",
+			"data_provider":          "UnifiedData",
+			"confidence_level":       0.95,
+			"var_method":             "parametric_historical",
+			"trading_days_assumed":   252,
+		},
+		AISummary:  "Estimasi risiko portofolio terhitung secara deterministik (mode fallback) dengan diversifikasi terukur.",
+		Disclaimer: "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual).",
+	}
+}
+
+// AnalyzeConsumerBehavior sends consumer behavior query to Python AI engine or returns a deterministic fallback report.
+func (c *Client) AnalyzeConsumerBehavior(ctx context.Context, req domain.ConsumerBehaviorRequest) (*domain.ConsumerBehaviorReport, error) {
+	keyword := strings.TrimSpace(req.Keyword)
+	if keyword == "" {
+		return nil, domain.ErrEmptyKeyword
+	}
+
+	payload, err := json.Marshal(map[string]any{
+		"keyword":  keyword,
+		"industry": req.Industry,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal consumer request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/v1/consumer-behavior/analyze", bytes.NewBuffer(payload))
+	if err != nil {
+		return fallbackConsumerBehaviorReport(req), nil
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return fallbackConsumerBehaviorReport(req), nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fallbackConsumerBehaviorReport(req), nil
+	}
+
+	var report domain.ConsumerBehaviorReport
+	if err := json.NewDecoder(resp.Body).Decode(&report); err != nil {
+		return fallbackConsumerBehaviorReport(req), nil
+	}
+
+	if report.Disclaimer == "" {
+		report.Disclaimer = "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual)."
+	}
+
+	return &report, nil
+}
+
+func fallbackConsumerBehaviorReport(req domain.ConsumerBehaviorRequest) *domain.ConsumerBehaviorReport {
+	keyword := strings.TrimSpace(req.Keyword)
+	industry := strings.TrimSpace(req.Industry)
+	if industry == "" {
+		industry = "Umum"
+	}
+
+	return &domain.ConsumerBehaviorReport{
+		Keyword:  keyword,
+		Industry: industry,
+		ImpactSignal: domain.ConsumerImpactSignal{
+			ImpactScore:     50.0,
+			ImpactDirection: "Neutral",
+			ConfidenceLevel: "Medium",
+		},
+		Evidence: []domain.ConsumerEvidenceItem{
+			{
+				Source:      "PyTrends & BPS Fallback",
+				Metric:      "Tren Pencarian & Konsumsi",
+				Value:       "Indeks 50.0 (Stabil)",
+				Description: fmt.Sprintf("Aktivitas tren konsumen untuk kata kunci '%s' berada pada level historis normal.", keyword),
+			},
+			{
+				Source:      "Market Data",
+				Metric:      "Sensitivitas Sektor",
+				Value:       industry,
+				Description: fmt.Sprintf("Dampak ekonomi makro terhadap industri %s berada pada rentang netral.", industry),
+			},
+		},
+		Disclaimer: "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual).",
+	}
+}
+

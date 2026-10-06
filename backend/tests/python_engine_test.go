@@ -157,3 +157,141 @@ func TestPythonEngineClient_AnalyzeNon200Fallback(t *testing.T) {
 	}
 }
 
+func TestPythonEngineClient_PortfolioRisk(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/portfolio/risk" && r.Method == http.MethodPost {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"feature": "portfolio_risk",
+				"status":  "SUCCESS",
+				"portfolio": []map[string]any{
+					{"ticker": "BBCA", "weight": 0.6},
+					{"ticker": "BMRI", "weight": 0.4},
+				},
+				"period": "1y",
+				"metrics": map[string]any{
+					"portfolio_volatility": 0.28,
+					"individual_volatility": map[string]float64{
+						"BBCA": 0.25,
+						"BMRI": 0.31,
+					},
+					"correlation_matrix": map[string]map[string]float64{
+						"BBCA": {"BBCA": 1.0, "BMRI": 0.62},
+						"BMRI": {"BBCA": 0.62, "BMRI": 1.0},
+					},
+					"concentration_risk": 0.52,
+					"historical_var":     0.024,
+					"maximum_drawdown":   -0.22,
+				},
+				"ai_summary": "Portofolio terkonsentrasi di sektor perbankan dengan volatilitas terukur.",
+				"disclaimer": "Bukan anjuran investasi",
+			})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer ts.Close()
+
+	client := python_engine.NewClient(ts.URL)
+	req := domain.PortfolioRiskRequest{
+		Portfolio: []domain.PortfolioAssetInput{
+			{Ticker: "BBCA", Weight: 0.6},
+			{Ticker: "BMRI", Weight: 0.4},
+		},
+		Period: "1y",
+	}
+
+	report, err := client.CalculatePortfolioRisk(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if report.Status != "SUCCESS" {
+		t.Fatalf("expected SUCCESS, got %s", report.Status)
+	}
+	if report.Metrics.PortfolioVolatility != 0.28 {
+		t.Fatalf("expected volatility 0.28, got %f", report.Metrics.PortfolioVolatility)
+	}
+	if report.AISummary == "" {
+		t.Fatalf("expected ai summary to be populated")
+	}
+
+	// Test Fallback when offline
+	offlineClient := python_engine.NewClient("http://127.0.0.1:59999")
+	fallbackReport, err := offlineClient.CalculatePortfolioRisk(context.Background(), req)
+	if err != nil {
+		t.Fatalf("expected fallback report when offline, got error: %v", err)
+	}
+	if fallbackReport.Status != "SUCCESS" {
+		t.Fatalf("expected fallback status SUCCESS, got %s", fallbackReport.Status)
+	}
+	if fallbackReport.Metrics.PortfolioVolatility <= 0 {
+		t.Fatalf("expected positive fallback volatility, got %f", fallbackReport.Metrics.PortfolioVolatility)
+	}
+	if fallbackReport.Disclaimer == "" {
+		t.Fatalf("expected non-empty disclaimer")
+	}
+}
+
+func TestPythonEngineClient_ConsumerBehavior(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/consumer-behavior/analyze" && r.Method == http.MethodPost {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"keyword":  "makanan",
+				"industry": "makanan & minuman",
+				"impact_signal": map[string]any{
+					"impact_score":     75.0,
+					"impact_direction": "Bullish",
+					"confidence_level": "High",
+				},
+				"evidence": []map[string]any{
+					{
+						"source":      "PyTrends",
+						"metric":      "Search Interest",
+						"value":       "UP",
+						"description": "Tren konsumsi meningkat",
+					},
+				},
+				"disclaimer": "Bukan anjuran investasi personal",
+			})
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer ts.Close()
+
+	client := python_engine.NewClient(ts.URL)
+	req := domain.ConsumerBehaviorRequest{
+		Keyword:  "makanan",
+		Industry: "makanan & minuman",
+	}
+
+	report, err := client.AnalyzeConsumerBehavior(context.Background(), req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if report.ImpactSignal.ImpactScore != 75.0 {
+		t.Fatalf("expected impact score 75.0, got %f", report.ImpactSignal.ImpactScore)
+	}
+	if report.ImpactSignal.ImpactDirection != "Bullish" {
+		t.Fatalf("expected Bullish, got %s", report.ImpactSignal.ImpactDirection)
+	}
+
+	// Test Fallback when offline
+	offlineClient := python_engine.NewClient("http://127.0.0.1:59999")
+	fallbackReport, err := offlineClient.AnalyzeConsumerBehavior(context.Background(), req)
+	if err != nil {
+		t.Fatalf("expected fallback report when offline, got error: %v", err)
+	}
+	if fallbackReport.Keyword != "makanan" {
+		t.Fatalf("expected keyword makanan, got %s", fallbackReport.Keyword)
+	}
+	if fallbackReport.ImpactSignal.ConfidenceLevel == "" {
+		t.Fatalf("expected non-empty confidence level")
+	}
+	if fallbackReport.Disclaimer == "" {
+		t.Fatalf("expected non-empty disclaimer")
+	}
+}
+
+
