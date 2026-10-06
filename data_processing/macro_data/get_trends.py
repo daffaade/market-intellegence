@@ -1,7 +1,10 @@
 import time
 import logging
 from typing import Dict, Any, Optional
-from pytrends.request import TrendReq
+try:
+    from pytrends.request import TrendReq
+except ImportError:
+    TrendReq = None
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +24,15 @@ def set_to_cache(key: str, data: Any):
 
 class PyTrendsFetcher:
     def __init__(self):
-        # hl='id-ID' for Indonesia, tz=420 is UTC+7
-        self.pytrends = TrendReq(hl='id-ID', tz=420)
+        if TrendReq is not None:
+            try:
+                # hl='id-ID' for Indonesia, tz=420 is UTC+7
+                self.pytrends = TrendReq(hl='id-ID', tz=420)
+            except Exception as e:
+                logger.warning(f"Failed to initialize TrendReq: {e}")
+                self.pytrends = None
+        else:
+            self.pytrends = None
     
     def fetch_trend(self, keyword: str, timeframe: str = 'today 12-m', geo: str = 'ID') -> Dict[str, Any]:
         cache_key = f"pytrends_{keyword}_{timeframe}_{geo}"
@@ -30,6 +40,17 @@ class PyTrendsFetcher:
         if cached_data is not None:
             return cached_data
             
+        if self.pytrends is None:
+            logger.warning(f"PyTrends not available, returning neutral fallback for {keyword}")
+            fallback = {
+                "trend_data": [50.0] * 12,
+                "mean_interest": 50.0,
+                "latest_interest": 50.0,
+                "trend_direction": "NEUTRAL"
+            }
+            set_to_cache(cache_key, fallback)
+            return fallback
+
         retries = 3
         delay = 2
         

@@ -15,7 +15,10 @@ for _p in [str(ROOT_DIR), str(DATA_PROC_DIR)]:
 from data_processing.data_sectors.getdata import SectorsDataProvider
 from data_processing.y_finance_data.getyfinance import YFinanceDataProvider
 from data_processing.getunified import UnifiedDataProvider
-from data_processing.macro_data.macro_provider import MacroDataProvider
+try:
+    from data_processing.macro_data.macro_provider import MacroDataProvider
+except ImportError:
+    MacroDataProvider = None
 
 
 class UnifiedDataLoader:
@@ -28,7 +31,7 @@ class UnifiedDataLoader:
         self.sectors_provider = SectorsDataProvider() if SectorsDataProvider else None
         self.yfinance_provider = YFinanceDataProvider() if YFinanceDataProvider else None
         self.unified_provider = UnifiedDataProvider()
-        self.macro_provider = MacroDataProvider()
+        self.macro_provider = MacroDataProvider() if MacroDataProvider else None
 
     def _route_source(self, data_type: str, period: str) -> str:
         """
