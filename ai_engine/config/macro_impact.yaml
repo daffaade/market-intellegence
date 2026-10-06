@@ -1,0 +1,40 @@
+# Macro Impact Configuration
+# Input: Future Forecast revisions + macro shocks
+# Output: co-occurrence rate vs base rate (korelasional, bukan kausal)
+
+macro_variables:
+  BI_rate:
+    unit: "persen"
+    shock_threshold_abs: 0.25   # perubahan >= 25bps dianggap shock
+    direction: "both"           # shock ke atas maupun ke bawah
+  inflation:
+    unit: "persen_yoy"
+    shock_threshold_abs: 0.50   # perubahan >= 50bps dianggap shock
+    direction: "both"
+  USD_IDR:
+    unit: "IDR_per_USD"
+    shock_threshold_pct: 3.0    # perubahan >= 3% dalam 1 bulan
+    direction: "both"
+  Brent:
+    unit: "USD_per_barrel"
+    shock_threshold_pct: 10.0   # perubahan >= 10% dalam 1 bulan
+    direction: "both"
+
+# Window untuk menganggap macro shock "bertepatan" dengan revisi forecast
+co_occurrence_window_days: 30   # ±30 hari sebelum tanggal revisi
+
+# Deteksi revisi forecast: perubahan rolling proxy >= threshold dianggap revisi
+forecast_revision:
+  proxy: "rolling_20d_forward_return"   # proxy yang digunakan (karena Sectors tidak punya time-series forecast)
+  change_threshold_pct: 10.0            # perubahan >= 10% relative pada proxy dianggap revisi
+  min_obs: 40                           # minimum observasi untuk deteksi revisi
+
+# Scoring (0-100)
+score:
+  # Rasio co_occurrence_rate / base_rate -> score
+  # ratio >= high_ratio -> score mendekati 100
+  high_ratio: 2.0     # co_occurrence_rate = 2x base_rate -> High
+  medium_ratio: 1.5   # 1.5x -> Medium
+  level_thresholds:
+    high: 70
+    medium: 40

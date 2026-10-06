@@ -1,0 +1,32 @@
+# Event Study Configuration
+# Semua threshold dan parameter di sini — tidak ada hardcode di kode.
+
+estimation_window:
+  start: -250   # hari relatif terhadap event date (sebelum)
+  end: -30      # akhir estimation window (sebelum event)
+  min_obs: 80   # minimum observasi agar data_quality = "ok"; di bawah ini -> "partial"
+
+event_window:
+  start: -5     # hari sebelum event
+  end: 5        # hari setelah event
+
+significance_level: 0.05   # alpha untuk uji-t dua sisi
+
+# Normalisasi score (0-100)
+# |CAR| >= car_high_threshold -> score mendekati 100
+score:
+  car_high_threshold: 0.10   # 10% CAR -> score ~100
+  significance_boost: 1.20   # faktor boost jika p-value < significance_level
+  level_thresholds:
+    high: 70
+    medium: 40
+    # < medium -> Low
+
+# Ticker prototype dengan histori pendek (GOTO sejak IPO April 2022)
+short_history_tickers:
+  - GOTO
+
+# Fallback: jika estimation window < min_obs, persempit window hingga tersedia data
+# dan set data_quality = "partial"
+fallback:
+  min_obs_partial: 30   # absolut minimum agar CAR masih dihitung; di bawah ini -> "missing"
