@@ -8,4 +8,6 @@ var (
 	ErrUpstreamTimeout    = errors.New("upstream service timed out")
 	ErrQuotaExceeded      = errors.New("sectors api quota exceeded")
 	ErrIntelligenceFailed = errors.New("failed to compute intelligence")
+	ErrInvalidPortfolio   = errors.New("invalid portfolio composition")
+	ErrEmptyKeyword       = errors.New("keyword cannot be empty")
 )

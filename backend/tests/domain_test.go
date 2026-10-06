@@ -277,3 +277,79 @@ func TestDomainEntitiesInitialization(t *testing.T) {
 		t.Fatalf("expected Bullish sentiment, got %s", sec.SentimentLabel)
 	}
 }
+
+func TestPortfolioAndConsumerDomain(t *testing.T) {
+	portReq := domain.PortfolioRiskRequest{
+		Portfolio: []domain.PortfolioAssetInput{
+			{Ticker: "BBCA", Weight: 0.6},
+			{Ticker: "TLKM", Weight: 0.4},
+		},
+		Period: "1y",
+	}
+
+	if len(portReq.Portfolio) != 2 || portReq.Portfolio[0].Ticker != "BBCA" {
+		t.Fatalf("invalid portfolio request: %+v", portReq)
+	}
+
+	portReport := domain.PortfolioRiskReport{
+		Feature:   "portfolio_risk",
+		Status:    "SUCCESS",
+		Portfolio: portReq.Portfolio,
+		Period:    "1y",
+		Metrics: domain.PortfolioRiskMetrics{
+			PortfolioVolatility: 0.25,
+			IndividualVolatility: map[string]float64{
+				"BBCA": 0.22,
+				"TLKM": 0.28,
+			},
+			CorrelationMatrix: map[string]map[string]float64{
+				"BBCA": {"BBCA": 1.0, "TLKM": 0.45},
+				"TLKM": {"BBCA": 0.45, "TLKM": 1.0},
+			},
+			ConcentrationRisk: 0.52,
+			HistoricalVaR:     0.021,
+			MaximumDrawdown:   -0.18,
+		},
+		Metadata: map[string]interface{}{
+			"data_provider": "UnifiedData",
+		},
+		Disclaimer: "Bukan anjuran investasi",
+	}
+
+	if portReport.Metrics.PortfolioVolatility != 0.25 {
+		t.Fatalf("expected volatility 0.25, got %f", portReport.Metrics.PortfolioVolatility)
+	}
+
+	consumerReq := domain.ConsumerBehaviorRequest{
+		Keyword:  "makanan",
+		Industry: "makanan & minuman",
+	}
+
+	consumerReport := domain.ConsumerBehaviorReport{
+		Keyword:  consumerReq.Keyword,
+		Industry: consumerReq.Industry,
+		ImpactSignal: domain.ConsumerImpactSignal{
+			ImpactScore:     65.0,
+			ImpactDirection: "Bullish",
+			ConfidenceLevel: "High",
+		},
+		Evidence: []domain.ConsumerEvidenceItem{
+			{
+				Source:      "PyTrends",
+				Metric:      "Search Interest",
+				Value:       "Trend UP",
+				Description: "Peningkatan minat konsumen",
+			},
+		},
+		Disclaimer: "Bukan rekomendasi Beli/Jual",
+	}
+
+	if consumerReport.ImpactSignal.ImpactScore != 65.0 {
+		t.Fatalf("expected impact score 65.0, got %f", consumerReport.ImpactSignal.ImpactScore)
+	}
+
+	if domain.ErrInvalidPortfolio == nil || domain.ErrEmptyKeyword == nil {
+		t.Fatalf("expected sentinel errors to be defined")
+	}
+}
+
