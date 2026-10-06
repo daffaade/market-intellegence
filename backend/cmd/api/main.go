@@ -77,6 +77,8 @@ func main() {
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, companyRepo)
 	analyticsUsecase := usecase.NewAnalyticsUsecase(analyticsRepo)
 	sectorUsecase := usecase.NewSectorUsecase(pyClient)
+	portfolioUsecase := usecase.NewPortfolioUsecase(pyClient)
+	consumerUsecase := usecase.NewConsumerBehaviorUsecase(pyClient)
 
 	// 6. Initialize Delivery HTTP Handlers & Router
 	handlers := deliveryhttp.Handlers{
@@ -86,6 +88,8 @@ func main() {
 		Scanner:      handler.NewScannerHandler(scannerUsecase),
 		Analytics:    handler.NewAnalyticsHandler(analyticsUsecase),
 		Sector:       handler.NewSectorHandler(sectorUsecase),
+		Portfolio:    handler.NewPortfolioHandler(portfolioUsecase),
+		Consumer:     handler.NewConsumerHandler(consumerUsecase),
 	}
 
 	router := deliveryhttp.NewRouter(handlers, log)

@@ -15,6 +15,8 @@ type Handlers struct {
 	Scanner      *handler.ScannerHandler
 	Analytics    *handler.AnalyticsHandler
 	Sector       *handler.SectorHandler
+	Portfolio    *handler.PortfolioHandler
+	Consumer     *handler.ConsumerHandler
 }
 
 func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
@@ -32,6 +34,17 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 	if handlers.Sector != nil {
 		mux.HandleFunc("GET /api/v1/sectors", handlers.Sector.ListSectors)
 		mux.HandleFunc("GET /api/v1/sectors/{sector}", handlers.Sector.GetSector)
+	}
+
+	// Portfolio Risk
+	if handlers.Portfolio != nil {
+		mux.HandleFunc("POST /api/v1/portfolio/risk", handlers.Portfolio.CalculateRisk)
+	}
+
+	// Consumer Behavior Analysis
+	if handlers.Consumer != nil {
+		mux.HandleFunc("POST /api/v1/consumer-behavior/analyze", handlers.Consumer.Analyze)
+		mux.HandleFunc("GET /api/v1/consumer-behavior/analyze", handlers.Consumer.AnalyzeQuery)
 	}
 
 	// Companies & Fundamentals
