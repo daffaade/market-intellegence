@@ -15,6 +15,15 @@ const positionTag = (position: string): { label: string; tone: 'up' | 'down' | '
     case 'PREMIUM': return { label: 'Premium', tone: 'warn' };
     case 'DISCOUNT': return { label: 'Diskon', tone: 'up' };
     case 'FAIR': return { label: 'Wajar', tone: 'neutral' };
+    // Vocabulary the Go backend actually sends from a live engine analysis
+    // (see internal/adapter/python_engine/client.go's relative_positions mapping).
+    case 'Outperform': return { label: 'Di atas peer', tone: 'up' };
+    case 'Underperform': return { label: 'Di bawah peer', tone: 'down' };
+    case 'Cheaper': return { label: 'Lebih murah', tone: 'up' };
+    case 'Superior': return { label: 'Lebih unggul', tone: 'up' };
+    case 'Stronger': return { label: 'Lebih kuat', tone: 'up' };
+    case 'Weaker': return { label: 'Lebih lemah', tone: 'down' };
+    case 'Neutral': return { label: 'Netral', tone: 'neutral' };
     default: return { label: position, tone: 'neutral' };
   }
 };

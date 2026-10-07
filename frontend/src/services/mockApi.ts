@@ -121,13 +121,29 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<Res
  * Normalizes backend intelligence payload so frontend components render seamlessly
  * (e.g. converting 'Bullish' to 'BULLISH', guaranteeing array fields)
  */
+/**
+ * Backend risk_level is "Low" | "Medium" | "High" (see AGENTS.md compliance constraint).
+ * The frontend's own vocabulary is "LOW" | "MODERATE" | "HIGH" | "CRITICAL" (used by
+ * riskLevelLabel in lib/format.ts and the Signal Intelligence view), so "Medium" has to be
+ * mapped to "MODERATE" here — otherwise riskLevelLabel[level] is undefined and the view
+ * crashes on `.toLowerCase()`.
+ */
+function normalizeRiskLevel(raw: unknown): IntelligenceSnapshot['risk_level'] {
+  const upper = String(raw || 'LOW').toUpperCase();
+  if (upper === 'MEDIUM') return 'MODERATE';
+  if (upper === 'LOW' || upper === 'MODERATE' || upper === 'HIGH' || upper === 'CRITICAL') {
+    return upper;
+  }
+  return 'MODERATE';
+}
+
 function normalizeIntelligence(raw: any): IntelligenceSnapshot {
   if (!raw) return raw;
   return {
     ...raw,
     direction: String(raw.direction || 'NEUTRAL').toUpperCase() as any,
     confidence: String(raw.confidence || 'MEDIUM').toUpperCase() as any,
-    risk_level: String(raw.risk_level || 'LOW').toUpperCase() as any,
+    risk_level: normalizeRiskLevel(raw.risk_level),
     positive_factors: Array.isArray(raw.positive_factors) ? raw.positive_factors : [],
     negative_factors: Array.isArray(raw.negative_factors) ? raw.negative_factors : [],
     supporting_factors: Array.isArray(raw.supporting_factors) ? raw.supporting_factors : [],
