@@ -193,22 +193,31 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 }
 
 func (c *Client) synthesizeRuleBasedSummary(s *domain.IntelligenceSnapshot) string {
-	positives := strings.Join(s.PositiveFactors, ", ")
-	if positives == "" {
-		positives = "stabilitas indikator operasional"
+	// Do not invent a factor when the model found none — a filler like "stabilitas
+	// indikator operasional" reads as a real positive signal with no evidence behind it,
+	// which breaks the project's own anti-hallucination rule (every claim must trace back
+	// to an actual factor/evidence item). State plainly when a side has nothing to report.
+	var positiveSentence string
+	if len(s.PositiveFactors) > 0 {
+		positiveSentence = fmt.Sprintf("Pendorong utama sinyal ini mencakup %s.", strings.Join(s.PositiveFactors, ", "))
+	} else {
+		positiveSentence = "Tidak ditemukan faktor pendorong positif yang signifikan pada analisis saat ini."
 	}
-	negatives := strings.Join(s.NegativeFactors, ", ")
-	if negatives == "" {
-		negatives = "faktor volatilitas pasar umum"
+
+	var negativeSentence string
+	if len(s.NegativeFactors) > 0 {
+		negativeSentence = fmt.Sprintf("Di sisi kehati-hatian, pelaku riset perlu memantau %s.", strings.Join(s.NegativeFactors, ", "))
+	} else {
+		negativeSentence = "Tidak ada faktor risiko spesifik yang tercatat di luar volatilitas pasar pada umumnya."
 	}
 
 	var divNote string
 	if s.DivergenceDetected {
-		divNote = "Sistem juga mendeteksi adanya divergensi fundamental, di mana pergerakan harga atau valuasi memperlihatkan anomali relatif terhadap arah akumulasi data."
+		divNote = " Sistem juga mendeteksi adanya divergensi fundamental, di mana pergerakan harga atau valuasi memperlihatkan anomali relatif terhadap arah akumulasi data."
 	}
 
 	return fmt.Sprintf(
-		"Berdasarkan engine intelijen pasar, emiten %s saat ini memperlihatkan sinyal %s dengan Skor Peluang %.1f/100 (Keyakinan %s) dan tingkat risiko %s. Pendorong utama sinyal positif mencakup %s. %s Di sisi kehati-hatian, pelaku riset perlu memantau %s.",
-		s.Symbol, s.Direction, s.OpportunityScore, s.Confidence, s.RiskLevel, positives, divNote, negatives,
+		"Berdasarkan engine intelijen pasar, emiten %s saat ini memperlihatkan sinyal %s dengan Skor Peluang %.1f/100 (Keyakinan %s) dan tingkat risiko %s. %s%s %s",
+		s.Symbol, s.Direction, s.OpportunityScore, s.Confidence, s.RiskLevel, positiveSentence, divNote, negativeSentence,
 	)
 }
