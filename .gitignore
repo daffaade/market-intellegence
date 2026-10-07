@@ -38,6 +38,8 @@ model-intellegence/
 **/*.md
 !README.md
 !**/README.md
+!.claude/skills/**/SKILL.md
+!ai_engine/requirements.txt
 
 # Go build artifacts
 backend/bin/
