@@ -38,7 +38,7 @@ func LoadConfig() (*Config, error) {
 	}
 	sectorsURL := os.Getenv("SECTORS_BASE_URL")
 	if sectorsURL == "" {
-		sectorsURL = "https://api.sectors.app/v1"
+		sectorsURL = "https://api.sectors.app/v2"
 	}
 	mockSectors, _ := strconv.ParseBool(os.Getenv("MOCK_SECTORS"))
 	aiProvider := os.Getenv("AI_PROVIDER")

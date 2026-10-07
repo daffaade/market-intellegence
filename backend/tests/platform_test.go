@@ -69,7 +69,7 @@ func TestPlatformConfig_Defaults(t *testing.T) {
 	if cfg.PythonEngineURL != "http://localhost:8000" {
 		t.Errorf("unexpected default python engine url: %s", cfg.PythonEngineURL)
 	}
-	if cfg.SectorsBaseURL != "https://api.sectors.app/v1" {
+	if cfg.SectorsBaseURL != "https://api.sectors.app/v2" {
 		t.Errorf("unexpected default sectors url: %s", cfg.SectorsBaseURL)
 	}
 	if cfg.MockSectors != false {
