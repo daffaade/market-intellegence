@@ -185,17 +185,17 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 	resp, err := c.httpClient.Do(httpReq)
 	if err != nil {
 		// Fallback to local deterministic Prototype 3 heuristics if Python service is offline
-		return fallbackDeterministicSnapshot(req.Symbol), nil
+		return markFallback(fallbackDeterministicSnapshot(req.Symbol)), nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fallbackDeterministicSnapshot(req.Symbol), nil
+		return markFallback(fallbackDeterministicSnapshot(req.Symbol)), nil
 	}
 
 	var pyResp pythonAnalyzeResponse
 	if err := json.NewDecoder(resp.Body).Decode(&pyResp); err != nil {
-		return fallbackDeterministicSnapshot(req.Symbol), nil
+		return markFallback(fallbackDeterministicSnapshot(req.Symbol)), nil
 	}
 
 	// Map into domain snapshot
@@ -606,6 +606,15 @@ func fallbackSectorIntelligence(sector string) *domain.SectorIntelligence {
 			TopContributors: []string{},
 		}
 	}
+}
+
+// markFallback flags a snapshot as heuristic fallback data so callers never persist it
+// over a real analysis, and the UI can label it.
+func markFallback(snap *domain.IntelligenceSnapshot) *domain.IntelligenceSnapshot {
+	if snap != nil {
+		snap.IsFallback = true
+	}
+	return snap
 }
 
 // fallbackDeterministicSnapshot guarantees zero demo failure even if Python server is not running

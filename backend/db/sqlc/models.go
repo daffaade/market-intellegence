@@ -36,6 +36,10 @@ type IntelligenceSnapshot struct {
 	AiResearchSummary  pgtype.Text        `json:"ai_research_summary"`
 	ModelVersion       string             `json:"model_version"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	WhatChanged        []byte             `json:"what_changed"`
+	PeerComparison     []byte             `json:"peer_comparison"`
+	SmartMoney         []byte             `json:"smart_money"`
+	Catalysts          []byte             `json:"catalysts"`
 }
 
 type SectorsDataSnapshot struct {

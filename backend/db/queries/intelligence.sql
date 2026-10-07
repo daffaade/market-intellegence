@@ -8,9 +8,11 @@ LIMIT 1;
 INSERT INTO intelligence_snapshots (
     symbol, opportunity_score, risk_score, direction, confidence, risk_level,
     is_anomaly, anomaly_score, divergence_detected, positive_factors, negative_factors,
-    supporting_factors, evidence, ai_research_summary, model_version, created_at
+    supporting_factors, evidence, ai_research_summary, model_version,
+    what_changed, peer_comparison, smart_money, catalysts, created_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW()
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
+    $16, $17, $18, $19, NOW()
 )
 RETURNING *;
 

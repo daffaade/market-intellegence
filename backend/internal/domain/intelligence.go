@@ -77,6 +77,9 @@ type IntelligenceSnapshot struct {
 	AIResearchSummary     string                 `json:"ai_research_summary,omitempty"`
 	Disclaimer            string                 `json:"disclaimer,omitempty"`
 	IsCached              bool                   `json:"is_cached,omitempty"`
+	// IsFallback marks heuristic placeholder data returned when the engine was
+	// unreachable or too slow. It is never persisted as a real snapshot.
+	IsFallback            bool                   `json:"is_fallback,omitempty"`
 	FundamentalDivergence *FundamentalDivergence `json:"fundamental_divergence,omitempty"`
 	SmartMoney            *SmartMoneySnapshot    `json:"smart_money,omitempty"`
 	Catalysts             *CatalystSnapshot      `json:"catalysts,omitempty"`

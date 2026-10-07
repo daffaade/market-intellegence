@@ -71,6 +71,30 @@ func (r *SnapshotRepository) SaveIntelligence(ctx context.Context, snap *domain.
 		return fmt.Errorf("marshal evidence: %w", err)
 	}
 
+	whatChangedBytes, err := marshalJSONBOrDefault(snap.WhatChanged, []byte("[]"))
+	if err != nil {
+		return fmt.Errorf("marshal what_changed: %w", err)
+	}
+
+	peerBytes, err := marshalJSONBOrDefault(snap.PeerComparison, []byte("[]"))
+	if err != nil {
+		return fmt.Errorf("marshal peer_comparison: %w", err)
+	}
+
+	// smart_money / catalysts are nullable: nil means "not computed", which the usecase
+	// treats as a reason to refresh in the background.
+	var smartMoneyBytes, catalystsBytes []byte
+	if snap.SmartMoney != nil {
+		if smartMoneyBytes, err = json.Marshal(snap.SmartMoney); err != nil {
+			return fmt.Errorf("marshal smart_money: %w", err)
+		}
+	}
+	if snap.Catalysts != nil {
+		if catalystsBytes, err = json.Marshal(snap.Catalysts); err != nil {
+			return fmt.Errorf("marshal catalysts: %w", err)
+		}
+	}
+
 	params := sqlc.InsertIntelligenceSnapshotParams{
 		Symbol:             snap.Symbol,
 		OpportunityScore:   floatToNumeric(snap.OpportunityScore),
@@ -89,7 +113,11 @@ func (r *SnapshotRepository) SaveIntelligence(ctx context.Context, snap *domain.
 			String: snap.AIResearchSummary,
 			Valid:  snap.AIResearchSummary != "",
 		},
-		ModelVersion: "v3-stacking-rf",
+		ModelVersion:   "v3-stacking-rf",
+		WhatChanged:    whatChangedBytes,
+		PeerComparison: peerBytes,
+		SmartMoney:     smartMoneyBytes,
+		Catalysts:      catalystsBytes,
 	}
 
 	res, err := r.q.InsertIntelligenceSnapshot(ctx, params)
@@ -253,6 +281,32 @@ func toDomainIntelligence(row sqlc.IntelligenceSnapshot) (domain.IntelligenceSna
 		return domain.IntelligenceSnapshot{}, fmt.Errorf("unmarshal evidence: %w", err)
 	}
 
+	whatChanged, err := unmarshalJSONBOrDefault(row.WhatChanged, []domain.WhatChangedItem{})
+	if err != nil {
+		return domain.IntelligenceSnapshot{}, fmt.Errorf("unmarshal what_changed: %w", err)
+	}
+
+	peerComparison, err := unmarshalJSONBOrDefault(row.PeerComparison, []domain.PeerComparisonItem{})
+	if err != nil {
+		return domain.IntelligenceSnapshot{}, fmt.Errorf("unmarshal peer_comparison: %w", err)
+	}
+
+	var smartMoney *domain.SmartMoneySnapshot
+	if len(row.SmartMoney) > 0 {
+		smartMoney = &domain.SmartMoneySnapshot{}
+		if err := json.Unmarshal(row.SmartMoney, smartMoney); err != nil {
+			return domain.IntelligenceSnapshot{}, fmt.Errorf("unmarshal smart_money: %w", err)
+		}
+	}
+
+	var catalysts *domain.CatalystSnapshot
+	if len(row.Catalysts) > 0 {
+		catalysts = &domain.CatalystSnapshot{}
+		if err := json.Unmarshal(row.Catalysts, catalysts); err != nil {
+			return domain.IntelligenceSnapshot{}, fmt.Errorf("unmarshal catalysts: %w", err)
+		}
+	}
+
 	var summary string
 	if row.AiResearchSummary.Valid {
 		summary = row.AiResearchSummary.String
@@ -278,8 +332,10 @@ func toDomainIntelligence(row sqlc.IntelligenceSnapshot) (domain.IntelligenceSna
 		NegativeFactors:    negFactors,
 		SupportingFactors:  supFactors,
 		Evidence:           evidence,
-		WhatChanged:        []domain.WhatChangedItem{},
-		PeerComparison:     []domain.PeerComparisonItem{},
+		WhatChanged:        whatChanged,
+		PeerComparison:     peerComparison,
+		SmartMoney:         smartMoney,
+		Catalysts:          catalysts,
 		AIResearchSummary:  summary,
 		Disclaimer:         "",
 		IsCached:           false,
