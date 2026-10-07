@@ -99,5 +99,24 @@ func (u *IntelligenceUsecase) GetCompanyIntelligence(ctx context.Context, symbol
 	// 4. Simpan ke database/memory cache
 	_ = u.snapshotRepo.SaveIntelligence(ctx, snap)
 
+	// 5. Sync company reference data (market_cap/sector) from what the engine already
+	// resolved via Sectors/yfinance. Only updates an existing row — this is not where a
+	// new symbol gets added to the universe. Best-effort: never fail the request over it.
+	if snap.CompanyMarketCap > 0 && u.companyRepo != nil {
+		if existing, cErr := u.companyRepo.GetBySymbol(ctx, symbol); cErr == nil && existing != nil {
+			existing.MarketCap = snap.CompanyMarketCap
+			if snap.CompanyName != "" {
+				existing.Name = snap.CompanyName
+			}
+			if snap.CompanySector != "" {
+				existing.Sector = snap.CompanySector
+			}
+			if snap.CompanySubSector != "" {
+				existing.SubSector = snap.CompanySubSector
+			}
+			_ = u.companyRepo.Upsert(ctx, existing)
+		}
+	}
+
 	return snap, nil
 }

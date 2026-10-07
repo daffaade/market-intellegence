@@ -35,7 +35,14 @@ func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL: baseURL,
 		httpClient: &http.Client{
-			Timeout: 8 * time.Second,
+			// A cold /api/v1/analyze call (no cache hit in the Python engine) runs forecast,
+			// anomaly, divergence, smart-money, and catalyst models together, plus live
+			// Sectors/yfinance fetches. Observed cold-call latency ranges widely by symbol
+			// (~9s for BBCA, ~43s for BBRI), so a short timeout made the Go client silently
+			// time out and fall back to fallbackDeterministicSnapshot even though the engine
+			// was healthy and returning real data. This call only happens on a cache miss
+			// (24h TTL at this layer, 1h at the engine), so a generous timeout here is safe.
+			Timeout: 60 * time.Second,
 			Transport: &http.Transport{
 				MaxIdleConns:        50,
 				MaxIdleConnsPerHost: 10,
@@ -87,9 +94,21 @@ type pythonSignificantChange struct {
 }
 
 type pythonFundamentalDivergence struct {
+	PeersContext       *pythonPeersContext                `json:"peers_context"`
 	DivergenceScore    float64                            `json:"divergence_score"`
 	RelativePositions  map[string]pythonRelativePosition  `json:"relative_positions"`
 	SignificantChanges []pythonSignificantChange          `json:"significant_changes"`
+}
+
+// pythonPeersContext carries the company reference fields the engine already looked up
+// (via Sectors/yfinance) so the Go side can keep `companies` in sync instead of leaving
+// market_cap at its seeded placeholder forever.
+type pythonPeersContext struct {
+	Symbol      string  `json:"symbol"`
+	CompanyName string  `json:"company_name"`
+	Sector      string  `json:"sector"`
+	Industry    string  `json:"industry"`
+	MarketCap   int64   `json:"market_cap"`
 }
 
 type pythonAnomalyOutput struct {
@@ -220,6 +239,13 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 	// 4. Fundamental Divergence & Evidence
 	if pyResp.FundamentalDivergence != nil {
 		snap.DivergenceDetected = pyResp.FundamentalDivergence.DivergenceScore > 0.5 || len(pyResp.FundamentalDivergence.SignificantChanges) > 0
+
+		if pc := pyResp.FundamentalDivergence.PeersContext; pc != nil {
+			snap.CompanyMarketCap = pc.MarketCap
+			snap.CompanyName = pc.CompanyName
+			snap.CompanySector = pc.Sector
+			snap.CompanySubSector = pc.Industry
+		}
 
 		// Supporting factors from significant changes
 		for _, sc := range pyResp.FundamentalDivergence.SignificantChanges {

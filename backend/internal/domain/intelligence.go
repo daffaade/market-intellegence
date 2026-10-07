@@ -81,6 +81,14 @@ type IntelligenceSnapshot struct {
 	SmartMoney            *SmartMoneySnapshot    `json:"smart_money,omitempty"`
 	Catalysts             *CatalystSnapshot      `json:"catalysts,omitempty"`
 	CreatedAt             time.Time              `json:"created_at"`
+
+	// Company reference fields the engine already resolved via Sectors/yfinance.
+	// Not part of the public API response — used by the usecase layer to keep the
+	// companies table's market_cap/sector in sync on a real (non-fallback) fetch.
+	CompanyMarketCap int64  `json:"-"`
+	CompanyName      string `json:"-"`
+	CompanySector    string `json:"-"`
+	CompanySubSector string `json:"-"`
 }
 
 type IntelligenceRepository interface {
