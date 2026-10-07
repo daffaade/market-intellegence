@@ -9,8 +9,7 @@ import {
   PanelLeftOpen,
   Star
 } from 'lucide-react';
-import type { Company } from '../types/api';
-import { MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../services/mockData';
+import type { Company, IntelligenceSnapshot } from '../types/api';
 import { cx } from '../lib/ui';
 
 export type ViewType = 'overview' | 'signals' | 'dashboard' | 'market' | 'ai-portfolio';
@@ -25,6 +24,9 @@ interface SidebarProps {
   onCloseMobile: () => void;
   company: Company | null;
   watchlist: string[];
+  /** Latest snapshot per emiten, for the watchlist score/direction. */
+  allIntelligence: IntelligenceSnapshot[];
+  companies: Company[];
   selectedSymbol: string;
   onSelectSymbol: (symbol: string) => void;
 }
@@ -41,6 +43,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   company,
   watchlist,
+  allIntelligence,
+  companies,
   selectedSymbol,
   onSelectSymbol
 }) => {
@@ -127,13 +131,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               ) : (
                 <ul className="space-y-0.5">
                   {watchlist.map(sym => {
-                    const intel = MOCK_INTELLIGENCE[sym];
+                    const intel = allIntelligence.find(i => i.symbol === sym);
                     const active = sym === selectedSymbol;
                     return (
                       <li key={sym}>
                         <button
                           onClick={() => onSelectSymbol(sym)}
-                          title={MOCK_COMPANIES[sym]?.name}
+                          title={companies.find(c => c.symbol === sym)?.name}
                           className={cx(
                             'w-full h-7 px-2.5 rounded-md flex items-center gap-2 text-[13px] transition-colors',
                             active ? 'bg-surface-2 text-ink' : 'text-ink-2 hover:bg-surface-2/60 hover:text-ink'

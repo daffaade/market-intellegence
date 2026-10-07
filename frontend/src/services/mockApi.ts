@@ -84,9 +84,9 @@ function screenLocally(filter: ScreenerFilter): IntelligenceSnapshot[] {
 /**
  * Universal HTTP helper with timeout.
  */
-async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<ResponseWrapper<T>> {
+async function fetchApi<T>(endpoint: string, options?: RequestInit, timeoutMs = 4000): Promise<ResponseWrapper<T>> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -110,8 +110,8 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<Res
     clearTimeout(timeoutId);
     return {
       status: 'error',
-      message: err.name === 'AbortError' 
-        ? 'Request timeout ke backend (melebihi 4 detik)' 
+      message: err.name === 'AbortError'
+        ? `Request timeout ke backend (melebihi ${timeoutMs / 1000} detik)`
         : `Gagal terhubung ke backend (${API_BASE_URL}): Pastikan server Go sedang berjalan.`
     };
   }
@@ -211,6 +211,7 @@ export const apiService = {
     }
 
     // If backend returns error, return fallback with notification
+    markOrigin('fallback');
     return {
       status: 'success',
       data: Object.values(MOCK_COMPANIES)
@@ -263,6 +264,9 @@ export const apiService = {
 
     const res = await fetchApi<any>(`/api/v1/companies/${cleanSym}/intelligence`);
     if (res.status === 'success' && res.data) {
+      // The backend serves heuristic placeholder data (flagged is_fallback) when the AI
+      // engine is unreachable — surface that like any other fallback.
+      markOrigin(res.data.is_fallback ? 'fallback' : 'backend');
       return {
         status: 'success',
         data: normalizeIntelligence(res.data)
@@ -394,6 +398,28 @@ export const apiService = {
 
     markOrigin('fallback');
     return { status: 'success', data: screenLocally(filter) };
+  },
+
+  /**
+   * Every emiten's latest intelligence snapshot (POST /api/v1/screener with no filter).
+   * Views that list all emiten use this instead of reading mock snapshots directly.
+   */
+  async getAllIntelligence(): Promise<ResponseWrapper<IntelligenceSnapshot[]>> {
+    if (useDummyData) {
+      markOrigin('dummy');
+      return { status: 'success', data: Object.values(MOCK_INTELLIGENCE) };
+    }
+
+    // Backed by one cached snapshot read per emiten; a longer timeout than the default
+    // covers a slow database round trip through the SSH tunnel.
+    const res = await fetchApi<any[]>('/api/v1/screener', { method: 'POST', body: '{}' }, 10000);
+    if (res.status === 'success' && res.data) {
+      markOrigin(res.data.some(s => s?.is_fallback) ? 'fallback' : 'backend');
+      return { status: 'success', data: res.data.map(normalizeIntelligence) };
+    }
+
+    markOrigin('fallback');
+    return { status: 'success', data: Object.values(MOCK_INTELLIGENCE) };
   },
 
   /**

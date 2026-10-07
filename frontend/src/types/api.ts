@@ -63,6 +63,8 @@ export interface IntelligenceSnapshot {
   ai_research_summary: string;
   disclaimer: string;
   is_cached: boolean;
+  /** Set by the backend when the AI engine was unreachable and this is heuristic placeholder data. */
+  is_fallback?: boolean;
   created_at: string;
 }
 

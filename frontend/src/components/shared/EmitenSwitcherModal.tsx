@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Star, CornerDownLeft } from 'lucide-react';
-import type { Company } from '../../types/api';
-import { MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../../services/mockData';
+import type { Company, IntelligenceSnapshot } from '../../types/api';
 import { DirectionTag, Kbd } from '../ui/primitives';
 import { cx } from '../../lib/ui';
 
@@ -9,6 +8,8 @@ interface EmitenSwitcherModalProps {
   isOpen: boolean;
   onClose: () => void;
   companies: Company[];
+  /** Latest snapshot per emiten, for the direction tag next to each result. */
+  allIntelligence: IntelligenceSnapshot[];
   currentSymbol: string;
   watchlist: string[];
   onSelectSymbol: (symbol: string) => void;
@@ -24,6 +25,7 @@ export const EmitenSwitcherModal: React.FC<EmitenSwitcherModalProps> = ({
   isOpen,
   onClose,
   companies,
+  allIntelligence,
   currentSymbol,
   watchlist,
   onSelectSymbol
@@ -33,7 +35,7 @@ export const EmitenSwitcherModal: React.FC<EmitenSwitcherModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const source = companies.length > 0 ? companies : Object.values(MOCK_COMPANIES);
+  const source = companies;
 
   const results = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -122,7 +124,7 @@ export const EmitenSwitcherModal: React.FC<EmitenSwitcherModalProps> = ({
             <li className="px-4 pt-1 pb-1 text-[11px] text-ink-3">Watchlist & semua emiten</li>
           )}
           {results.map((c, idx) => {
-            const intel = MOCK_INTELLIGENCE[c.symbol];
+            const intel = allIntelligence.find(i => i.symbol === c.symbol);
             const isCurrent = c.symbol === currentSymbol;
             return (
               <li

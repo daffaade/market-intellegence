@@ -59,6 +59,7 @@ export function App() {
   const [company, setCompany] = useState<Company | null>(null);
   const [intelligence, setIntelligence] = useState<IntelligenceSnapshot | null>(null);
   const [marketOverview, setMarketOverview] = useState<MarketOverview | null>(null);
+  const [allIntelligence, setAllIntelligence] = useState<IntelligenceSnapshot[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [dataOrigin, setDataOrigin] = useState<DataOrigin>(useDummyData ? 'dummy' : 'backend');
 
@@ -104,15 +105,17 @@ export function App() {
     setLoading(true);
     originsThisLoad.current = new Set();
     try {
-      const [compRes, intelRes, mktRes] = await Promise.all([
+      const [compRes, intelRes, mktRes, allRes] = await Promise.all([
         apiService.getCompany(selectedSymbol),
         apiService.getIntelligence(selectedSymbol),
-        apiService.getMarketOverview()
+        apiService.getMarketOverview(),
+        apiService.getAllIntelligence()
       ]);
 
       if (compRes.data) setCompany(compRes.data);
       if (intelRes.data) setIntelligence(intelRes.data);
       if (mktRes.data) setMarketOverview(mktRes.data);
+      if (allRes.data) setAllIntelligence(allRes.data);
     } finally {
       const seen = originsThisLoad.current;
       setDataOrigin(seen.has('fallback') ? 'fallback' : seen.has('dummy') ? 'dummy' : 'backend');
@@ -197,6 +200,8 @@ export function App() {
             onCloseMobile={() => setIsMobileNavOpen(false)}
             company={company}
             watchlist={watchlist}
+            allIntelligence={allIntelligence}
+            companies={companies}
             selectedSymbol={selectedSymbol}
             onSelectSymbol={sym => {
               setSelectedSymbol(sym);
@@ -215,6 +220,7 @@ export function App() {
                     <MarketOverviewView
                       marketOverview={marketOverview}
                       companies={companies}
+                      allIntelligence={allIntelligence}
                       onSelectSymbol={handleSelectSymbol}
                       onNavigate={navigate}
                       watchlist={watchlist}
@@ -246,6 +252,8 @@ export function App() {
                   {currentView === 'market' && (
                     <MarketIntelligence
                       marketOverview={marketOverview}
+                      companies={companies}
+                      allIntelligence={allIntelligence}
                       selectedSymbol={selectedSymbol}
                       onSelectSymbol={handleSelectSymbol}
                     />
@@ -269,6 +277,7 @@ export function App() {
             isOpen={isSearchOpen}
             onClose={() => setIsSearchOpen(false)}
             companies={companies}
+            allIntelligence={allIntelligence}
             currentSymbol={selectedSymbol}
             watchlist={watchlist}
             onSelectSymbol={handleSelectSymbol}

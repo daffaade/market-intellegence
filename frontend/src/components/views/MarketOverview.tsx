@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { Search, ArrowRight } from 'lucide-react';
 import type { MarketOverview as MarketOverviewType, IntelligenceSnapshot, Company } from '../../types/api';
-import { MOCK_COMPANIES, MOCK_INTELLIGENCE, MOCK_TOP10_GROWTH_TIMELINE } from '../../services/mockData';
+import { MOCK_TOP10_GROWTH_TIMELINE } from '../../services/mockData';
 import { WatchlistButton } from '../shared/WatchlistButton';
 import type { ViewType } from '../Sidebar';
 import { formatMarketCap, formatScore } from '../../lib/format';
@@ -32,6 +32,8 @@ import { cx } from '../../lib/ui';
 interface MarketOverviewProps {
   marketOverview: MarketOverviewType;
   companies: Company[];
+  /** Latest snapshot for every emiten (from the backend, or simulated data in dummy mode). */
+  allIntelligence: IntelligenceSnapshot[];
   onSelectSymbol: (symbol: string) => void;
   onNavigate: (view: ViewType) => void;
   watchlist: string[];
@@ -46,10 +48,10 @@ type SortKey = 'symbol' | 'sector' | 'market_cap' | 'opportunity' | 'risk';
 const RankRow: React.FC<{
   rank: number;
   intel: IntelligenceSnapshot;
+  name?: string;
   metric: 'opportunity' | 'risk' | 'anomaly';
   onSelect: (s: string) => void;
-}> = ({ rank, intel, metric, onSelect }) => {
-  const company = MOCK_COMPANIES[intel.symbol];
+}> = ({ rank, intel, name, metric, onSelect }) => {
   return (
     <li>
       <button
@@ -58,7 +60,7 @@ const RankRow: React.FC<{
       >
         <span className="num text-xs text-ink-3 w-4 shrink-0">{rank}</span>
         <span className="num text-[13px] font-medium text-ink w-12 shrink-0">{intel.symbol}</span>
-        <span className="text-[13px] text-ink-2 truncate flex-1 min-w-0">{company?.name ?? '—'}</span>
+        <span className="text-[13px] text-ink-2 truncate flex-1 min-w-0">{name ?? '—'}</span>
         <span className="hidden sm:inline-flex"><DirectionTag direction={intel.direction} /></span>
         {metric === 'opportunity' && <ScoreBar value={intel.opportunity_score} width="w-16" />}
         {metric === 'risk' && <ScoreBar value={intel.risk_score} tone="risk" width="w-16" />}
@@ -71,6 +73,7 @@ const RankRow: React.FC<{
 export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
   marketOverview,
   companies,
+  allIntelligence,
   onSelectSymbol,
   onNavigate,
   watchlist,
@@ -86,8 +89,13 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const rows = useMemo(() => {
-    const list = companies.length ? companies : Object.values(MOCK_COMPANIES);
-    return list.map(c => ({ ...c, intel: MOCK_INTELLIGENCE[c.symbol] as IntelligenceSnapshot | undefined }));
+    const intelBySymbol = new Map(allIntelligence.map(i => [i.symbol, i]));
+    return companies.map(c => ({ ...c, intel: intelBySymbol.get(c.symbol) }));
+  }, [companies, allIntelligence]);
+
+  const nameOf = useMemo(() => {
+    const names = new Map(companies.map(c => [c.symbol, c.name]));
+    return (symbol: string) => names.get(symbol);
   }, [companies]);
 
   // ── Market-wide summary numbers ──
@@ -213,7 +221,7 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
         >
           <ol className="divide-y divide-line py-1">
             {topOpps.map((intel, i) => (
-              <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="opportunity" onSelect={onSelectSymbol} />
+              <RankRow key={intel.symbol} rank={i + 1} intel={intel} name={nameOf(intel.symbol)} metric="opportunity" onSelect={onSelectSymbol} />
             ))}
           </ol>
         </Panel>
@@ -223,7 +231,7 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
             {topRisks.length ? (
               <ol className="divide-y divide-line py-1">
                 {topRisks.map((intel, i) => (
-                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="risk" onSelect={onSelectSymbol} />
+                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} name={nameOf(intel.symbol)} metric="risk" onSelect={onSelectSymbol} />
                 ))}
               </ol>
             ) : (
@@ -235,7 +243,7 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
             {anomalies.length ? (
               <ol className="divide-y divide-line py-1">
                 {anomalies.map((intel, i) => (
-                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} metric="anomaly" onSelect={onSelectSymbol} />
+                  <RankRow key={intel.symbol} rank={i + 1} intel={intel} name={nameOf(intel.symbol)} metric="anomaly" onSelect={onSelectSymbol} />
                 ))}
               </ol>
             ) : (

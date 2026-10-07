@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus, RotateCcw } from 'lucide-react';
-import type { MarketOverview, ScreenerFilter, IntelligenceSnapshot, SignalMatrixPoint } from '../../types/api';
-import { MOCK_MACRO, MOCK_EVENTS, MOCK_COMPANIES, MOCK_INTELLIGENCE } from '../../services/mockData';
+import type { Company, MarketOverview, ScreenerFilter, IntelligenceSnapshot, SignalMatrixPoint } from '../../types/api';
+import { MOCK_MACRO, MOCK_EVENTS } from '../../services/mockData';
 import { apiService } from '../../services/mockApi';
 import { SignalMatrix } from '../shared/SignalMatrix';
 import { quadrantOf, quadrantShort } from '../../lib/format';
@@ -19,6 +19,9 @@ import { cx } from '../../lib/ui';
 
 interface MarketIntelligenceProps {
   marketOverview: MarketOverview;
+  companies: Company[];
+  /** Latest snapshot for every emiten, used for the quadrant matrix. */
+  allIntelligence: IntelligenceSnapshot[];
   selectedSymbol: string;
   onSelectSymbol: (symbol: string) => void;
 }
@@ -32,9 +35,13 @@ const trendLabel = { UP: 'Naik', DOWN: 'Turun', STABLE: 'Stabil' } as const;
 
 export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
   marketOverview,
+  companies,
+  allIntelligence,
   selectedSymbol,
   onSelectSymbol
 }) => {
+  const companyBySymbol = useMemo(() => new Map(companies.map(c => [c.symbol, c])), [companies]);
+
   const [sector, setSector] = useState(DEFAULT_FILTER.sector);
   const [minOpp, setMinOpp] = useState(DEFAULT_FILTER.minOpp);
   const [maxRisk, setMaxRisk] = useState(DEFAULT_FILTER.maxRisk);
@@ -45,8 +52,8 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const sectors = useMemo(
-    () => Array.from(new Set([...Object.values(MOCK_COMPANIES).map(c => c.sector), ...marketOverview.sector_summary.map(s => s.sector)])).sort(),
-    [marketOverview]
+    () => Array.from(new Set([...companies.map(c => c.sector), ...marketOverview.sector_summary.map(s => s.sector)])).filter(Boolean).sort(),
+    [companies, marketOverview]
   );
 
   // Filters apply live; a short debounce keeps slider drags from flooding the backend.
@@ -105,17 +112,17 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
   // so every emiten appears and quadrants follow one rule.
   const matrix: SignalMatrixPoint[] = useMemo(
     () =>
-      Object.values(MOCK_INTELLIGENCE).map(i => ({
+      allIntelligence.map(i => ({
         symbol: i.symbol,
-        name: MOCK_COMPANIES[i.symbol]?.name ?? i.symbol,
-        sector: MOCK_COMPANIES[i.symbol]?.sector ?? '',
+        name: companyBySymbol.get(i.symbol)?.name ?? i.symbol,
+        sector: companyBySymbol.get(i.symbol)?.sector ?? '',
         opportunity_score: i.opportunity_score,
         risk_score: i.risk_score,
         direction: i.direction,
         is_anomaly: i.is_anomaly,
         quadrant: quadrantOf(i.opportunity_score, i.risk_score)
       })),
-    []
+    [allIntelligence, companyBySymbol]
   );
 
   return (
@@ -194,7 +201,7 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
                   <td className="px-4 h-11">
                     <div className="flex items-baseline gap-2.5 min-w-[180px]">
                       <span className="num font-medium text-ink">{item.symbol}</span>
-                      <span className="text-ink-2 truncate">{MOCK_COMPANIES[item.symbol]?.name}</span>
+                      <span className="text-ink-2 truncate">{companyBySymbol.get(item.symbol)?.name}</span>
                     </div>
                   </td>
                   <td className="px-4 h-11"><DirectionTag direction={item.direction} /></td>
