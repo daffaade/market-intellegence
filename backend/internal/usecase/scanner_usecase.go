@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"sort"
 	"sync"
 
 	"be/internal/domain"
@@ -73,15 +74,24 @@ func (u *ScannerUsecase) GetMarketOverview(ctx context.Context) (*MarketOverview
 	wg.Wait()
 	close(results)
 
+	// symbol -> sector, from the company list fetched above (reliable regardless of
+	// whether a snapshot came from cache or a fresh engine fetch).
+	sectorBySymbol := make(map[string]string, len(companies))
+	for _, c := range companies {
+		sectorBySymbol[c.Symbol] = c.Sector
+	}
+
+	type sectorAgg struct {
+		scoreSum     float64
+		count        int
+		anomalyCount int
+	}
+	sectorAggs := make(map[string]*sectorAgg)
+
 	overview := &MarketOverview{
 		TopOpportunities:  make([]domain.IntelligenceSnapshot, 0),
 		TopRisks:          make([]domain.IntelligenceSnapshot, 0),
 		DetectedAnomalies: make([]domain.IntelligenceSnapshot, 0),
-		SectorSummary: []SectorStat{
-			{Sector: "Financials", Sentiment: "Bullish", AvgOpportunity: 85.5, AnomalyCount: 0},
-			{Sector: "Infrastructure", Sentiment: "Bullish", AvgOpportunity: 78.0, AnomalyCount: 0},
-			{Sector: "Technology", Sentiment: "Bearish", AvgOpportunity: 42.0, AnomalyCount: 1},
-		},
 	}
 
 	for snap := range results {
@@ -94,7 +104,47 @@ func (u *ScannerUsecase) GetMarketOverview(ctx context.Context) (*MarketOverview
 		if snap.IsAnomaly || snap.DivergenceDetected {
 			overview.DetectedAnomalies = append(overview.DetectedAnomalies, *snap)
 		}
+
+		sector := sectorBySymbol[snap.Symbol]
+		if sector == "" {
+			sector = "Unclassified"
+		}
+		agg, ok := sectorAggs[sector]
+		if !ok {
+			agg = &sectorAgg{}
+			sectorAggs[sector] = agg
+		}
+		agg.scoreSum += snap.OpportunityScore
+		agg.count++
+		if snap.IsAnomaly {
+			agg.anomalyCount++
+		}
 	}
+
+	overview.SectorSummary = make([]SectorStat, 0, len(sectorAggs))
+	for sector, agg := range sectorAggs {
+		if agg.count == 0 {
+			continue
+		}
+		avg := agg.scoreSum / float64(agg.count)
+		sentiment := "Neutral"
+		if avg >= 60 {
+			sentiment = "Bullish"
+		} else if avg <= 40 {
+			sentiment = "Bearish"
+		}
+		overview.SectorSummary = append(overview.SectorSummary, SectorStat{
+			Sector:         sector,
+			Sentiment:      sentiment,
+			AvgOpportunity: avg,
+			AnomalyCount:   agg.anomalyCount,
+		})
+	}
+	// Map iteration order is random in Go; sort so the response (and the UI) is stable
+	// across requests instead of reshuffling sectors on every refresh.
+	sort.Slice(overview.SectorSummary, func(i, j int) bool {
+		return overview.SectorSummary[i].AvgOpportunity > overview.SectorSummary[j].AvgOpportunity
+	})
 
 	return overview, nil
 }
