@@ -295,3 +295,34 @@ func TestPythonEngineClient_ConsumerBehavior(t *testing.T) {
 }
 
 
+
+// Regression: every snapshot used to come out anomalous (score 100) with divergence
+// detected, because the mapping used the 1-year anomaly count, baseline volatility
+// x1000, and the peer distance score. A quiet stock must map to quiet.
+func TestPythonEngineClient_AnomalyAndDivergenceMapping(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{
+			"symbol": "BBCA",
+			"opportunity_signal": {"score": 47.3, "direction": "Negative", "confidence": "Medium"},
+			"risk_signal": {"score": 61.3, "level": "Medium"},
+			"anomaly": {"status": "success", "is_anomaly": false, "is_anomalous_today": false,
+				"anomaly_score": 26.5, "detected_anomalies_count": 20,
+				"recent_baseline_volatility": 1.27, "adaptive_contamination": 0.03},
+			"fundamental_divergence": {"divergence_score": 0.95, "relative_positions": {}, "significant_changes": []},
+			"divergence_signal": {"detected": false, "confidence": "Low"}
+		}`))
+	}))
+	defer ts.Close()
+
+	snap, err := python_engine.NewClient(ts.URL).Analyze(context.Background(), domain.AnalyzeRequest{Symbol: "BBCA"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if snap.IsAnomaly || snap.AnomalyScore != 26.5 {
+		t.Errorf("anomaly = %v / %.1f, want false / 26.5", snap.IsAnomaly, snap.AnomalyScore)
+	}
+	if snap.DivergenceDetected {
+		t.Error("divergence must follow divergence_signal.detected, not divergence_score")
+	}
+}

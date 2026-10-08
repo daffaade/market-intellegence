@@ -1918,6 +1918,10 @@ def normalize_score_percentile(raw_scores: Union[List[float], np.ndarray]) -> Li
     return percentile_scores
 
 
+# A stock counts as anomalous if any of its last N sessions was flagged.
+RECENT_SESSIONS = 5
+
+
 class AnomalyModel:
     def __init__(self, data_loader=None):
         self.data_loader = data_loader
@@ -1934,17 +1938,25 @@ class AnomalyModel:
                 ticker_result = companies[clean_sym]
                 anomalies = ticker_result.get("anomalies", [])
                 final_results = ticker_result.get("final_results", [])
-                is_anom_today = False
-                if final_results:
-                    is_anom_today = bool(final_results[-1].get("final_is_anomaly", False))
-                elif anomalies:
-                    is_anom_today = True
+                # Score and flag describe the latest sessions. adaptive_contamination is
+                # the model's expected anomaly rate (a parameter, ~3%), and a 1-year
+                # anomaly count is never zero by construction, so neither says anything
+                # about whether the stock is behaving abnormally now.
+                recent = final_results[-RECENT_SESSIONS:] if final_results else []
+                latest = final_results[-1] if final_results else {}
+                recent_anomalies = [r for r in recent if r.get("final_is_anomaly")]
+                is_anom_today = bool(latest.get("final_is_anomaly", False))
+                latest_score = float(latest.get("anomaly_score") or 0.0)
 
                 return {
                     "status": "success",
                     "is_anomalous_today": is_anom_today,
-                    "is_anomaly": is_anom_today,
-                    "anomaly_score": float(round(ticker_result.get("adaptive_contamination", 0.0) * 100, 2)),
+                    "is_anomaly": bool(recent_anomalies),
+                    "anomaly_score": round(latest_score * 100, 1),
+                    "latest_date": latest.get("date"),
+                    "recent_window_sessions": RECENT_SESSIONS,
+                    "last_anomaly_date": recent_anomalies[-1].get("date") if recent_anomalies else None,
+                    "last_anomaly_score": round(float(recent_anomalies[-1].get("anomaly_score") or 0) * 100, 1) if recent_anomalies else None,
                     "detected_anomalies_count": len(anomalies),
                     "episodes": ticker_result.get("episodes", []),
                     "adaptive_contamination": ticker_result.get("adaptive_contamination", 0.0),

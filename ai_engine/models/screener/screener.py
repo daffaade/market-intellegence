@@ -126,6 +126,7 @@ class IntelligenceScreener:
                 metrics["opportunity_direction"] = opp.get("direction", "Neutral")
                 metrics["risk_score"] = float(risk.get("score", 30.0))
                 metrics["risk_level"] = risk.get("level", "Low")
+                metrics["has_divergence"] = bool((f_res.get("fundamental_divergence") or {}).get("detected", False))
         except Exception:
             pass
 
@@ -144,7 +145,8 @@ class IntelligenceScreener:
             p_res = peer_model.analyze(clean_sym)
             div_score = float(p_res.get("divergence_score", 0.0))
             metrics["divergence_score"] = div_score
-            metrics["has_divergence"] = div_score >= 0.70
+            # divergence_score is an unscaled distance from peers that sits at its 0.95
+            # cap for almost every stock; has_divergence comes from the forecast model.
             metrics["peer_group"] = p_res.get("peer_group", [])
             
             rel_pos = p_res.get("relative_positions", {})

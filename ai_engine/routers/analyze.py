@@ -49,6 +49,7 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
         "symbol": symbol,
         "forecast": None,
         "fundamental_divergence": None,
+        "divergence_signal": None,
         "opportunity_signal": None,
         "risk_signal": None,
         "anomaly": None,
@@ -65,6 +66,9 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
                 response["forecast"] = forecast_result.get("forecast")
                 response["opportunity_signal"] = forecast_result.get("opportunity_signal")
                 response["risk_signal"] = forecast_result.get("risk_signal")
+                # The opportunity/risk signals are scored on this detection, so it is
+                # the one the UI must show (peer divergence_score below is a distance).
+                response["divergence_signal"] = forecast_result.get("fundamental_divergence")
             else:
                 response["forecast"] = {"error": "Forecast analysis failed"}
 

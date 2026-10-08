@@ -111,8 +111,17 @@ type pythonPeersContext struct {
 	MarketCap   int64   `json:"market_cap"`
 }
 
+// pythonDivergenceSignal is the forecast model's fundamental-divergence detection,
+// which the opportunity/risk scores are built on.
+type pythonDivergenceSignal struct {
+	Detected   bool   `json:"detected"`
+	Confidence string `json:"confidence"`
+}
+
 type pythonAnomalyOutput struct {
 	Status                   string  `json:"status"`
+	IsAnomaly                bool    `json:"is_anomaly"`
+	AnomalyScore             float64 `json:"anomaly_score"`
 	IsAnomalousToday         bool    `json:"is_anomalous_today"`
 	DetectedAnomaliesCount   int     `json:"detected_anomalies_count"`
 	RecentBaselineVolatility float64 `json:"recent_baseline_volatility"`
@@ -154,6 +163,7 @@ type pythonAnalyzeResponse struct {
 	OpportunitySignal     *pythonOpportunitySignal     `json:"opportunity_signal"`
 	RiskSignal            *pythonRiskSignal            `json:"risk_signal"`
 	FundamentalDivergence *pythonFundamentalDivergence `json:"fundamental_divergence"`
+	DivergenceSignal      *pythonDivergenceSignal      `json:"divergence_signal"`
 	Anomaly               *pythonAnomalyOutput         `json:"anomaly"`
 	SmartMoney            *pythonSmartMoneyOutput      `json:"smart_money"`
 	Catalysts             *pythonCatalystOutput        `json:"catalysts"`
@@ -229,16 +239,21 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 
 	// 3. Anomaly
 	if pyResp.Anomaly != nil {
-		snap.IsAnomaly = pyResp.Anomaly.IsAnomalousToday || pyResp.Anomaly.DetectedAnomaliesCount > 0
-		snap.AnomalyScore = pyResp.Anomaly.RecentBaselineVolatility * 1000
-		if snap.AnomalyScore > 100 {
-			snap.AnomalyScore = 100
-		}
+		// The engine flags a stock when one of its last few sessions was anomalous and
+		// scores the latest session 0-100. (Previously: "any anomaly in a year", which
+		// the model produces for every stock, and baseline volatility x1000 capped at
+		// 100 — every snapshot ended up anomalous with score 100.)
+		snap.IsAnomaly = pyResp.Anomaly.IsAnomaly
+		snap.AnomalyScore = math.Max(0, math.Min(100, pyResp.Anomaly.AnomalyScore))
 	}
 
-	// 4. Fundamental Divergence & Evidence
+	// 4. Fundamental Divergence & Evidence. The peer model's divergence_score is an
+	// unscaled distance that sits at its 0.95 cap for nearly every stock, so it is
+	// not used as a detection flag.
+	if pyResp.DivergenceSignal != nil {
+		snap.DivergenceDetected = pyResp.DivergenceSignal.Detected
+	}
 	if pyResp.FundamentalDivergence != nil {
-		snap.DivergenceDetected = pyResp.FundamentalDivergence.DivergenceScore > 0.5 || len(pyResp.FundamentalDivergence.SignificantChanges) > 0
 
 		if pc := pyResp.FundamentalDivergence.PeersContext; pc != nil {
 			snap.CompanyMarketCap = pc.MarketCap
