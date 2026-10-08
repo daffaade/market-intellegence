@@ -263,6 +263,8 @@ export function App() {
                     <PortfolioAndAi
                       intelligence={intelligence}
                       company={company}
+                      companies={companies}
+                      allIntelligence={allIntelligence}
                       onSelectSymbol={handleSelectSymbol}
                     />
                   )}

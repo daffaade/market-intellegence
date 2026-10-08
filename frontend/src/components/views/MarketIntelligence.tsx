@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Minus, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import type { Company, MarketOverview, ScreenerFilter, IntelligenceSnapshot, SignalMatrixPoint } from '../../types/api';
-import { MOCK_MACRO, MOCK_EVENTS } from '../../services/mockData';
+import { useRemote } from '../../lib/useRemote';
+import { RemoteBody, SourceNote, formatDay } from '../shared/RemoteState';
 import { apiService } from '../../services/mockApi';
 import { SignalMatrix } from '../shared/SignalMatrix';
 import { quadrantOf, quadrantShort } from '../../lib/format';
@@ -30,8 +31,37 @@ type SortKey = 'symbol' | 'opportunity' | 'risk' | 'anomaly';
 
 const DEFAULT_FILTER = { sector: '', minOpp: 0, maxRisk: 100, divergence: false };
 
-const trendIcon = { UP: ArrowUpRight, DOWN: ArrowDownRight, STABLE: Minus } as const;
-const trendLabel = { UP: 'Naik', DOWN: 'Turun', STABLE: 'Stabil' } as const;
+const ChangePct: React.FC<{ value: number | null; label: string }> = ({ value, label }) => (
+  <span className="text-xs text-ink-3">
+    {label}{' '}
+    {value === null ? (
+      '—'
+    ) : (
+      <span className={cx('num', value >= 0 ? 'text-up' : 'text-down')}>
+        {value >= 0 ? '+' : '−'}{Math.abs(value).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%
+      </span>
+    )}
+  </span>
+);
+
+/** Tiny inline trend line; neutral ink so it doesn't compete with the numbers. */
+const Sparkline: React.FC<{ values: number[] }> = ({ values }) => {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 80},${22 - ((v - min) / span) * 20}`).join(' ');
+  return (
+    <svg viewBox="0 0 80 24" className="w-20 h-6 text-ink-3" aria-hidden="true">
+      <polyline points={pts} fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinejoin="round" />
+    </svg>
+  );
+};
+
+const formatMacroValue = (v: number, unit: string) =>
+  unit === 'rupiah'
+    ? `Rp ${v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`
+    : v.toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
 export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
   marketOverview,
@@ -40,6 +70,9 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
   selectedSymbol,
   onSelectSymbol
 }) => {
+  const macro = useRemote(() => apiService.getMacroSnapshot(), []);
+  const events = useRemote(() => apiService.getCorporateEvents(selectedSymbol), [selectedSymbol]);
+
   const companyBySymbol = useMemo(() => new Map(companies.map(c => [c.symbol, c])), [companies]);
 
   const [sector, setSector] = useState(DEFAULT_FILTER.sector);
@@ -232,44 +265,85 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
       <SignalMatrix data={matrix} selectedSymbol={selectedSymbol} onSelectSymbol={onSelectSymbol} />
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Panel title="Indikator makro" flush>
-          <ul className="divide-y divide-line">
-            {MOCK_MACRO.map(m => {
-              const Icon = trendIcon[m.trend];
-              return (
-                <li key={m.name} className="px-4 py-3 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="text-[13px] text-ink">{m.name}</div>
-                    <div className="text-xs text-ink-3 mt-0.5">{m.correlation_with_market}</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="num text-[15px] text-ink">{m.value}</div>
-                    <div className="text-xs text-ink-3 inline-flex items-center gap-0.5">
-                      <Icon className="w-3 h-3" /> {trendLabel[m.trend]}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+        <Panel title="Indikator pasar & makro" meta="Perubahan 1 bulan dan 1 tahun" flush>
+          <RemoteBody remote={macro} errorTitle="Indikator makro belum bisa dimuat">
+            {data => (
+              <>
+                <ul className="divide-y divide-line">
+                  {data.indicators.map(m => (
+                    <li key={m.key} className="px-4 py-3 flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="text-[13px] text-ink">{m.name}</div>
+                        <div className="flex gap-3 mt-0.5">
+                          <ChangePct label="1 bln" value={m.change_1m_pct} />
+                          <ChangePct label="1 thn" value={m.change_1y_pct} />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <Sparkline values={m.sparkline} />
+                        <div className="text-right w-28">
+                          <div className="num text-[15px] text-ink">{formatMacroValue(m.value, m.unit)}</div>
+                          <div className="text-xs text-ink-3">{m.unit === 'rupiah' ? 'per USD' : m.unit}</div>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="px-4 py-2.5 border-t border-line">
+                  <SourceNote source="Yahoo Finance" date={data.indicators[0]?.date}>
+                    BI-Rate & inflasi butuh API key BPS
+                  </SourceNote>
+                </div>
+              </>
+            )}
+          </RemoteBody>
         </Panel>
 
-        <Panel title="Dampak peristiwa" meta="Reaksi harga" flush>
-          <ul className="divide-y divide-line">
-            {[...MOCK_EVENTS].sort((a, b) => b.date.localeCompare(a.date)).map(e => (
-              <li key={e.event_name} className="px-4 py-3 flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="text-[13px] text-ink">{e.event_name}</div>
-                  <div className="text-xs text-ink-3 mt-0.5">
-                    <span className="num">{e.date}</span> · {e.category}
-                  </div>
-                </div>
-                <div className={cx('num text-[15px] shrink-0', e.price_reaction_pct >= 0 ? 'text-up' : 'text-down')}>
-                  {e.price_reaction_pct >= 0 ? '+' : '−'}{Math.abs(e.price_reaction_pct)}%
-                </div>
-              </li>
-            ))}
-          </ul>
+        <Panel title={`Aksi korporasi · ${selectedSymbol}`} meta="Reaksi harga di tanggal ex" flush>
+          <RemoteBody remote={events} errorTitle="Riwayat aksi korporasi belum bisa dimuat">
+            {data =>
+              data.events.length ? (
+                <>
+                  <table className="w-full text-[13px]">
+                    <thead className="border-b border-line">
+                      <tr className="text-xs text-ink-3">
+                        <th className="px-4 h-9 font-medium text-left">Peristiwa</th>
+                        <th className="px-4 h-9 font-medium text-right">H+1</th>
+                        <th className="px-4 h-9 font-medium text-right">H+5</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                      {data.events.map(e => (
+                        <tr key={`${e.date}-${e.type}`}>
+                          <td className="px-4 py-2.5">
+                            <div className="text-ink">
+                              {e.type === 'DIVIDEND'
+                                ? `Dividen Rp ${e.amount?.toLocaleString('id-ID')}`
+                                : `Stock split ${e.ratio}:1`}
+                              {e.type === 'DIVIDEND' && e.yield_pct !== undefined && (
+                                <span className="text-ink-3"> · {e.yield_pct.toLocaleString('id-ID')}%</span>
+                              )}
+                            </div>
+                            <div className="num text-xs text-ink-3">{formatDay(e.date)}</div>
+                          </td>
+                          {[e.reaction_1d_pct, e.reaction_5d_pct].map((v, i) => (
+                            <td key={i} className={cx('px-4 py-2.5 num text-right', v === null ? 'text-ink-3' : v >= 0 ? 'text-up' : 'text-down')}>
+                              {v === null ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toLocaleString('id-ID')}%`}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="px-4 py-2.5 border-t border-line text-xs text-ink-3 leading-relaxed">
+                    Dibanding harga penutupan sebelum tanggal ex. Penurunan di hari ex dividen sebagian besar adalah dividen itu sendiri.
+                  </p>
+                </>
+              ) : (
+                <EmptyState title={`Belum ada dividen atau stock split ${selectedSymbol} dalam 5 tahun terakhir`} />
+              )
+            }
+          </RemoteBody>
         </Panel>
       </div>
     </div>

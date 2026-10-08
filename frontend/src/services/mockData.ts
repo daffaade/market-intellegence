@@ -2,11 +2,7 @@ import type {
   Company,
   IntelligenceSnapshot,
   MarketOverview,
-  GrowthData,
-  DividendHistory,
-  Shareholder,
-  KeyExecutive,
-  SmartMoneyTransaction,
+  CompanyFundamentals,
   MacroIndicator,
   EventImpact,
   DisasterRisk,
@@ -1042,54 +1038,308 @@ export const MOCK_MARKET_OVERVIEW: MarketOverview = {
 };
 
 
-export const MOCK_GROWTH_DATA: Record<string, GrowthData[]> = {
-  BBCA: [
-    { year: "2022", revenue: 87400, net_profit: 40700, margin: 46.5 },
-    { year: "2023", revenue: 99800, net_profit: 48600, margin: 48.7 },
-    { year: "2024", revenue: 112500, net_profit: 54800, margin: 48.7 },
-    { year: "2025", revenue: 124800, net_profit: 61200, margin: 49.0 },
-    { year: "2026 (F)", revenue: 138000, net_profit: 68500, margin: 49.6 }
-  ],
-  TLKM: [
-    { year: "2022", revenue: 147300, net_profit: 25800, margin: 17.5 },
-    { year: "2023", revenue: 149200, net_profit: 24500, margin: 16.4 },
-    { year: "2024", revenue: 154800, net_profit: 26200, margin: 16.9 },
-    { year: "2025", revenue: 161000, net_profit: 27900, margin: 17.3 },
-    { year: "2026 (F)", revenue: 169500, net_profit: 29800, margin: 17.5 }
-  ]
-};
-
-export const MOCK_DIVIDENDS: Record<string, DividendHistory[]> = {
-  BBCA: [
-    { year: "2022", dividend_per_share: 170, yield_percent: 2.1, payout_ratio: 51.4 },
-    { year: "2023", dividend_per_share: 205, yield_percent: 2.3, payout_ratio: 52.0 },
-    { year: "2024", dividend_per_share: 270, yield_percent: 2.7, payout_ratio: 60.5 },
-    { year: "2025", dividend_per_share: 300, yield_percent: 2.9, payout_ratio: 60.2 }
-  ]
-};
-
-export const MOCK_SHAREHOLDERS: Record<string, Shareholder[]> = {
-  BBCA: [
-    { name: "PT Dwimuria Investama Andalan", share_percentage: 54.94, category: "INSTITUTIONAL" },
-    { name: "Masyarakat (Retail & Institutional)", share_percentage: 42.61, category: "RETAIL" },
-    { name: "Direksi & Komisaris (Insider)", share_percentage: 2.45, category: "MANAGEMENT" }
-  ]
-};
-
-export const MOCK_EXECUTIVES: Record<string, KeyExecutive[]> = {
-  BBCA: [
-    { name: "Jahja Setiaatmadja", position: "Presiden Direktur", tenure: "13 Tahun", insider_action: "BOUGHT", transaction_amount: "+500,000 lembar" },
-    { name: "Armand Wahyudi Hartono", position: "Wakil Presiden Direktur", tenure: "10 Tahun", insider_action: "HELD" },
-    { name: "Gregory Hendra Lembong", position: "Direktur IT & Digital Banking", tenure: "6 Tahun", insider_action: "BOUGHT", transaction_amount: "+150,000 lembar" }
-  ]
-};
-
-export const MOCK_SMART_MONEY: Record<string, SmartMoneyTransaction[]> = {
-  BBCA: [
-    { date: "2026-09-18", institution: "BlackRock Institutional Fund", action: "ACCUMULATE", volume: "12,400,000", value_idr: "Rp 127.1 M" },
-    { date: "2026-09-17", institution: "Vanguard Emerging Markets", action: "ACCUMULATE", volume: "8,900,000", value_idr: "Rp 91.2 M" },
-    { date: "2026-09-15", institution: "JPMorgan Asset Mgmt", action: "ACCUMULATE", volume: "15,100,000", value_idr: "Rp 154.8 M" }
-  ]
+/** Snapshot of BBCA's real Sectors report (Oct 2026), used only in simulation mode. */
+export const MOCK_FUNDAMENTALS: Record<string, CompanyFundamentals> = {
+  BBCA: {
+    "symbol": "BBCA",
+    "growth_data": [
+      {
+        "year": "2018",
+        "revenue": 63028.1,
+        "net_profit": 25855.2,
+        "margin": 41.0
+      },
+      {
+        "year": "2019",
+        "revenue": 71602.0,
+        "net_profit": 28565.1,
+        "margin": 39.9
+      },
+      {
+        "year": "2020",
+        "revenue": 97649.8,
+        "net_profit": 27131.1,
+        "margin": 27.8
+      },
+      {
+        "year": "2021",
+        "revenue": 78473.6,
+        "net_profit": 31422.7,
+        "margin": 40.0
+      },
+      {
+        "year": "2022",
+        "revenue": 87476.3,
+        "net_profit": 40735.7,
+        "margin": 46.6
+      },
+      {
+        "year": "2023",
+        "revenue": 99945.4,
+        "net_profit": 48639.1,
+        "margin": 48.7
+      },
+      {
+        "year": "2024",
+        "revenue": 108306.5,
+        "net_profit": 54836.3,
+        "margin": 50.6
+      },
+      {
+        "year": "2025",
+        "revenue": 112006.3,
+        "net_profit": 57537.3,
+        "margin": 51.4
+      }
+    ],
+    "dividends": [
+      {
+        "year": "2020",
+        "dividend_per_share": 553.0,
+        "yield_percent": 1.84,
+        "payout_ratio": null
+      },
+      {
+        "year": "2021",
+        "dividend_per_share": 457.0,
+        "yield_percent": 1.66,
+        "payout_ratio": null
+      },
+      {
+        "year": "2022",
+        "dividend_per_share": 155.0,
+        "yield_percent": 1.94,
+        "payout_ratio": 60.2
+      },
+      {
+        "year": "2023",
+        "dividend_per_share": 212.5,
+        "yield_percent": 2.38,
+        "payout_ratio": 63.7
+      },
+      {
+        "year": "2024",
+        "dividend_per_share": 277.5,
+        "yield_percent": 2.78,
+        "payout_ratio": 69.6
+      },
+      {
+        "year": "2025",
+        "dividend_per_share": 305.0,
+        "yield_percent": 3.56,
+        "payout_ratio": 67.9
+      },
+      {
+        "year": "2026",
+        "dividend_per_share": 326.0,
+        "yield_percent": 5.34,
+        "payout_ratio": 69.1
+      }
+    ],
+    "shareholders": [
+      {
+        "name": "PT Dwimuria Investama Andalan",
+        "share_percentage": 54.94,
+        "category": "INSTITUTIONAL"
+      },
+      {
+        "name": "Public",
+        "share_percentage": 44.64,
+        "category": "RETAIL"
+      },
+      {
+        "name": "Treasury Stock",
+        "share_percentage": 0.35,
+        "category": "TREASURY"
+      },
+      {
+        "name": "Jahja Setiaatmadja",
+        "share_percentage": 0.03,
+        "category": "MANAGEMENT"
+      },
+      {
+        "name": "Tan Ho Hien/Subur Disebut Juga Subur Tan",
+        "share_percentage": 0.01,
+        "category": "INSTITUTIONAL"
+      },
+      {
+        "name": "Tonny Kusnadi",
+        "share_percentage": 0.01,
+        "category": "MANAGEMENT"
+      }
+    ],
+    "executives": [
+      {
+        "name": "Gregory Hendra Lembong",
+        "position": "President Director",
+        "share_amount": 2666921,
+        "share_percentage": 0.002
+      },
+      {
+        "name": "Armand Wahyudi Hartono",
+        "position": "Vice President Director",
+        "share_amount": 4256065,
+        "share_percentage": 0.003
+      },
+      {
+        "name": "John Kosasih",
+        "position": "Vice President Director",
+        "share_amount": null,
+        "share_percentage": null
+      },
+      {
+        "name": "Tan Ho Hien/Subur Atau Dipanggil Subur Tan",
+        "position": "Director",
+        "share_amount": null,
+        "share_percentage": null
+      },
+      {
+        "name": "Lianawaty Suwono",
+        "position": "Director",
+        "share_amount": 3906242,
+        "share_percentage": 0.003
+      },
+      {
+        "name": "Santoso",
+        "position": "Director",
+        "share_amount": 3764062,
+        "share_percentage": 0.003
+      }
+    ],
+    "smart_money": [
+      {
+        "institution": "Vanguard",
+        "action": "ACCUMULATE",
+        "shares_change": 61979185
+      },
+      {
+        "institution": "Strategic Advisers LLC",
+        "action": "ACCUMULATE",
+        "shares_change": 45428500
+      },
+      {
+        "institution": "BlackRock Fund Advisors",
+        "action": "ACCUMULATE",
+        "shares_change": 23410540
+      },
+      {
+        "institution": "Fidelity Management & Research Company LLC",
+        "action": "DISTRIBUTE",
+        "shares_change": -490522692
+      },
+      {
+        "institution": "Capital Research and Management Company",
+        "action": "DISTRIBUTE",
+        "shares_change": -203655628
+      },
+      {
+        "institution": "T. Rowe Price",
+        "action": "DISTRIBUTE",
+        "shares_change": -173075700
+      }
+    ],
+    "smart_money_as_of": "2026-08-31",
+    "institutional_flow": [
+      {
+        "date": "2023-12-31",
+        "net_shares": 241601227
+      },
+      {
+        "date": "2024-01-31",
+        "net_shares": 417194151
+      },
+      {
+        "date": "2024-06-30",
+        "net_shares": 1055373886
+      },
+      {
+        "date": "2024-09-30",
+        "net_shares": -344659998
+      },
+      {
+        "date": "2024-11-30",
+        "net_shares": 802863330
+      },
+      {
+        "date": "2024-12-31",
+        "net_shares": 379551062
+      },
+      {
+        "date": "2025-01-31",
+        "net_shares": -144932456
+      },
+      {
+        "date": "2025-02-28",
+        "net_shares": -248742678
+      },
+      {
+        "date": "2025-03-31",
+        "net_shares": -70563772
+      },
+      {
+        "date": "2025-04-30",
+        "net_shares": -2601691524
+      },
+      {
+        "date": "2025-05-31",
+        "net_shares": -2476776792
+      },
+      {
+        "date": "2025-06-30",
+        "net_shares": -2401749138
+      },
+      {
+        "date": "2025-07-31",
+        "net_shares": -809861090
+      },
+      {
+        "date": "2025-08-31",
+        "net_shares": -610775252
+      },
+      {
+        "date": "2025-09-30",
+        "net_shares": -75483290
+      },
+      {
+        "date": "2025-10-31",
+        "net_shares": -1960234994
+      },
+      {
+        "date": "2025-11-30",
+        "net_shares": -3636626140
+      },
+      {
+        "date": "2025-12-31",
+        "net_shares": -4232195504
+      },
+      {
+        "date": "2026-01-31",
+        "net_shares": -3879565254
+      },
+      {
+        "date": "2026-02-28",
+        "net_shares": -2055237632
+      },
+      {
+        "date": "2026-04-30",
+        "net_shares": -4575387238
+      },
+      {
+        "date": "2026-06-30",
+        "net_shares": -4499377720
+      },
+      {
+        "date": "2026-07-31",
+        "net_shares": -946283568
+      },
+      {
+        "date": "2026-08-31",
+        "net_shares": -838411040
+      }
+    ],
+    "source": "simulasi",
+    "fetched_at": "2026-10-07T14:44:48.051041+00:00"
+  }
 };
 
 export const MOCK_MACRO: MacroIndicator[] = [

@@ -8,6 +8,10 @@ import type {
   PeerComparisonItem,
   MarketGrowthTimelinePoint,
   CompanyFundamentals,
+  PricePerformance,
+  MacroSnapshotItem,
+  CorporateEvent,
+  PortfolioRiskReport,
   PipelineTelemetry,
   MacroIndicator,
   DisasterRisk,
@@ -19,11 +23,7 @@ import {
   MOCK_MARKET_OVERVIEW,
   MOCK_TOP10_GROWTH_TIMELINE,
   MOCK_PIPELINE_STAGES,
-  MOCK_GROWTH_DATA,
-  MOCK_DIVIDENDS,
-  MOCK_SHAREHOLDERS,
-  MOCK_EXECUTIVES,
-  MOCK_SMART_MONEY,
+  MOCK_FUNDAMENTALS,
   MOCK_MACRO,
   MOCK_DISASTER_RISKS,
   MOCK_PORTFOLIO
@@ -164,6 +164,11 @@ function normalizeMarketOverview(raw: any): MarketOverview {
     sector_summary: raw.sector_summary || []
   };
 }
+
+const SIMULATION_UNAVAILABLE = {
+  status: 'error' as const,
+  message: 'Data ini hanya tersedia dari backend, tidak ada versi simulasinya.'
+};
 
 export const apiService = {
   /**
@@ -447,54 +452,50 @@ export const apiService = {
 
   /**
    * 10. GET /api/v1/companies/{symbol}/fundamentals
-   * Kedalaman fundamental emiten (Pertumbuhan tahunan, Dividen, Pemegang Saham, Eksekutif, Smart Money)
+   * Laporan keuangan multi-tahun, dividen, kepemilikan, direksi, dan arus dana institusi
+   * dari laporan Sectors. Tidak ada fallback ke data simulasi: kalau backend gagal,
+   * panel menampilkan bahwa datanya belum tersedia.
    */
   async getFundamentals(symbol: string): Promise<ResponseWrapper<CompanyFundamentals>> {
     const cleanSym = symbol.toUpperCase().trim();
-
     if (useDummyData) {
-      const growth = MOCK_GROWTH_DATA[cleanSym] || MOCK_GROWTH_DATA.BBCA;
-      const divs = MOCK_DIVIDENDS[cleanSym] || MOCK_DIVIDENDS.BBCA;
-      const sh = MOCK_SHAREHOLDERS[cleanSym] || MOCK_SHAREHOLDERS.BBCA;
-      const execs = MOCK_EXECUTIVES[cleanSym] || MOCK_EXECUTIVES.BBCA;
-      const sm = MOCK_SMART_MONEY[cleanSym] || MOCK_SMART_MONEY.BBCA;
-
-      return {
-        status: 'success',
-        data: {
-          symbol: cleanSym,
-          growth_data: growth,
-          dividends: divs,
-          shareholders: sh,
-          executives: execs,
-          smart_money: sm
-        }
-      };
+      const mock = MOCK_FUNDAMENTALS[cleanSym];
+      return mock
+        ? { status: 'success', data: mock }
+        : { status: 'error', message: `Data simulasi fundamental ${cleanSym} tidak tersedia.` };
     }
+    // A cold request can trigger one Sectors report fetch on the engine.
+    return fetchApi<CompanyFundamentals>(`/api/v1/companies/${cleanSym}/fundamentals`, undefined, 30000);
+  },
 
-    const res = await fetchApi<CompanyFundamentals>(`/api/v1/companies/${cleanSym}/fundamentals`);
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
+  /** GET /api/v1/market/performance — harga mingguan 1 tahun untuk semua emiten yang dipantau. */
+  async getPricePerformance(): Promise<ResponseWrapper<PricePerformance>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi<PricePerformance>('/api/v1/market/performance', undefined, 30000);
+  },
 
-    // Graceful fallback to mock data
-    const growth = MOCK_GROWTH_DATA[cleanSym] || MOCK_GROWTH_DATA.BBCA;
-    const divs = MOCK_DIVIDENDS[cleanSym] || MOCK_DIVIDENDS.BBCA;
-    const sh = MOCK_SHAREHOLDERS[cleanSym] || MOCK_SHAREHOLDERS.BBCA;
-    const execs = MOCK_EXECUTIVES[cleanSym] || MOCK_EXECUTIVES.BBCA;
-    const sm = MOCK_SMART_MONEY[cleanSym] || MOCK_SMART_MONEY.BBCA;
+  /** GET /api/v1/macro/snapshot — IHSG, USD/IDR, Brent, emas. */
+  async getMacroSnapshot(): Promise<ResponseWrapper<{ indicators: MacroSnapshotItem[]; source: string }>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi('/api/v1/macro/snapshot', undefined, 30000);
+  },
 
-    return {
-      status: 'success',
-      data: {
-        symbol: cleanSym,
-        growth_data: growth,
-        dividends: divs,
-        shareholders: sh,
-        executives: execs,
-        smart_money: sm
-      }
-    };
+  /** GET /api/v1/companies/{symbol}/events — dividen & stock split beserta reaksi harga. */
+  async getCorporateEvents(symbol: string): Promise<ResponseWrapper<{ symbol: string; events: CorporateEvent[]; source: string }>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi(`/api/v1/companies/${symbol.toUpperCase().trim()}/events`, undefined, 30000);
+  },
+
+  /** POST /api/v1/portfolio/risk — volatilitas, VaR, drawdown, dan korelasi dari harga historis. */
+  async calculatePortfolioRisk(
+    portfolio: Array<{ ticker: string; weight: number }>
+  ): Promise<ResponseWrapper<PortfolioRiskReport>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi<PortfolioRiskReport>(
+      '/api/v1/portfolio/risk',
+      { method: 'POST', body: JSON.stringify({ portfolio, period: '1y' }) },
+      60000
+    );
   },
 
   /**

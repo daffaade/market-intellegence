@@ -89,11 +89,11 @@ export interface ScreenerFilter {
   must_have_divergence?: boolean;
 }
 
-// Additional UI & Analytics domain types
+// ─── Company fundamentals (Sectors company report) ─────────────
 export interface GrowthData {
   year: string;
-  revenue: number; // in Billions
-  net_profit: number; // in Billions
+  revenue: number; // billions IDR
+  net_profit: number; // billions IDR
   margin: number; // percentage
 }
 
@@ -101,29 +101,33 @@ export interface DividendHistory {
   year: string;
   dividend_per_share: number;
   yield_percent: number;
-  payout_ratio: number;
+  /** null when it cannot be derived reliably (e.g. DPS not split-adjusted). */
+  payout_ratio: number | null;
 }
 
 export interface Shareholder {
   name: string;
   share_percentage: number;
-  category: "INSTITUTIONAL" | "MANAGEMENT" | "RETAIL" | "GOVERNMENT";
+  category: "INSTITUTIONAL" | "MANAGEMENT" | "RETAIL" | "GOVERNMENT" | "TREASURY";
 }
 
 export interface KeyExecutive {
   name: string;
   position: string;
-  tenure: string;
-  insider_action: "BOUGHT" | "SOLD" | "HELD";
-  transaction_amount?: string;
+  share_amount: number | null;
+  share_percentage: number | null;
 }
 
+/** Net change in shares held by an institution over the reporting period. */
 export interface SmartMoneyTransaction {
-  date: string;
   institution: string;
   action: "ACCUMULATE" | "DISTRIBUTE";
-  volume: string;
-  value_idr: string;
+  shares_change: number;
+}
+
+export interface InstitutionalFlowPoint {
+  date: string;
+  net_shares: number;
 }
 
 export interface CompanyFundamentals {
@@ -133,6 +137,57 @@ export interface CompanyFundamentals {
   shareholders: Shareholder[];
   executives: KeyExecutive[];
   smart_money: SmartMoneyTransaction[];
+  smart_money_as_of?: string;
+  institutional_flow: InstitutionalFlowPoint[];
+  source: string;
+  fetched_at: string;
+}
+
+// ─── Live market series (yfinance via the engine) ──────────────
+export interface PricePerformance {
+  symbols: string[];
+  /** Weekly closes (dividend-adjusted); null when a symbol did not trade that week. */
+  points: Array<{ date: string } & Record<string, number | string | null>>;
+  as_of: string | null;
+  source: string;
+}
+
+export interface MacroSnapshotItem {
+  key: string;
+  name: string;
+  unit: string;
+  value: number;
+  date: string;
+  change_1m_pct: number | null;
+  change_1y_pct: number | null;
+  sparkline: number[];
+}
+
+export interface CorporateEvent {
+  date: string;
+  type: "DIVIDEND" | "SPLIT";
+  price_before: number;
+  reaction_1d_pct: number | null;
+  reaction_5d_pct: number | null;
+  amount?: number;
+  yield_pct?: number;
+  ratio?: number;
+}
+
+export interface PortfolioRiskReport {
+  status: string;
+  period: string;
+  metrics: {
+    portfolio_volatility: number;
+    individual_volatility: Record<string, number>;
+    correlation_matrix: Record<string, Record<string, number>>;
+    risk_contribution: Record<string, number>;
+    concentration_risk: number;
+    historical_var: number;
+    maximum_drawdown: number;
+  };
+  metadata?: Record<string, unknown>;
+  disclaimer?: string;
 }
 
 export interface MacroIndicator {

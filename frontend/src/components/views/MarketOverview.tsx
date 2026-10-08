@@ -7,11 +7,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LabelList
+  LabelList,
+  ReferenceLine
 } from 'recharts';
 import { Search, ArrowRight } from 'lucide-react';
 import type { MarketOverview as MarketOverviewType, IntelligenceSnapshot, Company } from '../../types/api';
-import { MOCK_TOP10_GROWTH_TIMELINE } from '../../services/mockData';
+import { apiService } from '../../services/mockApi';
+import { useRemote } from '../../lib/useRemote';
+import { RemoteBody, SourceNote } from '../shared/RemoteState';
 import { WatchlistButton } from '../shared/WatchlistButton';
 import type { ViewType } from '../Sidebar';
 import { formatMarketCap, formatScore } from '../../lib/format';
@@ -40,7 +43,9 @@ interface MarketOverviewProps {
   onToggleWatchlist: (symbol: string) => void;
 }
 
-const TOP_10_SYMBOLS = ['BBCA', 'BBRI', 'BMRI', 'BBNI', 'TLKM', 'AMMN', 'ICBP', 'ASII', 'ADRO', 'KLBF'];
+const TIMEFRAME_WEEKS = { '3M': 13, '6M': 26, '1Y': 53 } as const;
+
+const formatPct = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
 
 type SortKey = 'symbol' | 'sector' | 'market_cap' | 'opportunity' | 'risk';
 
@@ -81,7 +86,8 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
 }) => {
   const colors = useChartColors();
   const [timeframe, setTimeframe] = useState<'3M' | '6M' | '1Y'>('1Y');
-  const [focus, setFocus] = useState<string>(TOP_10_SYMBOLS[0]);
+  const [focus, setFocus] = useState<string>('BBCA');
+  const performance = useRemote(() => apiService.getPricePerformance(), []);
 
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('ALL');
@@ -113,18 +119,36 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
     };
   }, [rows]);
 
-  // ── Trend chart ──
+  // ── Price performance chart: weekly closes rebased to 0% at the start of the window ──
+  const symbols = performance.data?.symbols ?? [];
   const timeline = useMemo(() => {
-    if (timeframe === '3M') return MOCK_TOP10_GROWTH_TIMELINE.slice(-3);
-    if (timeframe === '6M') return MOCK_TOP10_GROWTH_TIMELINE.slice(-6);
-    return MOCK_TOP10_GROWTH_TIMELINE;
-  }, [timeframe]);
+    const pts = performance.data?.points ?? [];
+    const window = pts.slice(-TIMEFRAME_WEEKS[timeframe]);
+    const base: Record<string, number | null> = {};
+    symbols.forEach(sym => {
+      const first = window.find(p => typeof p[sym] === 'number');
+      base[sym] = first ? Number(first[sym]) : null;
+    });
+    return window.map(p => {
+      const row: Record<string, number | string | null> = {
+        period: new Date(p.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })
+      };
+      symbols.forEach(sym => {
+        const v = p[sym];
+        row[sym] = typeof v === 'number' && base[sym] ? +(((v / base[sym]!) - 1) * 100).toFixed(2) : null;
+      });
+      return row;
+    });
+  }, [performance.data, symbols, timeframe]);
 
   const focusDelta = useMemo(() => {
-    const start = Number(timeline[0]?.[focus] ?? 0);
-    const end = Number(timeline[timeline.length - 1]?.[focus] ?? 0);
-    return { start, end, delta: end - start };
-  }, [timeline, focus]);
+    const vals = timeline.map(r => r[focus]).filter((v): v is number => typeof v === 'number');
+    const ranked = symbols
+      .map(sym => ({ sym, v: [...timeline].reverse().find(r => typeof r[sym] === 'number')?.[sym] as number | undefined }))
+      .filter(r => r.v !== undefined)
+      .sort((a, b) => b.v! - a.v!);
+    return { end: vals[vals.length - 1] ?? 0, rank: ranked.findIndex(r => r.sym === focus) + 1, of: ranked.length };
+  }, [timeline, focus, symbols]);
 
   // ── Directory ──
   const sectors = useMemo(() => Array.from(new Set(rows.map(r => r.sector))).sort(), [rows]);
@@ -253,10 +277,10 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
         </div>
       </div>
 
-      {/* Trend chart — one highlighted series against the rest in gray */}
+      {/* Price performance — one highlighted series against the rest in gray */}
       <Panel
-        title="Tren skor peluang"
-        meta="10 emiten teratas, bulanan"
+        title="Kinerja harga"
+        meta="Emiten yang dipantau, mingguan"
         actions={
           <Segmented
             ariaLabel="Rentang waktu"
@@ -269,114 +293,121 @@ export const MarketOverviewView: React.FC<MarketOverviewProps> = ({
             ]}
           />
         }
+        flush
       >
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-4">
-          <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Sorot emiten">
-            {TOP_10_SYMBOLS.map(sym => (
-              <button
-                key={sym}
-                role="radio"
-                aria-checked={focus === sym}
-                onClick={() => setFocus(sym)}
-                className={cx(
-                  'num h-7 px-2.5 rounded-md text-xs border transition-colors',
-                  focus === sym
-                    ? 'border-accent text-accent bg-accent-soft'
-                    : 'border-line text-ink-2 hover:border-line-strong hover:text-ink'
-                )}
-              >
-                {sym}
-              </button>
-            ))}
-          </div>
+        <RemoteBody remote={performance} skeletonClassName="h-72" errorTitle="Data harga belum bisa dimuat">
+          {data => (
+            <div className="p-4">
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-4">
+                <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Sorot emiten">
+                  {symbols.map(sym => (
+                    <button
+                      key={sym}
+                      role="radio"
+                      aria-checked={focus === sym}
+                      onClick={() => setFocus(sym)}
+                      className={cx(
+                        'num h-7 px-2.5 rounded-md text-xs border transition-colors',
+                        focus === sym
+                          ? 'border-accent text-accent bg-accent-soft'
+                          : 'border-line text-ink-2 hover:border-line-strong hover:text-ink'
+                      )}
+                    >
+                      {sym}
+                    </button>
+                  ))}
+                </div>
 
-          <div className="flex items-end gap-6 shrink-0">
-            <div>
-              <div className="text-xs text-ink-3">{timeline[0]?.period}</div>
-              <div className="num text-[15px] text-ink-2">{focusDelta.start.toFixed(1)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-ink-3">{timeline[timeline.length - 1]?.period}</div>
-              <div className="num text-[15px] text-ink">{focusDelta.end.toFixed(1)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-ink-3">Perubahan</div>
-              <div className={cx('num text-[15px]', focusDelta.delta >= 0 ? 'text-up' : 'text-down')}>
-                {focusDelta.delta >= 0 ? '+' : '−'}{Math.abs(focusDelta.delta).toFixed(1)}
+                <div className="flex items-end gap-6 shrink-0">
+                  <div>
+                    <div className="text-xs text-ink-3">Sejak {timeline[0]?.period}</div>
+                    <div className={cx('num text-[15px]', focusDelta.end >= 0 ? 'text-up' : 'text-down')}>{formatPct(focusDelta.end)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-ink-3">Peringkat</div>
+                    <div className="num text-[15px] text-ink">{focusDelta.rank > 0 ? `${focusDelta.rank} / ${focusDelta.of}` : '—'}</div>
+                  </div>
+                  <button
+                    onClick={() => onSelectSymbol(focus)}
+                    className="text-xs text-accent hover:underline inline-flex items-center gap-1 pb-1"
+                  >
+                    Buka {focus} <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="h-72 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={timeline} margin={{ top: 8, right: 44, left: -8, bottom: 0 }}>
+                    <CartesianGrid stroke={colors.grid} vertical={false} />
+                    <XAxis dataKey="period" stroke={colors.axis} fontSize={11} tickLine={false} axisLine={{ stroke: colors.grid }} minTickGap={24} />
+                    <YAxis stroke={colors.axis} fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} />
+                    <ReferenceLine y={0} stroke={colors.axis} strokeDasharray="3 3" />
+                    <Tooltip
+                      cursor={{ stroke: colors.context }}
+                      content={({ active, payload, label }) => {
+                        if (!active || !payload?.length) return null;
+                        const sorted = [...payload].filter(p => p.value !== null).sort((a, b) => Number(b.value) - Number(a.value));
+                        return (
+                          <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs min-w-[150px]">
+                            <div className="text-ink-3 mb-1">{label}</div>
+                            {sorted.map(p => (
+                              <div
+                                key={String(p.dataKey)}
+                                className={cx('flex justify-between gap-4 num', p.dataKey === focus ? 'text-ink font-medium' : 'text-ink-3')}
+                              >
+                                <span>{String(p.dataKey)}</span>
+                                <span>{formatPct(Number(p.value))}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }}
+                    />
+                    {symbols.filter(s => s !== focus).map(sym => (
+                      <Line
+                        key={sym}
+                        type="monotone"
+                        dataKey={sym}
+                        stroke={colors.context}
+                        strokeWidth={1.25}
+                        dot={false}
+                        activeDot={false}
+                        connectNulls
+                        isAnimationActive={false}
+                      />
+                    ))}
+                    <Line
+                      key={focus}
+                      type="monotone"
+                      dataKey={focus}
+                      stroke={colors.series1}
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, stroke: colors.surface, strokeWidth: 2 }}
+                      connectNulls
+                      isAnimationActive={false}
+                    >
+                      <LabelList
+                        dataKey={focus}
+                        content={({ x, y, index }) =>
+                          index === timeline.length - 1 ? (
+                            <text x={Number(x) + 8} y={Number(y) + 4} fontSize={11} fill={colors.ink} fontFamily="IBM Plex Mono">
+                              {focus}
+                            </text>
+                          ) : null
+                        }
+                      />
+                    </Line>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-3">
+                <SourceNote source="Yahoo Finance, harga disesuaikan dividen" date={data.as_of} />
               </div>
             </div>
-            <button
-              onClick={() => onSelectSymbol(focus)}
-              className="text-xs text-accent hover:underline inline-flex items-center gap-1 pb-1"
-            >
-              Buka {focus} <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-
-        <div className="h-72 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={timeline} margin={{ top: 8, right: 44, left: -16, bottom: 0 }}>
-              <CartesianGrid stroke={colors.grid} vertical={false} />
-              <XAxis dataKey="period" stroke={colors.axis} fontSize={11} tickLine={false} axisLine={{ stroke: colors.grid }} />
-              <YAxis stroke={colors.axis} fontSize={11} tickLine={false} axisLine={false} domain={[55, 95]} />
-              <Tooltip
-                cursor={{ stroke: colors.context }}
-                content={({ active, payload, label }) => {
-                  if (!active || !payload?.length) return null;
-                  const sorted = [...payload].sort((a, b) => Number(b.value) - Number(a.value));
-                  return (
-                    <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs min-w-[140px]">
-                      <div className="text-ink-3 mb-1">{label}</div>
-                      {sorted.map(p => (
-                        <div
-                          key={String(p.dataKey)}
-                          className={cx('flex justify-between gap-4 num', p.dataKey === focus ? 'text-ink font-medium' : 'text-ink-3')}
-                        >
-                          <span>{String(p.dataKey)}</span>
-                          <span>{Number(p.value).toFixed(1)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                }}
-              />
-              {TOP_10_SYMBOLS.filter(s => s !== focus).map(sym => (
-                <Line
-                  key={sym}
-                  type="monotone"
-                  dataKey={sym}
-                  stroke={colors.context}
-                  strokeWidth={1.25}
-                  dot={false}
-                  activeDot={false}
-                  isAnimationActive={false}
-                />
-              ))}
-              <Line
-                key={focus}
-                type="monotone"
-                dataKey={focus}
-                stroke={colors.series1}
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, stroke: colors.surface, strokeWidth: 2 }}
-                isAnimationActive={false}
-              >
-                <LabelList
-                  dataKey={focus}
-                  content={({ x, y, index }) =>
-                    index === timeline.length - 1 ? (
-                      <text x={Number(x) + 8} y={Number(y) + 4} fontSize={11} fill={colors.ink} fontFamily="IBM Plex Mono">
-                        {focus}
-                      </text>
-                    ) : null
-                  }
-                />
-              </Line>
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+          )}
+        </RemoteBody>
       </Panel>
 
       {/* Sector summary */}
