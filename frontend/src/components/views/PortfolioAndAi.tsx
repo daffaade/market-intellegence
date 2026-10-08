@@ -4,7 +4,7 @@ import type { IntelligenceSnapshot, Company } from '../../types/api';
 import { apiService } from '../../services/mockApi';
 import { useRemote } from '../../lib/useRemote';
 import { confidenceLabel } from '../../lib/format';
-import { loadPortfolio, savePortfolio, EXAMPLE_PORTFOLIO, type PortfolioHolding } from '../../lib/portfolioStore';
+import { EXAMPLE_PORTFOLIO, type PortfolioHolding } from '../../lib/portfolioStore';
 import { RemoteBody, SourceNote } from '../shared/RemoteState';
 import { PageHeader, Panel, Stat, ScoreBar, DirectionTag, Button, EmptyState } from '../ui/primitives';
 import { cx } from '../../lib/ui';
@@ -14,6 +14,9 @@ interface PortfolioAndAiProps {
   company: Company;
   companies: Company[];
   allIntelligence: IntelligenceSnapshot[];
+  holdings: PortfolioHolding[];
+  onChangeHoldings: React.Dispatch<React.SetStateAction<PortfolioHolding[]>>;
+  syncedToAccount: boolean;
   onSelectSymbol: (symbol: string) => void;
 }
 
@@ -35,10 +38,11 @@ export const PortfolioAndAi: React.FC<PortfolioAndAiProps> = ({
   company,
   companies,
   allIntelligence,
+  holdings,
+  onChangeHoldings: setHoldings,
+  syncedToAccount,
   onSelectSymbol
 }) => {
-  const [holdings, setHoldings] = useState<PortfolioHolding[]>(loadPortfolio);
-  useEffect(() => savePortfolio(holdings), [holdings]);
 
   const companyBySymbol = useMemo(() => new Map(companies.map(c => [c.symbol, c])), [companies]);
   const intelBySymbol = useMemo(() => new Map(allIntelligence.map(i => [i.symbol, i])), [allIntelligence]);
@@ -301,7 +305,7 @@ export const PortfolioAndAi: React.FC<PortfolioAndAiProps> = ({
                     <Button size="sm" onClick={add}><Plus className="w-3.5 h-3.5" /> Tambah</Button>
                   </>
                 )}
-                <span className="text-xs text-ink-3 ml-auto">Tersimpan di perangkat ini</span>
+                <span className="text-xs text-ink-3 ml-auto">{syncedToAccount ? 'Tersimpan di akun Anda' : 'Tersimpan di perangkat ini'}</span>
               </div>
             </Panel>
 

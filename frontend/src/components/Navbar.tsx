@@ -1,5 +1,8 @@
-import React from 'react';
-import { Search, Menu, Moon, Sun } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, Menu, Moon, Sun, LogOut } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
+import { profileOf } from '../lib/auth';
+import type { SyncStatus } from '../lib/userData';
 import type { DataOrigin } from '../services/mockApi';
 import type { Theme } from '../lib/theme';
 import { Kbd } from './ui/primitives';
@@ -13,6 +16,9 @@ interface NavbarProps {
   theme: Theme;
   onToggleTheme: () => void;
   loading?: boolean;
+  user?: User | null;
+  syncStatus?: SyncStatus;
+  onSignOut?: () => void;
 }
 
 const originCopy: Record<DataOrigin, { label: string; dot: string; title: string }> = {
@@ -40,7 +46,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   dataOrigin,
   theme,
   onToggleTheme,
-  loading
+  loading,
+  user,
+  syncStatus,
+  onSignOut
 }) => {
   const origin = originCopy[dataOrigin];
 
@@ -94,6 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
+        {user && onSignOut && <AccountMenu user={user} syncStatus={syncStatus} onSignOut={onSignOut} />}
       </div>
 
       {loading && (
@@ -102,5 +112,65 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       )}
     </header>
+  );
+};
+
+const syncCopy: Record<SyncStatus, string> = {
+  local: 'Tersimpan di perangkat ini',
+  loading: 'Memuat data akun…',
+  synced: 'Watchlist & portofolio tersinkron',
+  saving: 'Menyimpan…',
+  error: 'Gagal sinkron, perubahan tersimpan di perangkat'
+};
+
+const AccountMenu: React.FC<{ user: User; syncStatus?: SyncStatus; onSignOut: () => void }> = ({ user, syncStatus, onSignOut }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { name, email, avatar } = profileOf(user);
+  const initials = name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener('mousedown', close);
+    window.addEventListener('keydown', close);
+    return () => {
+      window.removeEventListener('mousedown', close);
+      window.removeEventListener('keydown', close);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative ml-1">
+      <button
+        onClick={() => setOpen(v => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Akun ${name}`}
+        className="w-8 h-8 rounded-full overflow-hidden border border-line flex items-center justify-center bg-accent-soft text-accent text-[11px] font-semibold"
+      >
+        {avatar ? <img src={avatar} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : initials}
+      </button>
+      {open && (
+        <div role="menu" className="absolute right-0 top-10 w-64 bg-surface border border-line-strong rounded-lg shadow-lg overflow-hidden">
+          <div className="px-3 py-3 border-b border-line">
+            <div className="text-[13px] font-medium text-ink truncate">{name}</div>
+            <div className="text-xs text-ink-3 truncate">{email}</div>
+            {syncStatus && (
+              <div className={cx('text-xs mt-2', syncStatus === 'error' ? 'text-down' : 'text-ink-3')}>{syncCopy[syncStatus]}</div>
+            )}
+          </div>
+          <button
+            role="menuitem"
+            onClick={onSignOut}
+            className="w-full px-3 h-9 flex items-center gap-2 text-[13px] text-ink-2 hover:bg-surface-2 hover:text-ink"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Keluar
+          </button>
+        </div>
+      )}
+    </div>
   );
 };

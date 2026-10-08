@@ -18,19 +18,10 @@ import {
 } from './services/mockApi';
 import { MOCK_PIPELINE_STAGES, MOCK_SIGNAL_OUTPUTS } from './services/mockData';
 import { ThemeContext, readInitialTheme, applyTheme, type Theme } from './lib/theme';
-
-const WATCHLIST_STORAGE_KEY = 'marketidex_watchlist';
-
-const readWatchlist = (): string[] => {
-  try {
-    const raw = localStorage.getItem(WATCHLIST_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (Array.isArray(parsed)) return parsed.filter((s): s is string => typeof s === 'string');
-  } catch {
-    // ignore corrupt storage
-  }
-  return ['BBCA', 'TLKM'];
-};
+import { useAuth } from './lib/auth';
+import { authEnabled } from './lib/supabase';
+import { useUserData } from './lib/userData';
+import { LoginPage } from './components/views/LoginPage';
 
 const VIEWS: ViewType[] = ['overview', 'signals', 'dashboard', 'market', 'ai-portfolio'];
 
@@ -43,7 +34,7 @@ const parseHash = (): { view: ViewType; symbol: string } => {
   };
 };
 
-export function App() {
+function App() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>(() => parseHash().symbol);
   const [currentView, setCurrentView] = useState<ViewType>(() => parseHash().view);
 
@@ -53,7 +44,8 @@ export function App() {
   const [isPipelineOpen, setIsPipelineOpen] = useState<boolean>(false);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [useDummyData, setUseDummyData] = useState<boolean>(() => isDummyMode());
-  const [watchlist, setWatchlist] = useState<string[]>(readWatchlist);
+  const auth = useAuth();
+  const { portfolio, setPortfolio, watchlist, setWatchlist, status: syncStatus } = useUserData(auth.user);
 
   const [companies, setCompanies] = useState<Company[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
@@ -84,14 +76,6 @@ export function App() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(watchlist));
-    } catch {
-      // ignore
-    }
-  }, [watchlist]);
 
   // Collect the origin of every response in a load so a single fallback is not
   // hidden by a later successful call.
@@ -187,6 +171,9 @@ export function App() {
           theme={theme}
           onToggleTheme={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
           loading={loading && !!ready}
+          user={auth.user}
+          syncStatus={syncStatus}
+          onSignOut={auth.signOut}
         />
 
         <div className="flex-1 flex min-h-0 relative">
@@ -265,6 +252,9 @@ export function App() {
                       company={company}
                       companies={companies}
                       allIntelligence={allIntelligence}
+                      holdings={portfolio}
+                      onChangeHoldings={setPortfolio}
+                      syncedToAccount={!!auth.user}
                       onSelectSymbol={handleSelectSymbol}
                     />
                   )}
@@ -313,4 +303,14 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-export default App;
+/** Requires sign-in when Supabase is configured; without it the app runs local-only. */
+export function AuthGate() {
+  const { ready, user } = useAuth();
+  // App applies the theme itself; the login screen needs it too.
+  useEffect(() => applyTheme(readInitialTheme()), []);
+  if (!authEnabled) return <App />;
+  if (!ready) return <div className="h-screen bg-canvas" aria-busy="true" />;
+  return user ? <App /> : <LoginPage />;
+}
+
+export default AuthGate;

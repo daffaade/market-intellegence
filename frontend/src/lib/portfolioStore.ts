@@ -1,7 +1,6 @@
 /**
- * Where the user's portfolio lives. Today it is this device's localStorage;
- * once sign-in exists this is the one place to swap for a per-user backend
- * store (load/save keep the same shape).
+ * Device copy of the portfolio. When signed in, lib/userData.ts also keeps it
+ * in the user's Supabase row and treats that as the source of truth.
  */
 export interface PortfolioHolding {
   symbol: string;
