@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -26,44 +28,101 @@ func NewClient(cfg *config.Config) *Client {
 		model:    cfg.AIModel,
 		apiKey:   cfg.AIApiKey,
 		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
+			// Thinking models take several seconds; summaries are generated off the
+			// request path (cache refresh), so a generous timeout costs nothing.
+			Timeout: 45 * time.Second,
 		},
 	}
 }
 
 func (c *Client) GenerateSummary(ctx context.Context, snapshot *domain.IntelligenceSnapshot) (string, error) {
-	if c.provider == "gemini" && c.apiKey != "" {
-		summary, err := c.callGemini(ctx, snapshot)
-		if err == nil && summary != "" {
-			return summary, nil
-		}
-	} else if c.provider == "groq" && c.apiKey != "" {
-		summary, err := c.callGroq(ctx, snapshot)
-		if err == nil && summary != "" {
-			return summary, nil
-		}
+	var (
+		summary string
+		err     error
+	)
+	switch {
+	case c.provider == "gemini" && c.apiKey != "":
+		summary, err = c.callGemini(ctx, snapshot)
+	case c.provider == "groq" && c.apiKey != "":
+		summary, err = c.callGroq(ctx, snapshot)
+	default:
+		return c.synthesizeRuleBasedSummary(snapshot), nil
 	}
 
-	// Default / Fallback: Rule-Based Fact-Grounded Synthesizer
-	return c.synthesizeRuleBasedSummary(snapshot), nil
+	if err == nil {
+		err = validateSummary(summary, c.buildFactPrompt(snapshot))
+	}
+	if err != nil {
+		slog.Warn("llm summary rejected, using rule-based summary",
+			"provider", c.provider, "model", c.model, "symbol", snapshot.Symbol, "error", err.Error())
+		return c.synthesizeRuleBasedSummary(snapshot), nil
+	}
+	return summary, nil
 }
+
+// advicePattern catches direct buy/sell/hold advice, which OJK rules forbid in
+// user-facing output. Word boundaries keep "penjualan" (sales) and similar legal.
+var advicePattern = regexp.MustCompile(`(?i)\b(beli|jual|koleksi|tahan|buy|sell|hold|akumulasi sekarang|layak dibeli)\b`)
+
+var numberPattern = regexp.MustCompile(`\d+(?:[.,]\d+)*`)
+
+// validateSummary enforces "the system computes, the AI explains": no investment
+// advice, and no number that does not appear in the facts we gave the model.
+func validateSummary(summary, facts string) error {
+	if strings.TrimSpace(summary) == "" {
+		return fmt.Errorf("empty summary")
+	}
+	if m := advicePattern.FindString(summary); m != "" {
+		return fmt.Errorf("contains advisory wording %q", m)
+	}
+	known := map[string]bool{}
+	for _, n := range numberPattern.FindAllString(facts, -1) {
+		known[normalizeNumber(n)] = true
+	}
+	for _, n := range numberPattern.FindAllString(summary, -1) {
+		norm := normalizeNumber(n)
+		if len(strings.TrimLeft(strings.ReplaceAll(norm, ".", ""), "0")) <= 1 {
+			continue // single digits ("2 faktor", "H+7" style counts) are not data claims
+		}
+		if !known[norm] {
+			return fmt.Errorf("number %q not present in the facts", n)
+		}
+	}
+	return nil
+}
+
+// normalizeNumber maps "57,2" and "57.2" (and "57.20") to the same key.
+func normalizeNumber(n string) string {
+	n = strings.ReplaceAll(n, ",", ".")
+	if strings.Contains(n, ".") {
+		n = strings.TrimRight(strings.TrimRight(n, "0"), ".")
+	}
+	return n
+}
+
+const systemInstruction = "Anda analis riset pasar modal Indonesia yang objektif. Tugas Anda hanya menjelaskan fakta yang diberikan sistem, bukan menilai sendiri. " +
+	"Aturan: (1) Bahasa Indonesia profesional, 2 paragraf singkat, tanpa judul, tanpa poin, tanpa markdown. " +
+	"(2) Hanya pakai angka yang ada di fakta, tulis persis seperti di fakta; jangan menghitung atau membulatkan angka baru. " +
+	"(3) Jangan menambah klaim di luar fakta, termasuk reputasi perusahaan, ukuran, sejarah, atau kondisi makro. " +
+	"(4) Dilarang memberi saran investasi: jangan gunakan kata beli, jual, tahan, koleksi, atau ajakan bertindak. " +
+	"(5) Jika fakta saling bertentangan atau netral, katakan apa adanya. (6) Jangan menulis disclaimer; sistem menambahkannya sendiri."
 
 // callGemini executes a prompt against the Google Gemini generateContent REST API
 func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSnapshot) (string, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", c.model, c.apiKey)
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent", c.model)
 
-	prompt := c.buildFactPrompt(snapshot)
 	payload := map[string]interface{}{
+		"systemInstruction": map[string]interface{}{
+			"parts": []map[string]string{{"text": systemInstruction}},
+		},
 		"contents": []map[string]interface{}{
-			{
-				"parts": []map[string]string{
-					{"text": prompt},
-				},
-			},
+			{"role": "user", "parts": []map[string]string{{"text": c.buildFactPrompt(snapshot)}}},
 		},
 		"generationConfig": map[string]interface{}{
-			"temperature":     0.2, // Low temperature to prevent hallucination
-			"maxOutputTokens": 300,
+			"temperature": 0.2, // Low temperature to prevent hallucination
+			// Thinking tokens count against this limit; 300 left nothing for the answer.
+			"maxOutputTokens": 2048,
+			"thinkingConfig":  map[string]interface{}{"thinkingLevel": "low"},
 		},
 	}
 
@@ -77,6 +136,8 @@ func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSn
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	// Header rather than ?key= so the key never appears in error messages or logs.
+	req.Header.Set("x-goog-api-key", c.apiKey)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -90,9 +151,11 @@ func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSn
 
 	var result struct {
 		Candidates []struct {
-			Content struct {
+			FinishReason string `json:"finishReason"`
+			Content      struct {
 				Parts []struct {
-					Text string `json:"text"`
+					Text    string `json:"text"`
+					Thought bool   `json:"thought"`
 				} `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
@@ -101,11 +164,20 @@ func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSn
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err
 	}
-
-	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
-		return strings.TrimSpace(result.Candidates[0].Content.Parts[0].Text), nil
+	if len(result.Candidates) == 0 {
+		return "", fmt.Errorf("empty gemini response")
 	}
-	return "", fmt.Errorf("empty gemini response")
+	cand := result.Candidates[0]
+	if cand.FinishReason != "" && cand.FinishReason != "STOP" {
+		return "", fmt.Errorf("gemini stopped early: %s", cand.FinishReason)
+	}
+	var sb strings.Builder
+	for _, p := range cand.Content.Parts {
+		if !p.Thought {
+			sb.WriteString(p.Text)
+		}
+	}
+	return strings.TrimSpace(sb.String()), nil
 }
 
 // callGroq calls the Groq OpenAI-compatible Chat Completions API
@@ -116,11 +188,11 @@ func (c *Client) callGroq(ctx context.Context, snapshot *domain.IntelligenceSnap
 	payload := map[string]interface{}{
 		"model": c.model,
 		"messages": []map[string]string{
-			{"role": "system", "content": "Anda adalah analis riset pasar modal Indonesia yang objektif dan bebas halusinasi. Hanya rangkum bukti data yang diberikan. Dilarang memberikan rekomendasi Beli atau Jual."},
+			{"role": "system", "content": systemInstruction},
 			{"role": "user", "content": prompt},
 		},
 		"temperature": 0.2,
-		"max_tokens":  300,
+		"max_tokens":  600,
 	}
 
 	body, err := json.Marshal(payload)
@@ -165,7 +237,7 @@ func (c *Client) callGroq(ctx context.Context, snapshot *domain.IntelligenceSnap
 
 func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("Tolong buat ringkasan analisis riset pasar (2 paragraf singkat) untuk emiten %s berdasarkan fakta berikut:\n", snapshot.Symbol))
+	sb.WriteString(fmt.Sprintf("Fakta hasil perhitungan sistem untuk emiten %s:\n", snapshot.Symbol))
 	sb.WriteString(fmt.Sprintf("- Skor Peluang: %.1f / 100\n", snapshot.OpportunityScore))
 	sb.WriteString(fmt.Sprintf("- Level Risiko: %s (Skor Risiko: %.1f)\n", snapshot.RiskLevel, snapshot.RiskScore))
 	sb.WriteString(fmt.Sprintf("- Arah Sentimen Analisis: %s (Keyakinan: %s)\n", snapshot.Direction, snapshot.Confidence))
@@ -185,11 +257,55 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 	if len(snapshot.Evidence) > 0 {
 		sb.WriteString("Bukti Metrik:\n")
 		for _, e := range snapshot.Evidence {
-			sb.WriteString(fmt.Sprintf("  * %s: Emiten %s vs Median Industri %s (Posisi: %s)\n", e.Metric, e.CompanyValue, e.PeerMedian, e.Position))
+			sb.WriteString(fmt.Sprintf("  * %s: emiten %s vs median peer %s (%s)\n", metricLabel(e.Metric), e.CompanyValue, e.PeerMedian, relativeToMedian(e)))
 		}
 	}
-	sb.WriteString("\nAturan ketat: Gunakan bahasa Indonesia profesional. Jangan mengarang angka baru. Dilarang menyarankan 'Beli', 'Jual', atau 'Koleksi'.")
+	if snapshot.DivergenceDetected {
+		sb.WriteString("Divergensi fundamental terdeteksi: ya\n")
+	}
+	if snapshot.IsAnomaly {
+		sb.WriteString("Anomali pergerakan terdeteksi: ya\n")
+	}
+	sb.WriteString("\nTulis ringkasan riset 2 paragraf singkat: paragraf pertama tentang sinyal dan pendorongnya, paragraf kedua tentang risiko dan hal yang perlu dipantau. " +
+		"Rangkum, jangan mendaftar semua metrik; sebut paling banyak 4 angka terpenting. Terjemahkan nama faktor ke bahasa Indonesia. " +
+		"Jika sebuah faktor tidak didukung metriknya (misalnya faktor menyebut valuasi menarik tetapi metrik valuasi setara median), sebutkan bahwa buktinya belum konsisten.")
 	return sb.String()
+}
+
+// relativeToMedian states the comparison from the numbers themselves. The engine's
+// Outperform/Underperform labels are not direction-aware (a volatility far above
+// peers is labelled "Outperform"), and the model repeated them verbatim.
+func relativeToMedian(e domain.EvidenceItem) string {
+	var v, m float64
+	if _, err := fmt.Sscanf(e.CompanyValue, "%g", &v); err != nil {
+		return "posisi: " + e.Position
+	}
+	if _, err := fmt.Sscanf(e.PeerMedian, "%g", &m); err != nil {
+		return "posisi: " + e.Position
+	}
+	switch {
+	case v > m:
+		return "di atas median"
+	case v < m:
+		return "di bawah median"
+	default:
+		return "setara median"
+	}
+}
+
+// metricLabel turns engine metric codes into words the model can explain.
+func metricLabel(code string) string {
+	labels := map[string]string{
+		"GROWTH_PROXY":       "Indikator pertumbuhan",
+		"VALUATION_PROXY":    "Indikator valuasi",
+		"INSTITUTIONAL_FLOW": "Arus dana institusi",
+		"FORECAST_PROXY":     "Proyeksi return model",
+		"VOL_20D":            "Volatilitas 20 hari (%, makin tinggi makin berisiko)",
+	}
+	if l, ok := labels[code]; ok {
+		return l
+	}
+	return code
 }
 
 func (c *Client) synthesizeRuleBasedSummary(s *domain.IntelligenceSnapshot) string {
