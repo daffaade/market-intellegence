@@ -45,3 +45,6 @@ model-intellegence/
 backend/bin/
 backend/*.exe
 *.exe
+# Editor swap files (can contain copies of .env)
+*.swp
+*.swo
