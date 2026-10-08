@@ -32,6 +32,11 @@ type IntelligenceUsecase struct {
 	refreshing sync.Map
 }
 
+// scoringChangedAt marks the last change to how snapshots are computed (scores,
+// anomaly/divergence mapping, AI summary). Snapshots older than this are served
+// but refreshed in the background, like expired ones. Bump it on every such change.
+var scoringChangedAt = time.Date(2026, 10, 8, 14, 10, 0, 0, time.FixedZone("WIB", 7*3600))
+
 const LegalDisclaimer = "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual)."
 
 func NewIntelligenceUsecase(
@@ -67,7 +72,7 @@ func (u *IntelligenceUsecase) GetCompanyIntelligence(ctx context.Context, symbol
 		// serve it now and refresh in the background. A synchronous cold engine call
 		// takes 9-45s, far past the frontend's request timeout, which would otherwise
 		// make the UI silently fall back to mock data.
-		if time.Since(cached.CreatedAt) >= ttl || cached.SmartMoney == nil {
+		if time.Since(cached.CreatedAt) >= ttl || cached.SmartMoney == nil || cached.CreatedAt.Before(scoringChangedAt) {
 			u.refreshInBackground(symbol)
 		}
 		return cached, nil

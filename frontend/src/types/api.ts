@@ -139,6 +139,8 @@ export interface CompanyFundamentals {
   smart_money: SmartMoneyTransaction[];
   smart_money_as_of?: string;
   institutional_flow: InstitutionalFlowPoint[];
+  /** Daily net foreign flow in IDR for the last ~90 days (Sectors). */
+  foreign_flow?: Array<{ date: string; net_idr: number; foreign_share: number | null }>;
   source: string;
   fetched_at: string;
 }

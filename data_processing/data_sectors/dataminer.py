@@ -468,7 +468,7 @@ class SectorsDataMiner:
         url = f"{self.BASE_URL}/{endpoint.lstrip('/')}"
         req = urllib.request.Request(url, headers=self.headers)
         try:
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=20) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             # Return None to skip missing/404 endpoints gracefully
@@ -512,8 +512,21 @@ class SectorsDataMiner:
             Tuple of (mined_data_dict, validation_report_dict)
         """
         clean_symbol = symbol.replace(".JK", "").upper()
-        report = self.mine_company_report(clean_symbol) or {}
-        daily_prices = self.mine_daily_prices(clean_symbol)
+        # Credit budget: the report is reused from the 7-day disk cache (one fetch per
+        # symbol per week), and the latest close comes from the report itself rather
+        # than a separate /daily call. Long price history comes from yfinance.
+        from data_processing.data_sectors.fundamentals import get_report
+        cached = get_report(clean_symbol, miner=self)
+        report = (cached or {}).get("report") or {}
+        overview = report.get("overview") or {}
+        daily_prices = None
+        if overview.get("last_close_price") is not None:
+            daily_prices = [{
+                "symbol": f"{clean_symbol}.JK",
+                "date": overview.get("latest_close_date"),
+                "close": overview.get("last_close_price"),
+                "market_cap": overview.get("market_cap"),
+            }]
 
         extracted_data: Dict[str, Any] = {}
 

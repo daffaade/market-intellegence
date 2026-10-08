@@ -44,6 +44,13 @@ type InstitutionalFlowPoint struct {
 	NetShares int64  `json:"net_shares"`
 }
 
+// ForeignFlowPoint is one session's net foreign buying (positive) or selling, in IDR.
+type ForeignFlowPoint struct {
+	Date         string   `json:"date"`
+	NetIDR       float64  `json:"net_idr"`
+	ForeignShare *float64 `json:"foreign_share"`
+}
+
 type CompanyFundamentals struct {
 	Symbol            string                   `json:"symbol"`
 	GrowthData        []GrowthData             `json:"growth_data"`
@@ -53,6 +60,7 @@ type CompanyFundamentals struct {
 	SmartMoney        []SmartMoneyTransaction  `json:"smart_money"`
 	SmartMoneyAsOf    string                   `json:"smart_money_as_of,omitempty"`
 	InstitutionalFlow []InstitutionalFlowPoint `json:"institutional_flow"`
+	ForeignFlow       []ForeignFlowPoint       `json:"foreign_flow"`
 	Source            string                   `json:"source"`
 	FetchedAt         string                   `json:"fetched_at"`
 }

@@ -30,6 +30,17 @@ export const formatShares = (n: number): string => {
   return `${sign}${a}`;
 };
 
+/** Rupiah in Indonesian short scale: jt, M (miliar), T (triliun). */
+const formatRupiah = (n: number): string => {
+  const a = Math.abs(n);
+  const sign = n < 0 ? '−' : '';
+  const fmt = (v: number) => v.toLocaleString('id-ID', { maximumFractionDigits: 1 });
+  if (a >= 1e12) return `${sign}Rp ${fmt(a / 1e12)} T`;
+  if (a >= 1e9) return `${sign}Rp ${fmt(a / 1e9)} M`;
+  if (a >= 1e6) return `${sign}Rp ${fmt(a / 1e6)} jt`;
+  return `${sign}Rp ${a.toLocaleString('id-ID')}`;
+};
+
 const pctChange = (curr?: number, prev?: number) =>
   curr !== undefined && prev ? ((curr - prev) / Math.abs(prev)) * 100 : undefined;
 
@@ -110,6 +121,8 @@ const FundamentalsBody: React.FC<{ f: CompanyFundamentals }> = ({ f }) => {
   const maxMove = Math.max(1, ...f.smart_money.map(t => Math.abs(t.shares_change)));
 
   const flow = useMemo(() => f.institutional_flow.slice(-12), [f.institutional_flow]);
+  const foreign = useMemo(() => (f.foreign_flow ?? []).slice(-60), [f.foreign_flow]);
+  const foreignNet = (n: number) => foreign.slice(-n).reduce((a, p) => a + p.net_idr, 0);
   const flowNet = flow.reduce((a, p) => a + p.net_shares, 0);
 
   const holders = useMemo(() => {
@@ -344,6 +357,62 @@ const FundamentalsBody: React.FC<{ f: CompanyFundamentals }> = ({ f }) => {
           )}
         </Panel>
       </div>
+
+      {foreign.length > 0 && (
+        <Panel
+          title="Arus bersih asing"
+          meta={`Harian, ${foreign.length} sesi terakhir`}
+          actions={
+            <span className="flex gap-4 text-xs text-ink-3">
+              {[5, 20].map(n => (
+                <span key={n}>
+                  {n} sesi{' '}
+                  <span className={cx('num', foreignNet(n) >= 0 ? 'text-up' : 'text-down')}>{formatRupiah(foreignNet(n))}</span>
+                </span>
+              ))}
+            </span>
+          }
+        >
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={foreign} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
+                <CartesianGrid stroke={colors.grid} vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  stroke={colors.axis}
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={{ stroke: colors.grid }}
+                  minTickGap={28}
+                  tickFormatter={d => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                />
+                <YAxis stroke={colors.axis} fontSize={11} tickLine={false} axisLine={false} width={64} tickFormatter={v => formatRupiah(Number(v)).replace('Rp ', '')} />
+                <ReferenceLine y={0} stroke={colors.axis} />
+                <Tooltip
+                  cursor={{ fill: colors.grid, opacity: 0.5 }}
+                  content={({ active, payload }) =>
+                    active && payload?.length ? (
+                      <div className="bg-surface border border-line-strong rounded-md shadow-lg px-3 py-2 text-xs">
+                        <div className="text-ink-3 mb-1">{formatDay(String(payload[0].payload.date))}</div>
+                        <div className="num text-ink">{formatRupiah(Number(payload[0].value))}</div>
+                        {payload[0].payload.foreign_share != null && (
+                          <div className="text-ink-3">Porsi asing {(Number(payload[0].payload.foreign_share) * 100).toFixed(0)}% transaksi</div>
+                        )}
+                      </div>
+                    ) : null
+                  }
+                />
+                <Bar dataKey="net_idr" isAnimationActive={false}>
+                  {foreign.map(p => (
+                    <Cell key={p.date} fill={p.net_idr >= 0 ? colors.up : colors.down} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="mt-2 text-xs text-ink-3">Nilai beli dikurangi nilai jual investor asing per sesi. Sumber: Sectors.</p>
+        </Panel>
+      )}
 
       {flow.length > 0 && (
         <Panel

@@ -96,8 +96,17 @@ class UnifiedDataLoader:
                 resolved["fallback_to"] = "yfinance"
             return resolved
         else:
-            # yfinance prioritized
+            # yfinance prioritized. Only consult Sectors when yfinance has nothing:
+            # the "supporting source" lookup used to run on every call and spent
+            # Sectors credits on data that was then discarded.
             res_primary = self._fetch_from_provider(self.yfinance_provider, ticker, data_type)
+            if res_primary.get("status") == "OKAY":
+                return {
+                    "value": res_primary.get("data"),
+                    "source": "yfinance",
+                    "supporting_source": None,
+                    "discrepancy": False
+                }
             res_secondary = self._fetch_from_provider(self.sectors_provider, ticker, data_type)
             # Reversing order for overlap resolution
             resolved = self._resolve_overlap(res_secondary, res_primary, data_type)

@@ -62,3 +62,15 @@ def test_divergence_needs_earnings_and_price_to_disagree():
 def test_bank_leverage_is_not_penalised():
     fund = dict(CHEAP_GROWING, der=6.0, sector="Financials")
     assert "leverage" not in {f["key"] for f in run(_prices(0.0, 0.01), fund)["factors"]}
+
+
+def test_foreign_flow_factor_uses_turnover_share():
+    df = _prices(0.0, 0.01)
+    days = [d.strftime("%Y-%m-%d") for d in pd.to_datetime(df["date"]).iloc[-25:]]
+    turnover_per_day = float((df["close"] * df["volume"]).iloc[-1])
+    inflow = {"points": [{"date": d, "net": 0.2 * turnover_per_day} for d in days]}
+    outflow = {"points": [{"date": d, "net": -0.2 * turnover_per_day} for d in days]}
+    f_in = next(f for f in run(df, CHEAP_GROWING, foreign_flow=inflow)["factors"] if f["key"] == "foreign_flow")
+    f_out = next(f for f in run(df, CHEAP_GROWING, foreign_flow=outflow)["factors"] if f["key"] == "foreign_flow")
+    assert f_in["favorable"] is True and f_out["favorable"] is False
+    assert f_in["score"] > 0.9 and f_out["score"] < 0.1

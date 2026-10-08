@@ -25,12 +25,17 @@ import pandas as pd
 # ── Weights ───────────────────────────────────────────────────────────────────
 OPP_WEIGHTS = {
     "relative_momentum": 0.20,
-    "trend": 0.15,
+    "trend": 0.10,
     "valuation": 0.25,
     "earnings_growth": 0.20,
-    "institutional_flow": 0.10,
+    "foreign_flow": 0.10,       # daily net foreign flow (Sectors)
+    "institutional_flow": 0.05,  # monthly institutional holdings change (Sectors report)
     "forecast": 0.10,  # scaled further by the model's measured skill
 }
+
+# Sectors index/foreign-flow windows are capped at 90 calendar days (~62 sessions).
+MOMENTUM_SESSIONS = 60
+FLOW_SESSIONS = 20
 RISK_WEIGHTS = {
     "volatility": 0.25,
     "drawdown": 0.20,
@@ -74,11 +79,28 @@ _ihsg_lock = threading.Lock()
 
 
 def ihsg_close() -> Optional[pd.Series]:
-    """IHSG daily closes for relative performance, cached for 6 hours."""
+    """
+    IHSG daily closes for relative performance: Sectors index-daily (cached a day
+    on disk), falling back to yfinance ^JKSE. Cached in memory for 6 hours.
+    """
     with _ihsg_lock:
         hit = _ihsg_cache.get("s")
         if hit and time.time() - hit[0] < 6 * 3600:
             return hit[1]
+    try:
+        from data_processing.data_sectors.market_series import get_index_daily
+        idx = get_index_daily("ihsg")
+    except Exception:
+        idx = None
+    if idx and len(idx["points"]) > MOMENTUM_SESSIONS:
+        close = pd.Series(
+            [p["price"] for p in idx["points"]],
+            index=pd.to_datetime([p["date"] for p in idx["points"]]),
+            dtype=float,
+        )
+        with _ihsg_lock:
+            _ihsg_cache["s"] = (time.time(), close)
+        return close
     try:
         import yfinance as yf
         raw = yf.download("^JKSE", period="2y", progress=False, auto_adjust=True)
@@ -160,6 +182,16 @@ def fundamentals_snapshot(symbol: str) -> Dict[str, Any]:
     return out
 
 
+def _bench_return(bench: Optional[pd.Series], start, end) -> Optional[float]:
+    """Benchmark return over the same dates as the stock (None if it does not cover them)."""
+    if bench is None or bench.empty:
+        return None
+    b = bench[(bench.index >= start - pd.Timedelta(days=4)) & (bench.index <= end)]
+    if len(b) < 2 or b.index[0] > start + pd.Timedelta(days=4):
+        return None
+    return float(b.iloc[-1]) / float(b.iloc[0]) - 1
+
+
 # ── Factor engine ─────────────────────────────────────────────────────────────
 def _factor(key, side, label, value_text, reference, score, favorable, weight_scale=1.0, note=None):
     return {
@@ -187,6 +219,7 @@ def compute_signals(
     anomaly: Optional[Dict[str, Any]] = None,
     fundamentals: Optional[Dict[str, Any]] = None,
     benchmark: Optional[pd.Series] = None,
+    foreign_flow: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     df = price_df.copy()
     if "date" in df.columns:
@@ -195,21 +228,24 @@ def compute_signals(
     close = df["close"].astype(float).dropna()
     fund = fundamentals if fundamentals is not None else fundamentals_snapshot(symbol)
     bench = benchmark if benchmark is not None else ihsg_close()
+    if foreign_flow is None and fundamentals is None:
+        try:
+            from data_processing.data_sectors.market_series import get_foreign_flow
+            foreign_flow = get_foreign_flow(symbol)
+        except Exception:
+            foreign_flow = None
 
     factors: List[Dict[str, Any]] = []
     last = float(close.iloc[-1])
 
     # ── Opportunity ──
-    if len(close) > 64:
-        ret_3m = last / float(close.iloc[-64]) - 1
-        bench_3m = None
-        if bench is not None and len(bench) > 64:
-            b = bench[bench.index <= close.index[-1]]
-            if len(b) > 64:
-                bench_3m = float(b.iloc[-1]) / float(b.iloc[-64]) - 1
+    if len(close) > MOMENTUM_SESSIONS:
+        start_day = close.index[-MOMENTUM_SESSIONS - 1]
+        ret_3m = last / float(close.iloc[-MOMENTUM_SESSIONS - 1]) - 1
+        bench_3m = _bench_return(bench, start_day, close.index[-1])
         rel = ret_3m - (bench_3m or 0.0)
         factors.append(_factor(
-            "relative_momentum", "opportunity", "Kinerja 3 bulan vs IHSG",
+            "relative_momentum", "opportunity", f"Kinerja {MOMENTUM_SESSIONS} sesi vs IHSG",
             _pct(ret_3m), f"IHSG {_pct(bench_3m)}" if bench_3m is not None else "IHSG tidak tersedia",
             _mm(rel, -0.20, 0.20), rel > 0.02 if abs(rel) > 0.02 else None,
         ))
@@ -253,6 +289,19 @@ def compute_signals(
             "earnings_growth", "opportunity", "Pertumbuhan laba (TTM, YoY)",
             _pct(eg), "0%", _mm(eg, -0.20, 0.30), eg > 0.05 if abs(eg) > 0.05 else None,
         ))
+
+    flow_pts = [p for p in ((foreign_flow or {}).get("points") or []) if p.get("net") is not None]
+    if len(flow_pts) >= FLOW_SESSIONS and "volume" in df.columns:
+        recent = flow_pts[-FLOW_SESSIONS:]
+        net = sum(float(p["net"]) for p in recent)
+        turnover = float((df["close"] * df["volume"]).iloc[-FLOW_SESSIONS:].sum())
+        if turnover > 0:
+            share = net / turnover
+            factors.append(_factor(
+                "foreign_flow", "opportunity", f"Arus bersih asing {FLOW_SESSIONS} sesi",
+                f"Rp {_fmt(net / 1e9)} M ({_pct(share)} nilai transaksi)", "0",
+                _mm(share, -0.10, 0.10), share > 0.01 if abs(share) > 0.01 else None,
+            ))
 
     inst = fund.get("inst_net_3m")
     shares = fund.get("shares_outstanding")
@@ -380,13 +429,9 @@ def compute_divergence(factors, fund, close: pd.Series, bench: Optional[pd.Serie
     if eg is None or rel is None:
         return {"detected": False, "confidence": "Low", "type": None, "evaluated": False,
                 "reason": "Data pertumbuhan laba tidak tersedia"}
-    ret_3m = float(close.iloc[-1]) / float(close.iloc[-64]) - 1
-    bench_3m = 0.0
-    if bench is not None:
-        b = bench[bench.index <= close.index[-1]]
-        if len(b) > 64:
-            bench_3m = float(b.iloc[-1]) / float(b.iloc[-64]) - 1
-    rel_ret = ret_3m - bench_3m
+    start = close.index[-MOMENTUM_SESSIONS - 1]
+    ret_3m = float(close.iloc[-1]) / float(close.iloc[-MOMENTUM_SESSIONS - 1]) - 1
+    rel_ret = ret_3m - (_bench_return(bench, start, close.index[-1]) or 0.0)
     kind = None
     if eg > 0.10 and rel_ret < -0.05:
         kind = "POSITIVE"
@@ -399,5 +444,5 @@ def compute_divergence(factors, fund, close: pd.Series, bench: Optional[pd.Serie
         "type": kind,
         "evaluated": True,
         "earnings_growth": round(eg, 4),
-        "relative_return_3m": round(rel_ret, 4),
+        "relative_return": round(rel_ret, 4),
     }
