@@ -59,6 +59,14 @@ func (u *IntelligenceUsecase) GetCompanyIntelligence(ctx context.Context, symbol
 	if symbol == "" {
 		return nil, domain.ErrInvalidSymbol
 	}
+	// Only tracked companies: an arbitrary symbol would run the engine (Sectors and
+	// LLM spend) on every request, since its snapshot cannot be stored without a
+	// companies row.
+	if u.companyRepo != nil {
+		if _, err := u.companyRepo.GetBySymbol(ctx, symbol); err != nil {
+			return nil, err
+		}
+	}
 
 	// 1. Cek cache snapshot (Zero-Quota-Wasted strategy)
 	cached, err := u.snapshotRepo.GetLatestIntelligence(ctx, symbol)

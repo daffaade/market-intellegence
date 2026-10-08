@@ -31,6 +31,10 @@ func (h *IntelligenceHandler) GetCompanyIntelligence(w http.ResponseWriter, r *h
 			dto.RenderError(w, http.StatusBadRequest, "invalid symbol")
 			return
 		}
+		if errors.Is(err, domain.ErrCompanyNotFound) {
+			dto.RenderError(w, http.StatusNotFound, "company is not tracked")
+			return
+		}
 		dto.RenderError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
