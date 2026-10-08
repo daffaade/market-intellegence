@@ -50,6 +50,7 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
         "forecast": None,
         "fundamental_divergence": None,
         "divergence_signal": None,
+        "factors": None,
         "opportunity_signal": None,
         "risk_signal": None,
         "anomaly": None,
@@ -58,17 +59,25 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
     }
     
     try:
-        # 1. Forecast & Signals
+        # 1. Forecast & Signals (anomaly first: it feeds the risk score)
+        anomaly_result = None
+        if request.include_anomaly:
+            anomaly_result = AnomalyModel(data_loader).analyze(symbol)
+            response["anomaly"] = anomaly_result
+
         if request.include_forecast:
             forecast_model = ForecastModel(data_loader)
-            forecast_result = forecast_model.analyze(symbol)
+            forecast_result = forecast_model.analyze(symbol, anomaly=anomaly_result)
             if forecast_result.get("status") == "success":
                 response["forecast"] = forecast_result.get("forecast")
                 response["opportunity_signal"] = forecast_result.get("opportunity_signal")
                 response["risk_signal"] = forecast_result.get("risk_signal")
-                # The opportunity/risk signals are scored on this detection, so it is
-                # the one the UI must show (peer divergence_score below is a distance).
+                # The divergence the scores are built on (earnings vs relative price);
+                # the peer model's divergence_score below is only a distance.
                 response["divergence_signal"] = forecast_result.get("fundamental_divergence")
+                response["factors"] = forecast_result.get("factors")
+                response["data_coverage"] = forecast_result.get("data_coverage")
+                response["fundamentals_source"] = forecast_result.get("fundamentals_source")
             else:
                 response["forecast"] = {"error": "Forecast analysis failed"}
 
@@ -89,12 +98,6 @@ async def analyze_stock(request: AnalyzeRequest, data_loader: UnifiedDataLoader 
                 }
             else:
                 response["fundamental_divergence"] = {"error": "Divergence analysis failed"}
-
-        # 3. Anomaly Detection
-        if request.include_anomaly:
-            anomaly_model = AnomalyModel(data_loader)
-            anomaly_result = anomaly_model.analyze(symbol)
-            response["anomaly"] = anomaly_result
 
         # 4. Smart Money
         if request.include_smart_money:

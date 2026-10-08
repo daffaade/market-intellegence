@@ -219,7 +219,7 @@ function App() {
                     <SignalIntelligence
                       intelligence={intelligence}
                       company={company}
-                      signalOutput={MOCK_SIGNAL_OUTPUTS[company.symbol]}
+                      signalOutput={useDummyData ? MOCK_SIGNAL_OUTPUTS[company.symbol] : undefined}
                       onOpenSearch={openSearch}
                       isWatched={watchlist.includes(company.symbol)}
                       onToggleWatchlist={toggleWatchlist}

@@ -111,6 +111,19 @@ type pythonPeersContext struct {
 	MarketCap   int64   `json:"market_cap"`
 }
 
+// pythonFactor is one named input of the opportunity/risk scores, with the
+// reference it was compared against. These are the scores' own evidence.
+type pythonFactor struct {
+	Key       string  `json:"key"`
+	Side      string  `json:"side"`
+	Label     string  `json:"label"`
+	Value     string  `json:"value"`
+	Reference string  `json:"reference"`
+	Score     float64 `json:"score"`
+	Weight    float64 `json:"weight"`
+	Favorable *bool   `json:"favorable"`
+}
+
 // pythonDivergenceSignal is the forecast model's fundamental-divergence detection,
 // which the opportunity/risk scores are built on.
 type pythonDivergenceSignal struct {
@@ -164,6 +177,7 @@ type pythonAnalyzeResponse struct {
 	RiskSignal            *pythonRiskSignal            `json:"risk_signal"`
 	FundamentalDivergence *pythonFundamentalDivergence `json:"fundamental_divergence"`
 	DivergenceSignal      *pythonDivergenceSignal      `json:"divergence_signal"`
+	Factors               []pythonFactor               `json:"factors"`
 	Anomaly               *pythonAnomalyOutput         `json:"anomaly"`
 	SmartMoney            *pythonSmartMoneyOutput      `json:"smart_money"`
 	Catalysts             *pythonCatalystOutput        `json:"catalysts"`
@@ -333,6 +347,38 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 			})
 		}
 		snap.Catalysts = catSnap
+	}
+
+	// Evidence comes from the factors the scores were computed from. The peer model's
+	// relative_positions use different, price-derived definitions and contradicted
+	// the factors (e.g. "valuation attractive" next to a neutral valuation metric).
+	if len(pyResp.Factors) > 0 {
+		snap.Evidence = snap.Evidence[:0]
+		snap.PeerComparison = snap.PeerComparison[:0]
+		for _, f := range pyResp.Factors {
+			if f.Weight <= 0 {
+				continue
+			}
+			position := "Neutral"
+			if f.Favorable != nil {
+				position = map[bool]string{true: "Supports", false: "Weighs"}[*f.Favorable]
+			}
+			snap.Evidence = append(snap.Evidence, domain.EvidenceItem{
+				Metric:       f.Label,
+				CompanyValue: f.Value,
+				PeerMedian:   f.Reference,
+				Position:     position,
+			})
+			if f.Key == "valuation" {
+				pos := "FAIR"
+				if f.Favorable != nil {
+					pos = map[bool]string{true: "DISCOUNT", false: "PREMIUM"}[*f.Favorable]
+				}
+				snap.PeerComparison = append(snap.PeerComparison, domain.PeerComparisonItem{
+					Metric: f.Label, Target: f.Value, PeerMedian: f.Reference, Position: pos,
+				})
+			}
+		}
 	}
 
 	// If Evidence is still empty, synthesize from OpportunitySignal.Evidence strings

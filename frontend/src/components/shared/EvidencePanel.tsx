@@ -24,6 +24,9 @@ const positionTag = (position: string): { label: string; tone: 'up' | 'down' | '
     case 'Stronger': return { label: 'Lebih kuat', tone: 'up' };
     case 'Weaker': return { label: 'Lebih lemah', tone: 'down' };
     case 'Neutral': return { label: 'Netral', tone: 'neutral' };
+    // Factor vocabulary from the engine's scoring (each row is a score input).
+    case 'Supports': return { label: 'Mendukung', tone: 'up' };
+    case 'Weighs': return { label: 'Menekan', tone: 'down' };
     default: return { label: position, tone: 'neutral' };
   }
 };
@@ -33,14 +36,15 @@ const strengthLabel = { STRONG: 'Kuat', MODERATE: 'Sedang', WEAK: 'Lemah' } as c
 const CompareTable: React.FC<{
   rows: Array<{ metric: string; value: string; median: string; position: string }>;
   valueHeader: string;
-}> = ({ rows, valueHeader }) => (
+  referenceHeader?: string;
+}> = ({ rows, valueHeader, referenceHeader = 'Median peer' }) => (
   <div className="overflow-x-auto">
     <table className="w-full text-[13px]">
       <thead className="border-b border-line">
         <tr className="text-left text-xs text-ink-3">
           <th className="px-4 h-9 font-medium">Metrik</th>
           <th className="px-4 h-9 font-medium text-right">{valueHeader}</th>
-          <th className="px-4 h-9 font-medium text-right">Median peer</th>
+          <th className="px-4 h-9 font-medium text-right">{referenceHeader}</th>
           <th className="px-4 h-9 font-medium text-right">Posisi</th>
         </tr>
       </thead>
@@ -68,10 +72,11 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ intelligence, sign
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Panel title="Bukti kinerja" meta="Dibanding median peer" flush>
+        <Panel title="Faktor penilaian" meta="Masukan skor peluang & risiko" flush>
           {evidence.length ? (
             <CompareTable
               valueHeader={symbol}
+              referenceHeader="Pembanding"
               rows={evidence.map(e => ({ metric: e.metric, value: e.company_value, median: e.peer_median, position: e.position }))}
             />
           ) : (
@@ -79,14 +84,16 @@ export const EvidencePanel: React.FC<EvidencePanelProps> = ({ intelligence, sign
           )}
         </Panel>
 
-        <Panel title="Valuasi" meta="Dibanding median industri" flush>
+        <Panel title="Valuasi" meta="Dibanding rata-rata peer (Sectors)" flush>
           {intelligence.peer_comparison.length ? (
             <CompareTable
               valueHeader={symbol}
               rows={intelligence.peer_comparison.map(p => ({ metric: p.metric, value: p.target, median: p.peer_median, position: p.position }))}
             />
           ) : (
-            <EmptyState title="Belum ada data valuasi peer" />
+            <EmptyState title="Belum ada data valuasi peer">
+              Valuasi peer berasal dari laporan Sectors dan tersedia setelah laporan emiten ini diambil.
+            </EmptyState>
           )}
         </Panel>
       </div>

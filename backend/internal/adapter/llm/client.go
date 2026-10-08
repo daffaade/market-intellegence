@@ -257,7 +257,7 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 	if len(snapshot.Evidence) > 0 {
 		sb.WriteString("Bukti Metrik:\n")
 		for _, e := range snapshot.Evidence {
-			sb.WriteString(fmt.Sprintf("  * %s: emiten %s vs median peer %s (%s)\n", metricLabel(e.Metric), e.CompanyValue, e.PeerMedian, relativeToMedian(e)))
+			sb.WriteString(fmt.Sprintf("  * %s: emiten %s vs pembanding %s (%s)\n", metricLabel(e.Metric), e.CompanyValue, e.PeerMedian, relativeToMedian(e)))
 		}
 	}
 	if snapshot.DivergenceDetected {
@@ -267,8 +267,8 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 		sb.WriteString("Anomali pergerakan terdeteksi: ya\n")
 	}
 	sb.WriteString("\nTulis ringkasan riset 2 paragraf singkat: paragraf pertama tentang sinyal dan pendorongnya, paragraf kedua tentang risiko dan hal yang perlu dipantau. " +
-		"Rangkum, jangan mendaftar semua metrik; sebut paling banyak 4 angka terpenting. Terjemahkan nama faktor ke bahasa Indonesia. " +
-		"Jika sebuah faktor tidak didukung metriknya (misalnya faktor menyebut valuasi menarik tetapi metrik valuasi setara median), sebutkan bahwa buktinya belum konsisten.")
+		"Rangkum, jangan mendaftar semua metrik; sebut paling banyak 4 angka terpenting, ditulis persis seperti di fakta. " +
+		"Jelaskan mengapa skor peluang dan risiko berada di level tersebut berdasarkan metrik yang mendukung dan menekan.")
 	return sb.String()
 }
 
@@ -276,6 +276,14 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 // Outperform/Underperform labels are not direction-aware (a volatility far above
 // peers is labelled "Outperform"), and the model repeated them verbatim.
 func relativeToMedian(e domain.EvidenceItem) string {
+	switch e.Position {
+	case "Supports":
+		return "mendukung"
+	case "Weighs":
+		return "menekan"
+	case "Neutral":
+		return "netral"
+	}
 	var v, m float64
 	if _, err := fmt.Sscanf(e.CompanyValue, "%g", &v); err != nil {
 		return "posisi: " + e.Position

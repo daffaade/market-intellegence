@@ -90,7 +90,7 @@ export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
           value={intelligence.opportunity_score}
           verdict={opportunityBand(intelligence.opportunity_score)}
           fill="bg-accent"
-          caption="Gabungan arus dana asing, profitabilitas, dan momentum pertumbuhan."
+          caption="Kinerja vs IHSG, tren, valuasi vs peer, pertumbuhan laba, arus institusi, dan proyeksi model (berbobot sesuai akurasinya)."
         />
         <ScoreCell
           label="Skor risiko"
@@ -98,7 +98,7 @@ export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
           verdict={`Risiko ${riskLevelLabel[intelligence.risk_level].toLowerCase()}`}
           verdictClass={isHighRisk ? 'text-down' : intelligence.risk_level === 'MODERATE' ? 'text-warn' : 'text-ink-2'}
           fill={isHighRisk ? 'bg-down' : intelligence.risk_level === 'MODERATE' ? 'bg-warn' : 'bg-ink-3'}
-          caption="Volatilitas valuasi, eksposur makro, dan tekanan distribusi."
+          caption="Volatilitas, penurunan terdalam, likuiditas, valuasi di atas peer, utang, tren turun, dan anomali."
         />
         <div className="flex flex-col">
           <div className="text-xs text-ink-3">Keyakinan model</div>
