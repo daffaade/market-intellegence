@@ -63,8 +63,10 @@ Tunnel SSH (`ssh -L 8080:localhost:8080`) hanya untuk development di laptop.
 
 ## Kuota
 
-- **Sectors**: laporan per emiten di-cache 7 hari, arus asing 7 hari, IHSG 1 hari
-  (≈1–2 kredit/hari untuk 10 emiten). Endpoint publik hanya menerima emiten yang
-  dipantau, jadi pengunjung tidak bisa menghabiskan kredit.
+- **Sectors**: laporan perusahaan = **8 kredit per emiten** (1 per bagian), di-cache
+  14 hari; arus asing 1 kredit/emiten/minggu; IHSG 1 kredit/hari. Untuk 10 emiten
+  pantauan ≈ 8 kredit/hari (≈ 240/bulan). Laporan 40 konstituen sektor hanya dibaca
+  dari cache dan tidak pernah diambil ulang otomatis. Endpoint publik hanya
+  menerima emiten yang dipantau, jadi pengunjung tidak bisa menghabiskan kredit.
 - **Gemini** (`gemini-3.1-flash-lite`, free tier): ringkasan dibuat sekali per
   emiten per hari saat snapshot diperbarui.

@@ -13,7 +13,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-REPORT_TTL_SECONDS = 7 * 24 * 3600
+# A full report costs 8 Sectors credits (1 per section), so it is kept 14 days;
+# fundamentals change quarterly. Only tracked symbols are ever refetched.
+REPORT_TTL_SECONDS = 14 * 24 * 3600
 REPORT_CACHE_DIR = Path(__file__).resolve().parent / ".cache" / "reports"
 
 
