@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"be/internal/domain"
@@ -16,6 +19,9 @@ import (
 )
 
 type Client struct {
+	// mu serialises LLM calls: snapshot refreshes run several at once and the
+	// Gemini free tier rejects bursts with 429.
+	mu         sync.Mutex
 	provider   string
 	model      string
 	apiKey     string
@@ -42,7 +48,7 @@ func (c *Client) GenerateSummary(ctx context.Context, snapshot *domain.Intellige
 	)
 	switch {
 	case c.provider == "gemini" && c.apiKey != "":
-		summary, err = c.callGemini(ctx, snapshot)
+		summary, err = c.withRetry(ctx, func() (string, error) { return c.callGemini(ctx, snapshot) })
 	case c.provider == "groq" && c.apiKey != "":
 		summary, err = c.callGroq(ctx, snapshot)
 	default:
@@ -58,6 +64,28 @@ func (c *Client) GenerateSummary(ctx context.Context, snapshot *domain.Intellige
 		return c.synthesizeRuleBasedSummary(snapshot), nil
 	}
 	return summary, nil
+}
+
+var errRateLimited = errors.New("llm provider rate limited")
+
+// withRetry runs one call at a time and retries rate-limit/overload responses
+// with growing pauses, as long as the caller's context allows.
+func (c *Client) withRetry(ctx context.Context, call func() (string, error)) (string, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	var err error
+	for attempt, wait := 0, 15*time.Second; attempt < 4; attempt, wait = attempt+1, wait*2 {
+		var out string
+		if out, err = call(); !errors.Is(err, errRateLimited) {
+			return out, err
+		}
+		select {
+		case <-ctx.Done():
+			return "", err
+		case <-time.After(wait):
+		}
+	}
+	return "", err
 }
 
 // advicePattern catches direct buy/sell/hold advice, which OJK rules forbid in
@@ -105,6 +133,7 @@ const systemInstruction = "Anda analis riset pasar modal Indonesia yang objektif
 	"(2) Hanya pakai angka yang ada di fakta, tulis persis seperti di fakta; jangan menghitung atau membulatkan angka baru. " +
 	"(3) Jangan menambah klaim di luar fakta, termasuk reputasi perusahaan, ukuran, sejarah, atau kondisi makro. " +
 	"(4) Dilarang memberi saran investasi: jangan gunakan kata beli, jual, tahan, koleksi, atau ajakan bertindak. " +
+	"Untuk arus dana tulis 'arus masuk/keluar' atau 'pembelian/penjualan bersih', bukan 'tekanan beli/jual'. " +
 	"(5) Jika fakta saling bertentangan atau netral, katakan apa adanya. (6) Jangan menulis disclaimer; sistem menambahkannya sendiri."
 
 // callGemini executes a prompt against the Google Gemini generateContent REST API
@@ -121,7 +150,7 @@ func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSn
 		"generationConfig": map[string]interface{}{
 			"temperature": 0.2, // Low temperature to prevent hallucination
 			// Thinking tokens count against this limit; 300 left nothing for the answer.
-			"maxOutputTokens": 2048,
+			"maxOutputTokens": 8192,
 			"thinkingConfig":  map[string]interface{}{"thinkingLevel": "low"},
 		},
 	}
@@ -145,6 +174,14 @@ func (c *Client) callGemini(ctx context.Context, snapshot *domain.IntelligenceSn
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusServiceUnavailable {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 8<<10))
+		// A daily quota resets hours later; retrying within this request is pointless.
+		if bytes.Contains(body, []byte("PerDay")) {
+			return "", fmt.Errorf("gemini daily quota exhausted for %s", c.model)
+		}
+		return "", fmt.Errorf("%w: gemini status %d", errRateLimited, resp.StatusCode)
+	}
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("gemini api returned status: %d", resp.StatusCode)
 	}
@@ -242,22 +279,26 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 	sb.WriteString(fmt.Sprintf("- Level Risiko: %s (Skor Risiko: %.1f)\n", snapshot.RiskLevel, snapshot.RiskScore))
 	sb.WriteString(fmt.Sprintf("- Arah Sentimen Analisis: %s (Keyakinan: %s)\n", snapshot.Direction, snapshot.Confidence))
 
-	if len(snapshot.PositiveFactors) > 0 {
-		sb.WriteString("Faktor Positif:\n")
-		for _, f := range snapshot.PositiveFactors {
-			sb.WriteString(fmt.Sprintf("  * %s\n", f))
+	if grouped := groupedEvidence(snapshot.Evidence); grouped != "" {
+		sb.WriteString(grouped)
+	} else {
+		if len(snapshot.PositiveFactors) > 0 {
+			sb.WriteString("Faktor Positif:\n")
+			for _, f := range snapshot.PositiveFactors {
+				sb.WriteString(fmt.Sprintf("  * %s\n", f))
+			}
 		}
-	}
-	if len(snapshot.NegativeFactors) > 0 {
-		sb.WriteString("Faktor Risiko:\n")
-		for _, f := range snapshot.NegativeFactors {
-			sb.WriteString(fmt.Sprintf("  * %s\n", f))
+		if len(snapshot.NegativeFactors) > 0 {
+			sb.WriteString("Faktor Risiko:\n")
+			for _, f := range snapshot.NegativeFactors {
+				sb.WriteString(fmt.Sprintf("  * %s\n", f))
+			}
 		}
-	}
-	if len(snapshot.Evidence) > 0 {
-		sb.WriteString("Bukti Metrik:\n")
-		for _, e := range snapshot.Evidence {
-			sb.WriteString(fmt.Sprintf("  * %s: emiten %s vs pembanding %s (%s)\n", metricLabel(e.Metric), e.CompanyValue, e.PeerMedian, relativeToMedian(e)))
+		if len(snapshot.Evidence) > 0 {
+			sb.WriteString("Bukti Metrik:\n")
+			for _, e := range snapshot.Evidence {
+				sb.WriteString(fmt.Sprintf("  * %s: emiten %s vs pembanding %s (%s)\n", metricLabel(e.Metric), e.CompanyValue, e.PeerMedian, relativeToMedian(e)))
+			}
 		}
 	}
 	if snapshot.DivergenceDetected {
@@ -269,6 +310,34 @@ func (c *Client) buildFactPrompt(snapshot *domain.IntelligenceSnapshot) string {
 	sb.WriteString("\nTulis ringkasan riset 2 paragraf singkat: paragraf pertama tentang sinyal dan pendorongnya, paragraf kedua tentang risiko dan hal yang perlu dipantau. " +
 		"Rangkum, jangan mendaftar semua metrik; sebut paling banyak 4 angka terpenting, ditulis persis seperti di fakta. " +
 		"Jelaskan mengapa skor peluang dan risiko berada di level tersebut berdasarkan metrik yang mendukung dan menekan.")
+	return sb.String()
+}
+
+// groupedEvidence lays the scoring factors out by which score they move, so the
+// model does not describe e.g. high liquidity (lower risk) as an opportunity driver.
+func groupedEvidence(items []domain.EvidenceItem) string {
+	sections := []struct {
+		category, position, title string
+	}{
+		{"opportunity", "Supports", "Menaikkan skor peluang"},
+		{"opportunity", "Weighs", "Menurunkan skor peluang"},
+		{"risk", "Weighs", "Menaikkan skor risiko"},
+		{"risk", "Supports", "Menurunkan skor risiko"},
+		{"opportunity", "Neutral", "Netral (peluang)"},
+		{"risk", "Neutral", "Netral (risiko)"},
+	}
+	var sb strings.Builder
+	for _, sec := range sections {
+		var lines []string
+		for _, e := range items {
+			if e.Category == sec.category && e.Position == sec.position {
+				lines = append(lines, fmt.Sprintf("  * %s: %s (pembanding %s)", e.Metric, e.CompanyValue, e.PeerMedian))
+			}
+		}
+		if len(lines) > 0 {
+			sb.WriteString(sec.title + ":\n" + strings.Join(lines, "\n") + "\n")
+		}
+	}
 	return sb.String()
 }
 

@@ -368,6 +368,7 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 				CompanyValue: f.Value,
 				PeerMedian:   f.Reference,
 				Position:     position,
+				Category:     f.Side,
 			})
 			if f.Key == "valuation" {
 				pos := "FAIR"

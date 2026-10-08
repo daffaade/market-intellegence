@@ -65,12 +65,17 @@ def _num(v: Any) -> Optional[float]:
     return None if math.isnan(f) or math.isinf(f) else f
 
 
+def _id_number(text: str) -> str:
+    """'1,234.5' -> '1.234,5' (Indonesian separators)."""
+    return text.replace(",", "_").replace(".", ",").replace("_", ".")
+
+
 def _pct(x: float, nd: int = 1) -> str:
-    return f"{x * 100:+.{nd}f}%".replace(".", ",")
+    return _id_number(f"{x * 100:+,.{nd}f}") + "%"
 
 
 def _fmt(x: float, nd: int = 1) -> str:
-    return f"{x:.{nd}f}".replace(".", ",")
+    return _id_number(f"{x:,.{nd}f}")
 
 
 # ── Inputs ────────────────────────────────────────────────────────────────────

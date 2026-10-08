@@ -34,6 +34,8 @@ type EvidenceItem struct {
 	CompanyValue string `json:"company_value"`
 	PeerMedian   string `json:"peer_median"`
 	Position     string `json:"position"`
+	// Category is "opportunity" or "risk" when the item is a scoring factor.
+	Category string `json:"category,omitempty"`
 }
 
 type WhatChangedItem struct {
