@@ -9,6 +9,7 @@ import { SectorsAndConsumer } from './components/views/SectorsAndConsumer';
 import { MarketOverviewView } from './components/views/MarketOverview';
 import { SectorsPipelineInspector } from './components/shared/SectorsPipelineInspector';
 import { EmitenSwitcherModal } from './components/shared/EmitenSwitcherModal';
+import { SplashScreen } from './components/SplashScreen';
 import type { Company, IntelligenceSnapshot, MarketOverview } from './types/api';
 import {
   apiService,
@@ -36,6 +37,11 @@ const parseHash = (): { view: ViewType; symbol: string } => {
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState<boolean>(() => {
+    // Only show splash once per browser session
+    if (sessionStorage.getItem('marketidex_splash_done')) return false;
+    return true;
+  });
   const [selectedSymbol, setSelectedSymbol] = useState<string>(() => parseHash().symbol);
   const [currentView, setCurrentView] = useState<ViewType>(() => parseHash().view);
 
@@ -163,7 +169,15 @@ function App() {
 
   return (
     <ThemeContext.Provider value={theme}>
-      <div className="h-screen flex flex-col bg-canvas text-ink">
+      {showSplash && (
+        <SplashScreen
+          onFinished={() => {
+            sessionStorage.setItem('marketidex_splash_done', '1');
+            setShowSplash(false);
+          }}
+        />
+      )}
+      <div className={`h-screen flex flex-col bg-canvas text-ink transition-opacity duration-500 ${showSplash ? 'opacity-0' : 'opacity-100'}`}>
         <Navbar
           onOpenSearch={openSearch}
           onOpenPipeline={() => setIsPipelineOpen(true)}

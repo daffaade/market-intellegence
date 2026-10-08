@@ -153,3 +153,173 @@
 input[type="range"] {
   accent-color: var(--accent);
 }
+
+/* ── Splash Screen ─────────────────────────────────────────────────── */
+
+.splash-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--canvas);
+  overflow: hidden;
+}
+
+/* Subtle animated grid background */
+.splash-grid {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image:
+    linear-gradient(rgba(91, 156, 236, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 156, 236, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: splash-grid-drift 20s linear infinite;
+}
+
+@keyframes splash-grid-drift {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+/* Radial glow */
+.splash-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(134, 59, 255, 0.15) 0%,
+    rgba(91, 156, 236, 0.08) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Logo + wordmark container */
+.splash-logo-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  z-index: 2;
+}
+
+.splash-icon-wrap {
+  position: relative;
+}
+
+/* Staggered bar entrance */
+.splash-bar {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: splash-bar-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-bar-1 { animation-delay: 0.3s; }
+.splash-bar-2 { animation-delay: 0.45s; }
+.splash-bar-3 { animation-delay: 0.6s; }
+.splash-bar-4 { animation-delay: 0.75s; }
+
+@keyframes splash-bar-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Trend line draw */
+.splash-trend-line {
+  stroke-dashoffset: 60;
+  animation: splash-draw-line 1s cubic-bezier(0.4, 0, 0.2, 1) 0.9s forwards;
+}
+
+@keyframes splash-draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+/* AI spark pulse */
+.splash-spark {
+  opacity: 0;
+  animation: splash-spark-in 0.5s ease 1s forwards,
+             splash-spark-pulse 2s ease-in-out 1.5s infinite;
+}
+
+@keyframes splash-spark-in {
+  to { opacity: 1; }
+}
+
+@keyframes splash-spark-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+/* Wordmark */
+.splash-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.splash-title {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #5b9cec, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.splash-subtitle {
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Particle ring */
+.splash-particles {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.splash-particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b9cec, #c084fc);
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+  animation: splash-orbit 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: calc(var(--i) * 0.25s);
+}
+
+@keyframes splash-orbit {
+  0% {
+    opacity: 0;
+    transform: rotate(calc(var(--i) * 30deg)) translateX(0) scale(0);
+  }
+  15% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+    transform: rotate(calc(var(--i) * 30deg + 60deg)) translateX(120px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--i) * 30deg + 120deg)) translateX(160px) scale(0.5);
+  }
+}

@@ -65,10 +65,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Wordmark */}
       <div className="flex items-center gap-2 shrink-0 md:w-[204px]">
-        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" className="text-ink">
-          <rect x="1" y="9" width="3" height="8" fill="currentColor" />
-          <rect x="7.5" y="5" width="3" height="12" fill="currentColor" />
-          <rect x="14" y="1" width="3" height="16" fill="var(--accent)" />
+        <svg width="18" height="18" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="nav-grad" x1="0" y1="64" x2="64" y2="0">
+              <stop offset="0%" stopColor="#5b9cec" />
+              <stop offset="100%" stopColor="#863bff" />
+            </linearGradient>
+          </defs>
+          <rect x="6" y="42" width="10" height="16" rx="2" fill="url(#nav-grad)" />
+          <rect x="20" y="30" width="10" height="28" rx="2" fill="url(#nav-grad)" />
+          <rect x="34" y="18" width="10" height="40" rx="2" fill="url(#nav-grad)" />
+          <rect x="48" y="8" width="10" height="50" rx="2" fill="url(#nav-grad)" />
+          <circle cx="53" cy="8" r="3" fill="#c084fc" />
         </svg>
         <span className="font-semibold text-[15px] tracking-tight">Marketidex</span>
         <span className="hidden sm:inline text-[11px] text-ink-3 num">IDX</span>
