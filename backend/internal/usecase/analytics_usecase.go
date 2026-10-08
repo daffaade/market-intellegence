@@ -9,7 +9,6 @@ import (
 )
 
 type AnalyticsUsecase struct {
-	analyticsRepo      domain.AnalyticsRepository
 	companyRepo        domain.CompanyRepository
 	fundamentalsClient domain.FundamentalsClient
 
@@ -26,9 +25,8 @@ type fundamentalsEntry struct {
 // Sectors report for 7 days, which is what actually bounds credit spend.
 const fundamentalsTTL = 6 * time.Hour
 
-func NewAnalyticsUsecase(repo domain.AnalyticsRepository, companyRepo domain.CompanyRepository, fc domain.FundamentalsClient) *AnalyticsUsecase {
+func NewAnalyticsUsecase(companyRepo domain.CompanyRepository, fc domain.FundamentalsClient) *AnalyticsUsecase {
 	return &AnalyticsUsecase{
-		analyticsRepo:      repo,
 		companyRepo:        companyRepo,
 		fundamentalsClient: fc,
 		fundamentals:       make(map[string]fundamentalsEntry),
@@ -60,24 +58,4 @@ func (u *AnalyticsUsecase) GetFundamentals(ctx context.Context, symbol string) (
 	u.fundamentals[symbol] = fundamentalsEntry{data: f, expiresAt: time.Now().Add(fundamentalsTTL)}
 	u.mu.Unlock()
 	return f, nil
-}
-
-func (u *AnalyticsUsecase) GetMarketGrowthTimeline(ctx context.Context) ([]domain.MarketGrowthTimelinePoint, error) {
-	return u.analyticsRepo.GetMarketGrowthTimeline(ctx)
-}
-
-func (u *AnalyticsUsecase) GetPipelineTelemetry(ctx context.Context) (*domain.PipelineTelemetry, error) {
-	return u.analyticsRepo.GetPipelineTelemetry(ctx)
-}
-
-func (u *AnalyticsUsecase) GetMacroIndicators(ctx context.Context) ([]domain.MacroIndicator, error) {
-	return u.analyticsRepo.GetMacroIndicators(ctx)
-}
-
-func (u *AnalyticsUsecase) GetDisasterRisks(ctx context.Context) ([]domain.DisasterRisk, error) {
-	return u.analyticsRepo.GetDisasterRisks(ctx)
-}
-
-func (u *AnalyticsUsecase) GetPortfolioPositions(ctx context.Context) ([]domain.PortfolioPosition, error) {
-	return u.analyticsRepo.GetPortfolioPositions(ctx)
 }

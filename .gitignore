@@ -48,3 +48,6 @@ backend/*.exe
 # Editor swap files (can contain copies of .env)
 *.swp
 *.swo
+
+# Google Trends cache (engine)
+ai_engine/data/trends/

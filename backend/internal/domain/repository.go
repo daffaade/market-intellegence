@@ -18,11 +18,3 @@ type SnapshotRepository interface {
 	GetTopRisks(ctx context.Context, limit int) ([]IntelligenceSnapshot, error)
 	GetRecentAnomalies(ctx context.Context, limit int) ([]IntelligenceSnapshot, error)
 }
-
-type AnalyticsRepository interface {
-	GetMarketGrowthTimeline(ctx context.Context) ([]MarketGrowthTimelinePoint, error)
-	GetPipelineTelemetry(ctx context.Context) (*PipelineTelemetry, error)
-	GetMacroIndicators(ctx context.Context) ([]MacroIndicator, error)
-	GetDisasterRisks(ctx context.Context) ([]DisasterRisk, error)
-	GetPortfolioPositions(ctx context.Context) ([]PortfolioPosition, error)
-}

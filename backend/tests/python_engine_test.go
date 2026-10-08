@@ -3,7 +3,6 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -84,26 +83,6 @@ func TestPythonEngineClient_AnalyzeWithNewModels(t *testing.T) {
 	if snap.Catalysts == nil || snap.Catalysts.CatalystScore != 0.75 {
 		t.Fatalf("expected catalyst score 0.75, got %+v", snap.Catalysts)
 	}
-
-	sec, err := client.GetSectorIntelligence(context.Background(), "Financials")
-	if err != nil {
-		t.Fatalf("failed to get sector intelligence: %v", err)
-	}
-	if sec.SentimentLabel != "Bullish" {
-		t.Fatalf("expected Bullish, got %s", sec.SentimentLabel)
-	}
-
-	// Test sector not found (404)
-	_, err = client.GetSectorIntelligence(context.Background(), "NonExistentSector")
-	if !errors.Is(err, domain.ErrSectorNotFound) {
-		t.Fatalf("expected ErrSectorNotFound, got: %v", err)
-	}
-
-	// Test invalid sector
-	_, err = client.GetSectorIntelligence(context.Background(), "   ")
-	if !errors.Is(err, domain.ErrInvalidSector) {
-		t.Fatalf("expected ErrInvalidSector, got: %v", err)
-	}
 }
 
 func TestPythonEngineClient_FallbackWhenOffline(t *testing.T) {
@@ -118,23 +97,6 @@ func TestPythonEngineClient_FallbackWhenOffline(t *testing.T) {
 	}
 	if snap.Catalysts == nil {
 		t.Fatalf("expected non-nil fallback Catalysts")
-	}
-
-	sec, err := client.GetSectorIntelligence(context.Background(), "Financials")
-	if err != nil {
-		t.Fatalf("expected fallback sector, got error: %v", err)
-	}
-	if sec.Sector != "Financials" {
-		t.Fatalf("expected Financials, got %s", sec.Sector)
-	}
-
-	// Test ListSectorIntelligences fallback
-	sectors, err := client.ListSectorIntelligences(context.Background())
-	if err != nil {
-		t.Fatalf("expected fallback sector list, got error: %v", err)
-	}
-	if len(sectors) != len(python_engine.DefaultSectors) {
-		t.Fatalf("expected %d default sectors, got %d", len(python_engine.DefaultSectors), len(sectors))
 	}
 }
 
@@ -232,67 +194,6 @@ func TestPythonEngineClient_PortfolioRisk(t *testing.T) {
 	}
 }
 
-func TestPythonEngineClient_ConsumerBehavior(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/api/v1/consumer-behavior/analyze" && r.Method == http.MethodPost {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]any{
-				"keyword":  "makanan",
-				"industry": "makanan & minuman",
-				"impact_signal": map[string]any{
-					"impact_score":     75.0,
-					"impact_direction": "Bullish",
-					"confidence_level": "High",
-				},
-				"evidence": []map[string]any{
-					{
-						"source":      "PyTrends",
-						"metric":      "Search Interest",
-						"value":       "UP",
-						"description": "Tren konsumsi meningkat",
-					},
-				},
-				"disclaimer": "Bukan anjuran investasi personal",
-			})
-			return
-		}
-		http.NotFound(w, r)
-	}))
-	defer ts.Close()
-
-	client := python_engine.NewClient(ts.URL)
-	req := domain.ConsumerBehaviorRequest{
-		Keyword:  "makanan",
-		Industry: "makanan & minuman",
-	}
-
-	report, err := client.AnalyzeConsumerBehavior(context.Background(), req)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if report.ImpactSignal.ImpactScore != 75.0 {
-		t.Fatalf("expected impact score 75.0, got %f", report.ImpactSignal.ImpactScore)
-	}
-	if report.ImpactSignal.ImpactDirection != "Bullish" {
-		t.Fatalf("expected Bullish, got %s", report.ImpactSignal.ImpactDirection)
-	}
-
-	// Test Fallback when offline
-	offlineClient := python_engine.NewClient("http://127.0.0.1:59999")
-	fallbackReport, err := offlineClient.AnalyzeConsumerBehavior(context.Background(), req)
-	if err != nil {
-		t.Fatalf("expected fallback report when offline, got error: %v", err)
-	}
-	if fallbackReport.Keyword != "makanan" {
-		t.Fatalf("expected keyword makanan, got %s", fallbackReport.Keyword)
-	}
-	if fallbackReport.ImpactSignal.ConfidenceLevel == "" {
-		t.Fatalf("expected non-empty confidence level")
-	}
-	if fallbackReport.Disclaimer == "" {
-		t.Fatalf("expected non-empty disclaimer")
-	}
-}
 
 
 

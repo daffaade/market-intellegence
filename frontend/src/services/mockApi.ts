@@ -6,29 +6,21 @@ import type {
   ScreenerFilter,
   HealthStatus,
   PeerComparisonItem,
-  MarketGrowthTimelinePoint,
   CompanyFundamentals,
   PricePerformance,
   MacroSnapshotItem,
   CorporateEvent,
   MacroSensitivity,
   DataSourceStatus,
-  PortfolioRiskReport,
-  PipelineTelemetry,
-  MacroIndicator,
-  DisasterRisk,
-  PortfolioPosition
+  SectorOverview,
+  ConsumerBehaviorResult,
+  PortfolioRiskReport
 } from '../types/api';
 import {
   MOCK_COMPANIES,
   MOCK_INTELLIGENCE,
   MOCK_MARKET_OVERVIEW,
-  MOCK_TOP10_GROWTH_TIMELINE,
-  MOCK_PIPELINE_STAGES,
-  MOCK_FUNDAMENTALS,
-  MOCK_MACRO,
-  MOCK_DISASTER_RISKS,
-  MOCK_PORTFOLIO
+  MOCK_FUNDAMENTALS
 } from './mockData';
 
 // Storage key for data source preference
@@ -429,28 +421,6 @@ export const apiService = {
     return { status: 'success', data: Object.values(MOCK_INTELLIGENCE) };
   },
 
-  /**
-   * 9. GET /api/v1/market/growth-timeline
-   * Deret waktu pertumbuhan Top 10 emiten pasar (12 bulan terakhir)
-   */
-  async getMarketGrowthTimeline(): Promise<ResponseWrapper<MarketGrowthTimelinePoint[]>> {
-    if (useDummyData) {
-      return {
-        status: 'success',
-        data: MOCK_TOP10_GROWTH_TIMELINE
-      };
-    }
-
-    const res = await fetchApi<MarketGrowthTimelinePoint[]>('/api/v1/market/growth-timeline');
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
-
-    return {
-      status: 'success',
-      data: MOCK_TOP10_GROWTH_TIMELINE
-    };
-  },
 
   /**
    * 10. GET /api/v1/companies/{symbol}/fundamentals
@@ -500,6 +470,19 @@ export const apiService = {
     return fetchApi('/api/v1/pipeline/sources', undefined, 8000);
   },
 
+  /** GET /api/v1/sectors — kekuatan relatif, breadth, dan rotasi semua sektor IDX. */
+  async getSectors(): Promise<ResponseWrapper<SectorOverview>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi<SectorOverview>('/api/v1/sectors', undefined, 60000);
+  },
+
+  /** GET /api/v1/consumer-behavior/analyze — tren pencarian Google vs saham satu sektor. */
+  async analyzeConsumerBehavior(keyword: string, industry: string): Promise<ResponseWrapper<ConsumerBehaviorResult>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    const q = new URLSearchParams({ keyword, industry });
+    return fetchApi<ConsumerBehaviorResult>(`/api/v1/consumer-behavior/analyze?${q}`, undefined, 90000);
+  },
+
   /** POST /api/v1/portfolio/risk — volatilitas, VaR, drawdown, dan korelasi dari harga historis. */
   async calculatePortfolioRisk(
     portfolio: Array<{ ticker: string; weight: number }>
@@ -512,103 +495,7 @@ export const apiService = {
     );
   },
 
-  /**
-   * 11. GET /api/v1/pipeline/telemetry
-   * Telemetri pipeline aktual pemrosesan Sectors API / MCP & AI Engine
-   */
-  async getPipelineTelemetry(): Promise<ResponseWrapper<PipelineTelemetry>> {
-    if (useDummyData) {
-      return {
-        status: 'success',
-        data: {
-          stages: MOCK_PIPELINE_STAGES,
-          total_duration_ms: 982,
-          pipeline_status: 'HEALTHY'
-        }
-      };
-    }
 
-    const res = await fetchApi<PipelineTelemetry>('/api/v1/pipeline/telemetry');
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
 
-    return {
-      status: 'success',
-      data: {
-        stages: MOCK_PIPELINE_STAGES,
-        total_duration_ms: 982,
-        pipeline_status: 'HEALTHY'
-      }
-    };
-  },
 
-  /**
-   * 12. GET /api/v1/macro/indicators
-   * Indikator Makroekonomi Nasional (BI-Rate, Inflasi, USD/IDR, PDB)
-   */
-  async getMacroIndicators(): Promise<ResponseWrapper<MacroIndicator[]>> {
-    if (useDummyData) {
-      return {
-        status: 'success',
-        data: MOCK_MACRO
-      };
-    }
-
-    const res = await fetchApi<MacroIndicator[]>('/api/v1/macro/indicators');
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
-
-    return {
-      status: 'success',
-      data: MOCK_MACRO
-    };
-  },
-
-  /**
-   * 13. GET /api/v1/macro/disaster-risks
-   * Risiko Bencana & Iklim Operasional Regional
-   */
-  async getDisasterRisks(): Promise<ResponseWrapper<DisasterRisk[]>> {
-    if (useDummyData) {
-      return {
-        status: 'success',
-        data: MOCK_DISASTER_RISKS
-      };
-    }
-
-    const res = await fetchApi<DisasterRisk[]>('/api/v1/macro/disaster-risks');
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
-
-    return {
-      status: 'success',
-      data: MOCK_DISASTER_RISKS
-    };
-  },
-
-  /**
-   * 14. GET /api/v1/portfolio/positions
-   * Posisi & Alokasi Portofolio
-   */
-  async getPortfolioPositions(): Promise<ResponseWrapper<PortfolioPosition[]>> {
-    if (useDummyData) {
-      return {
-        status: 'success',
-        data: MOCK_PORTFOLIO
-      };
-    }
-
-    const res = await fetchApi<PortfolioPosition[]>('/api/v1/portfolio/positions');
-    if (res.status === 'success' && res.data) {
-      return res;
-    }
-
-    return {
-      status: 'success',
-      data: MOCK_PORTFOLIO
-    };
-  }
 };

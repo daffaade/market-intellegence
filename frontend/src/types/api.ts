@@ -219,39 +219,6 @@ export interface PortfolioRiskReport {
   disclaimer?: string;
 }
 
-export interface MacroIndicator {
-  name: string;
-  value: string;
-  trend: "UP" | "DOWN" | "STABLE";
-  correlation_with_market: string;
-  impact_assessment: string;
-}
-
-export interface EventImpact {
-  event_name: string;
-  date: string;
-  category: string;
-  price_reaction_pct: number;
-  market_sentiment: string;
-}
-
-export interface DisasterRisk {
-  region: string;
-  risk_type: string;
-  severity: "LOW" | "MEDIUM" | "HIGH" | "SEVERE";
-  impacted_operations: string;
-  mitigation_status: string;
-}
-
-export interface PortfolioPosition {
-  symbol: string;
-  name: string;
-  allocation_pct: number;
-  sector: string;
-  risk_score: number;
-  opportunity_score: number;
-}
-
 // ─── Standardized Signal Output ────────────────────────────────
 export interface RelatedSignal {
   signal_type: string;
@@ -272,28 +239,6 @@ export interface StandardizedSignalOutput {
 }
 
 // ─── Sectors API / MCP Data Pipeline ───────────────────────────
-export type PipelineStageId =
-  | "RETRIEVAL"
-  | "VALIDATION"
-  | "NORMALIZATION"
-  | "TRANSFORMATION"
-  | "FEATURE_GENERATION"
-  | "INTELLIGENCE_ENGINE";
-
-export interface PipelineStage {
-  id: PipelineStageId;
-  label: string;
-  description: string;
-  status: "COMPLETED" | "PROCESSING" | "PENDING";
-  data_type: string;
-  duration_ms?: number;
-}
-
-export interface PipelineTelemetry {
-  stages: PipelineStage[];
-  total_duration_ms: number;
-  pipeline_status: string;
-}
 
 // ─── Signal Matrix (2D Quadrant) ───────────────────────────────
 export interface SignalMatrixPoint {
@@ -314,12 +259,6 @@ export interface WatchlistItem {
   added_at: string;
 }
 
-// ─── Market Growth Timeline (Top 10 Time-Series) ───────────────
-export interface MarketGrowthTimelinePoint {
-  period: string; // e.g. "Okt 2025", "Nov 2025", etc.
-  [symbol: string]: number | string;
-}
-
 export interface DataSourceStatus {
   key: string;
   label: string;
@@ -329,4 +268,67 @@ export interface DataSourceStatus {
   newest: string | null;
   oldest: string | null;
   ttl_hours: number;
+}
+
+// ─── Sector intelligence ───────────────────────────────────────
+export interface SectorConstituent {
+  symbol: string;
+  rs_20d: number | null;
+  rs_60d: number | null;
+  above_ma50: boolean;
+  return_20d: number | null;
+}
+
+export interface SectorRow {
+  sector: string;
+  label: string;
+  n_constituents: number;
+  sentiment: 'Bullish' | 'Bearish' | 'Neutral';
+  rs_20d: number | null;
+  rs_60d: number | null;
+  breadth_ma50: number | null;
+  rank: number;
+  rank_prev: number;
+  rotation: 'Menguat' | 'Melemah' | 'Stabil';
+  constituents: SectorConstituent[];
+  index_weekly: Array<{ date: string; value: number | null }>;
+}
+
+export interface SectorOverview {
+  as_of: string;
+  method: string;
+  sectors: SectorRow[];
+  source: string;
+}
+
+// ─── Consumer behavior ─────────────────────────────────────────
+export interface CorrelationStat {
+  r: number;
+  p_value: number;
+  significant: boolean;
+  n_weeks: number;
+}
+
+export interface ConsumerBehaviorResult {
+  keyword: string;
+  industry: string;
+  sector: string | null;
+  sector_label: string | null;
+  error?: string;
+  available_sectors?: Array<{ key: string; label: string }>;
+  search_trend?: {
+    recent_4w: number;
+    yoy_pct: number | null;
+    vs_prev_12w_pct: number | null;
+    percentile_5y: number;
+    weekly: Array<{ date: string; value: number }>;
+  } | null;
+  correlation?: { same_period: CorrelationStat | null; search_leads_4w: CorrelationStat | null } | null;
+  sector_return_60d_pct?: number | null;
+  companies?: Array<{ symbol: string; revenue_growth_ttm: number | null; return_20d_pct: number }>;
+  impact_signal?: { impact_score: number; impact_direction: 'Positive' | 'Negative' | 'Neutral'; confidence_level: string };
+  evidence?: string[];
+  data_quality_flags?: string[];
+  method?: string;
+  disclaimer: string;
 }

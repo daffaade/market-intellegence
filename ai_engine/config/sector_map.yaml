@@ -1,14 +1,45 @@
-# Sector Map and Config for Sector Intelligence
-
-universe:
-  Financials: ["BBCA", "BBRI", "BMRI", "BBNI", "ARTO", "BRIS"]
-  Technology: ["GOTO", "BUKA", "EMTK"]
-  Infrastructure: ["TLKM", "ISAT", "EXCL", "TOWR", "TBIG"]
-  BasicMaterials: ["ANTM", "MDKA", "INCO", "TPIA", "BRPT"]
-  ConsumerNonCyclical: ["ICBP", "INDF", "AMRT", "UNVR", "MYOR"]
-  Energy: ["ADRO", "ITMG", "PTBA", "PGAS", "MEDC"]
+# IDX-IC sectors and representative large/liquid constituents.
+# Keys match Sectors' sector names; `label` is shown in the UI.
+# Used by sector intelligence (models/sector) and consumer behavior.
+sectors:
+  Financials:
+    label: Keuangan
+    symbols: [BBCA, BBRI, BMRI, BBNI, BRIS, ARTO]
+  Infrastructures:
+    label: Infrastruktur & telekomunikasi
+    symbols: [TLKM, ISAT, EXCL, TOWR, JSMR]
+  Technology:
+    label: Teknologi
+    symbols: [GOTO, BUKA, EMTK, MTDL]
+  Basic Materials:
+    label: Barang baku & tambang mineral
+    symbols: [ANTM, MDKA, INCO, TPIA, BRPT]
+  Consumer Non-Cyclicals:
+    label: Konsumen primer
+    symbols: [ICBP, INDF, AMRT, UNVR, MYOR, CPIN]
+  Consumer Cyclicals:
+    label: Konsumen non-primer
+    symbols: [ACES, MAPI, ERAA, MNCN]
+  Energy:
+    label: Energi
+    symbols: [ADRO, ITMG, PTBA, PGAS, MEDC, BUMI]
+  Industrials:
+    label: Perindustrian
+    symbols: [ASII, UNTR, SMSM]
+  Healthcare:
+    label: Kesehatan
+    symbols: [KLBF, SIDO, MIKA, HEAL]
+  Properties & Real Estate:
+    label: Properti & real estat
+    symbols: [BSDE, CTRA, PWON, SMRA]
+  Transportation & Logistic:
+    label: Transportasi & logistik
+    symbols: [BIRD, ASSA, SMDR]
 
 thresholds:
-  momentum_bullish: 0.5
-  momentum_bearish: -0.5
+  # Bullish: median 20-session return vs IHSG above +2% and >= 60% of constituents above MA50.
+  rs_bullish: 0.02
+  rs_bearish: -0.02
+  breadth_bullish: 0.6
+  breadth_bearish: 0.4
   min_constituents: 3

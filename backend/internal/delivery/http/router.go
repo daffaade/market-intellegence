@@ -14,9 +14,7 @@ type Handlers struct {
 	Intelligence *handler.IntelligenceHandler
 	Scanner      *handler.ScannerHandler
 	Analytics    *handler.AnalyticsHandler
-	Sector       *handler.SectorHandler
 	Portfolio    *handler.PortfolioHandler
-	Consumer     *handler.ConsumerHandler
 	MarketData   *handler.MarketDataHandler
 }
 
@@ -28,24 +26,11 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 
 	// Market Overview, Scanner & Growth Timeline
 	mux.HandleFunc("GET /api/v1/market/overview", handlers.Scanner.GetMarketOverview)
-	mux.HandleFunc("GET /api/v1/market/growth-timeline", handlers.Analytics.GetMarketGrowthTimeline)
 	mux.HandleFunc("POST /api/v1/screener", handlers.Scanner.Screen)
-
-	// Sectors Intelligence
-	if handlers.Sector != nil {
-		mux.HandleFunc("GET /api/v1/sectors", handlers.Sector.ListSectors)
-		mux.HandleFunc("GET /api/v1/sectors/{sector}", handlers.Sector.GetSector)
-	}
 
 	// Portfolio Risk
 	if handlers.Portfolio != nil {
 		mux.HandleFunc("POST /api/v1/portfolio/risk", handlers.Portfolio.CalculateRisk)
-	}
-
-	// Consumer Behavior Analysis
-	if handlers.Consumer != nil {
-		mux.HandleFunc("POST /api/v1/consumer-behavior/analyze", handlers.Consumer.Analyze)
-		mux.HandleFunc("GET /api/v1/consumer-behavior/analyze", handlers.Consumer.AnalyzeQuery)
 	}
 
 	// Companies & Fundamentals
@@ -65,13 +50,9 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 		mux.HandleFunc("GET /api/v1/companies/{symbol}/events", handlers.MarketData.GetCorporateEvents)
 		mux.HandleFunc("GET /api/v1/companies/{symbol}/macro-sensitivity", handlers.MarketData.GetMacroSensitivity)
 		mux.HandleFunc("GET /api/v1/pipeline/sources", handlers.MarketData.GetPipelineSources)
+		mux.HandleFunc("GET /api/v1/sectors", handlers.MarketData.GetSectors)
+		mux.HandleFunc("GET /api/v1/consumer-behavior/analyze", handlers.MarketData.GetConsumerBehavior)
 	}
-
-	// Pipeline Telemetry & Macro Indicators
-	mux.HandleFunc("GET /api/v1/pipeline/telemetry", handlers.Analytics.GetPipelineTelemetry)
-	mux.HandleFunc("GET /api/v1/macro/indicators", handlers.Analytics.GetMacroIndicators)
-	mux.HandleFunc("GET /api/v1/macro/disaster-risks", handlers.Analytics.GetDisasterRisks)
-	mux.HandleFunc("GET /api/v1/portfolio/positions", handlers.Analytics.GetPortfolioPositions)
 
 	// Apply Middlewares: CORS -> Logger -> Mux
 	var rootHandler http.Handler = mux

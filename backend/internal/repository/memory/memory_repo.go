@@ -10,26 +10,17 @@ import (
 )
 
 type MemoryRepository struct {
-	mu                 sync.RWMutex
-	companies          map[string]*domain.Company
-	snapshots          map[string]*domain.IntelligenceSnapshot
-	sectorsData        map[string]*domain.FinancialSnapshot
-	growthTimeline     []domain.MarketGrowthTimelinePoint
-	pipelineTelemetry  *domain.PipelineTelemetry
-	macroIndicators    []domain.MacroIndicator
-	disasterRisks      []domain.DisasterRisk
-	portfolioPositions []domain.PortfolioPosition
+	mu          sync.RWMutex
+	companies   map[string]*domain.Company
+	snapshots   map[string]*domain.IntelligenceSnapshot
+	sectorsData map[string]*domain.FinancialSnapshot
 }
 
 func NewMemoryRepository() *MemoryRepository {
 	repo := &MemoryRepository{
-		companies:          make(map[string]*domain.Company),
-		snapshots:          make(map[string]*domain.IntelligenceSnapshot),
-		sectorsData:        make(map[string]*domain.FinancialSnapshot),
-		growthTimeline:     make([]domain.MarketGrowthTimelinePoint, 0),
-		macroIndicators:    make([]domain.MacroIndicator, 0),
-		disasterRisks:      make([]domain.DisasterRisk, 0),
-		portfolioPositions: make([]domain.PortfolioPosition, 0),
+		companies:   make(map[string]*domain.Company),
+		snapshots:   make(map[string]*domain.IntelligenceSnapshot),
+		sectorsData: make(map[string]*domain.FinancialSnapshot),
 	}
 	repo.seedInitialData()
 	return repo
@@ -189,35 +180,3 @@ func (r *MemoryRepository) GetRecentAnomalies(ctx context.Context, limit int) ([
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AnalyticsRepository Implementation
-// ─────────────────────────────────────────────────────────────────────────────
-
-func (r *MemoryRepository) GetMarketGrowthTimeline(ctx context.Context) ([]domain.MarketGrowthTimelinePoint, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.growthTimeline, nil
-}
-
-func (r *MemoryRepository) GetPipelineTelemetry(ctx context.Context) (*domain.PipelineTelemetry, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.pipelineTelemetry, nil
-}
-
-func (r *MemoryRepository) GetMacroIndicators(ctx context.Context) ([]domain.MacroIndicator, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.macroIndicators, nil
-}
-
-func (r *MemoryRepository) GetDisasterRisks(ctx context.Context) ([]domain.DisasterRisk, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.disasterRisks, nil
-}
-
-func (r *MemoryRepository) GetPortfolioPositions(ctx context.Context) ([]domain.PortfolioPosition, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.portfolioPositions, nil
-}

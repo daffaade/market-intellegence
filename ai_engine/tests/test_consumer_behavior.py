@@ -1,41 +1,26 @@
-import sys
-import os
+"""Consumer behavior: industry resolution and no fabricated data when sources fail."""
+import ai_engine.models.consumer_behavior.consumer_behavior_model as C
+from ai_engine.models.sector.sector_intelligence import load_sector_map
 
-# Add the parent directory to sys.path so we can import ai_engine modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from models.consumer_behavior.consumer_behavior_model import ConsumerBehaviorModel
-from core.data_loader import UnifiedDataLoader
+def test_resolve_sector_by_label_key_and_alias():
+    sectors = load_sector_map()["sectors"]
+    assert C.resolve_sector("Konsumen primer", sectors) == "Consumer Non-Cyclicals"
+    assert C.resolve_sector("Healthcare", sectors) == "Healthcare"
+    assert C.resolve_sector("makanan & minuman", sectors) == "Consumer Non-Cyclicals"
+    assert C.resolve_sector("antariksa", sectors) is None
 
-def test_consumer_behavior():
-    print("Testing Consumer Behavior Model...")
-    
-    # Initialize the model
-    data_loader = UnifiedDataLoader()
-    model = ConsumerBehaviorModel(data_loader=data_loader)
-    
-    # Perform an analysis
-    keyword = "makanan"
-    industry = "makanan & minuman"
-    
-    print(f"\nAnalyzing keyword '{keyword}' for industry '{industry}'...")
-    result = model.analyze(keyword, industry)
-    
-    print("\n--- RESULTS ---")
-    print(f"Keyword: {result.get('keyword')}")
-    print(f"Industry: {result.get('industry')}")
-    
-    signal = result.get('impact_signal', {})
-    print(f"\nImpact Signal:")
-    print(f"  Score: {signal.get('impact_score')}")
-    print(f"  Direction: {signal.get('impact_direction')}")
-    print(f"  Confidence: {signal.get('confidence_level')}")
-    
-    print(f"\nEvidence ({len(result.get('evidence', []))} items):")
-    for item in result.get('evidence', []):
-        print(f"  - [{item.get('source')}] {item.get('metric')} ({item.get('value')}): {item.get('description')}")
-        
-    print(f"\nDisclaimer: {result.get('disclaimer')}")
-    
-if __name__ == "__main__":
-    test_consumer_behavior()
+
+def test_unavailable_sources_do_not_invent_data(monkeypatch):
+    monkeypatch.setattr(C, "fetch_search_trend", lambda kw: None)
+    monkeypatch.setattr(C, "_basket_weekly", lambda syms: (_ for _ in ()).throw(RuntimeError("offline")))
+    res = C.ConsumerBehaviorModel().analyze("kopi", "Konsumen primer")
+    assert res["search_trend"] is None and res["companies"] == []
+    assert "search_trend_unavailable" in res["data_quality_flags"]
+    assert res["impact_signal"]["impact_score"] == 50.0
+    assert res["impact_signal"]["confidence_level"] == "Low"
+
+
+def test_unknown_industry_lists_options():
+    res = C.ConsumerBehaviorModel().analyze("kopi", "antariksa")
+    assert "error" in res and len(res["available_sectors"]) >= 10

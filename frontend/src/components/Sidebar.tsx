@@ -7,12 +7,13 @@ import {
   Briefcase,
   PanelLeftClose,
   PanelLeftOpen,
-  Star
+  Star,
+  PieChart
 } from 'lucide-react';
 import type { Company, IntelligenceSnapshot } from '../types/api';
 import { cx } from '../lib/ui';
 
-export type ViewType = 'overview' | 'signals' | 'dashboard' | 'market' | 'ai-portfolio';
+export type ViewType = 'overview' | 'signals' | 'dashboard' | 'market' | 'sectors' | 'ai-portfolio';
 
 interface SidebarProps {
   currentView: ViewType;
@@ -50,7 +51,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const marketItems: NavItem[] = [
     { id: 'overview', label: 'Ringkasan pasar', icon: LayoutGrid },
-    { id: 'market', label: 'Screener & sektor', icon: SlidersHorizontal }
+    { id: 'market', label: 'Screener & makro', icon: SlidersHorizontal },
+    { id: 'sectors', label: 'Sektor & konsumen', icon: PieChart }
   ];
   const emitenItems: NavItem[] = [
     { id: 'signals', label: 'Sinyal', icon: Activity, count: anomalyCount },

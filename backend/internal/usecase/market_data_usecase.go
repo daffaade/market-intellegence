@@ -94,3 +94,18 @@ func (u *MarketDataUsecase) GetMacroSensitivity(ctx context.Context, symbol stri
 func (u *MarketDataUsecase) GetPipelineSources(ctx context.Context) (json.RawMessage, error) {
 	return u.client.GetEngineJSON(ctx, "/api/v1/pipeline/sources")
 }
+
+// GetSectors returns relative strength, breadth and rotation for every IDX sector.
+func (u *MarketDataUsecase) GetSectors(ctx context.Context) (json.RawMessage, error) {
+	return u.get(ctx, "/api/v1/sector/")
+}
+
+// GetConsumerBehavior relates Google search interest for a keyword to a sector's stocks.
+func (u *MarketDataUsecase) GetConsumerBehavior(ctx context.Context, keyword, industry string) (json.RawMessage, error) {
+	keyword, industry = strings.ToLower(strings.TrimSpace(keyword)), strings.TrimSpace(industry)
+	if keyword == "" || industry == "" || len(keyword) > 60 {
+		return nil, domain.ErrEmptyKeyword
+	}
+	q := url.Values{"keyword": {keyword}, "industry": {industry}}
+	return u.get(ctx, "/api/v1/consumer-behavior/analyze?"+q.Encode())
+}

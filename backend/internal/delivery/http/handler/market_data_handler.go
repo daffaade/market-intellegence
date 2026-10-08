@@ -25,6 +25,8 @@ func (h *MarketDataHandler) render(w http.ResponseWriter, fetch func() (json.Raw
 	switch {
 	case err == nil:
 		dto.RenderSuccess(w, http.StatusOK, data)
+	case errors.Is(err, domain.ErrEmptyKeyword):
+		dto.RenderError(w, http.StatusBadRequest, "keyword and industry are required")
 	case errors.Is(err, domain.ErrCompanyNotFound):
 		dto.RenderError(w, http.StatusNotFound, "company not found")
 	case errors.Is(err, domain.ErrUpstreamUnavailable), errors.Is(err, context.DeadlineExceeded):
@@ -54,4 +56,15 @@ func (h *MarketDataHandler) GetMacroSensitivity(w http.ResponseWriter, r *http.R
 
 func (h *MarketDataHandler) GetPipelineSources(w http.ResponseWriter, r *http.Request) {
 	h.render(w, func() (json.RawMessage, error) { return h.usecase.GetPipelineSources(r.Context()) })
+}
+
+func (h *MarketDataHandler) GetSectors(w http.ResponseWriter, r *http.Request) {
+	h.render(w, func() (json.RawMessage, error) { return h.usecase.GetSectors(r.Context()) })
+}
+
+func (h *MarketDataHandler) GetConsumerBehavior(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	h.render(w, func() (json.RawMessage, error) {
+		return h.usecase.GetConsumerBehavior(r.Context(), q.Get("keyword"), q.Get("industry"))
+	})
 }

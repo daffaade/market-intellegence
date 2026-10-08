@@ -1,200 +1,163 @@
 """
-Sector Intelligence Model - ai_engine/models/sector/sector_intelligence.py
+Sector intelligence: relative strength, breadth and rotation for IDX sectors.
+
+All constituents are downloaded in one batch (dividend-adjusted closes, 1 year)
+together with IHSG. Per sector:
+  - median 20- and 60-session return relative to IHSG
+  - breadth: share of constituents above their 50-session average
+  - rotation: change in the sector's 20-session relative-strength rank versus
+    20 sessions ago (rising / falling / stable)
+  - an equal-weight sector index (weekly, rebased) for charts
+
+Replaces an implementation whose momentum score could never reach its ±0.5
+thresholds (every sector was "Neutral"), whose sector names did not match the
+backend's, and whose rotation signal was hard-coded.
 """
-import sys
-import yaml
-import numpy as np
-import pandas as pd
+from __future__ import annotations
+
+import math
+import threading
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-CURRENT_DIR = Path(__file__).resolve().parent
-AI_ENGINE_DIR = CURRENT_DIR.parent.parent
-ROOT_DIR = AI_ENGINE_DIR.parent
-for _p in [str(CURRENT_DIR), str(AI_ENGINE_DIR), str(ROOT_DIR)]:
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+import numpy as np
+import pandas as pd
+import yaml
 
-CONFIG_PATH = AI_ENGINE_DIR / "config" / "sector_map.yaml"
-
-try:
-    from ai_engine.core.data_loader import UnifiedDataLoader
-    from ai_engine.models.forecast.forecast_model import ForecastModel
-    from ai_engine.models.peers.peer_analysis import PeerAnalysisModel
-    from ai_engine.models.peers.what_changed import WhatChangedModel
-    from ai_engine.models.anomaly.isolation_forest import AnomalyModel
-except ImportError:
-    UnifiedDataLoader = None
+CONFIG_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "sector_map.yaml"
+_cache: Dict[str, Any] = {}
+_lock = threading.Lock()
 
 
-class SectorIntelligenceModel:
-    def __init__(self, data_loader=None):
-        self.data_loader = data_loader
-        self._load_config()
+def load_sector_map() -> Dict[str, Any]:
+    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
 
-    def _load_config(self):
-        if CONFIG_PATH.exists():
-            with open(CONFIG_PATH, "r") as f:
-                self.config = yaml.safe_load(f)
-        else:
-            self.config = {
-                "universe": {},
-                "thresholds": {"momentum_bullish": 0.5, "momentum_bearish": -0.5, "min_constituents": 3}
-            }
 
-    def _get_benchmark(self, as_of: Optional[str] = None) -> pd.DataFrame:
-        if self.data_loader and hasattr(self.data_loader, "get_historical_data"):
-            df = self.data_loader.get_historical_data("^JKSE", period="1y")
-            if df is not None and not df.empty:
-                if as_of:
-                    return df.loc[:as_of]
-                return df
-        
-        import yfinance as yf
-        df = yf.download("^JKSE", period="1y", progress=False, auto_adjust=False)
-        if as_of and not df.empty:
-            df = df.loc[:as_of]
-        return df
+def _closes(symbols: List[str]) -> pd.DataFrame:
+    with _lock:
+        hit = _cache.get("closes")
+        if hit and time.time() - hit[0] < 6 * 3600:
+            return hit[1]
+    import yfinance as yf
+    tickers = [f"{s}.JK" for s in symbols] + ["^JKSE"]
+    raw = yf.download(" ".join(tickers), period="1y", progress=False, auto_adjust=True)
+    close = raw["Close"]
+    close.index = pd.to_datetime(close.index).tz_localize(None)
+    close = close.rename(columns=lambda c: c.replace(".JK", ""))
+    with _lock:
+        _cache["closes"] = (time.time(), close)
+    return close
 
-    def _get_ohlcv(self, symbol: str, as_of: Optional[str] = None) -> pd.DataFrame:
-        if self.data_loader and hasattr(self.data_loader, "get_historical_data"):
-            df = self.data_loader.get_historical_data(symbol, period="1y")
-            if df is not None and not df.empty:
-                if as_of:
-                    df = df.loc[:as_of]
-                return df
-                
-        import yfinance as yf
-        df = yf.download(f"{symbol}.JK", period="1y", progress=False, auto_adjust=False)
-        if as_of and not df.empty:
-            df = df.loc[:as_of]
-        return df
 
-    def analyze_sector(self, sector_name: str, as_of: Optional[str] = None) -> Dict[str, Any]:
-        universe = self.config["universe"].get(sector_name, [])
-        default_response = {
-            "sector": sector_name,
-            "as_of": as_of or datetime.today().strftime('%Y-%m-%d'),
-            "n_constituents": len(universe),
-            "low_confidence": True,
-            "momentum_score": 0.0,
-            "sentiment_label": "Neutral",
-            "rotation_rank": 0,
-            "rotation_signal": "Stable",
-            "metrics": {},
-            "evidence": [],
-            "top_contributors": []
-        }
+def _clean(v: Optional[float], nd: int = 4) -> Optional[float]:
+    if v is None or (isinstance(v, float) and (math.isnan(v) or math.isinf(v))):
+        return None
+    return round(float(v), nd)
 
-        if len(universe) < self.config["thresholds"]["min_constituents"]:
-            default_response["evidence"].append("Insufficient constituents")
-            return default_response
 
-        # Fetch Benchmark
-        idx_df = self._get_benchmark(as_of)
-        idx_ret_20d = 0.0
-        if not idx_df.empty and len(idx_df) >= 20:
-            val_last = float(np.squeeze(idx_df['Close'].iloc[-1]))
-            val_prev = float(np.squeeze(idx_df['Close'].iloc[-20]))
-            idx_ret_20d = val_last / val_prev - 1.0
+def sector_overview(sector_map: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    cfg = sector_map or load_sector_map()
+    sectors = cfg.get("sectors", {})
+    th = cfg.get("thresholds", {})
+    all_symbols = sorted({s for v in sectors.values() for s in v.get("symbols", [])})
+    close = _closes(all_symbols)
+    if "^JKSE" not in close or close["^JKSE"].dropna().empty:
+        raise RuntimeError("IHSG history unavailable")
+    ihsg = close["^JKSE"].ffill()
 
-        # Fetch components data
-        above_ma50_count = 0
-        pos_ret20_count = 0
-        valid_constituents = 0
-        rs_list = []
-        constituent_perf: Dict[str, float] = {}
-        div_count = 0
+    def rel_return(series: pd.Series, n: int, end_offset: int = 0) -> Optional[float]:
+        s = series.dropna()
+        b = ihsg.reindex(s.index).ffill()
+        if len(s) <= n + end_offset:
+            return None
+        e = len(s) - 1 - end_offset
+        return float(s.iloc[e] / s.iloc[e - n] - 1) - float(b.iloc[e] / b.iloc[e - n] - 1)
 
-        for sym in universe:
-            df = self._get_ohlcv(sym, as_of)
-            if df.empty:
+    rows = []
+    for key, spec in sectors.items():
+        members = []
+        for sym in spec.get("symbols", []):
+            if sym not in close:
                 continue
-            
-            valid_constituents += 1
-            close_prices = df['Close']
-            
-            if len(close_prices) >= 20:
-                # Use .item() or float() to ensure scalar extraction if it returns a Series
-                val_last = float(np.squeeze(close_prices.iloc[-1]))
-                val_prev = float(np.squeeze(close_prices.iloc[-20]))
-                ret20 = val_last / val_prev - 1
-                if ret20 > 0:
-                    pos_ret20_count += 1
-                # Ensure idx_ret_20d is scalar too
-                rs_vs_ihsg = ret20 - float(np.squeeze(idx_ret_20d))
-                rs_list.append(rs_vs_ihsg)
-                constituent_perf[sym] = rs_vs_ihsg
-
-            if len(close_prices) >= 50:
-                ma50 = float(np.squeeze(close_prices.rolling(50).mean().iloc[-1]))
-                if float(np.squeeze(close_prices.iloc[-1])) > ma50:
-                    above_ma50_count += 1
-
-        if valid_constituents == 0:
-            return default_response
-
-        breadth_ma50 = above_ma50_count / valid_constituents
-        valid_rs = [float(r) for r in rs_list if not np.isnan(r)]
-        median_rs = float(np.median(valid_rs)) if valid_rs else 0.0
-        if np.isnan(median_rs):
-            median_rs = 0.0
-
-        # Calculate composite momentum score (z-score like)
-        momentum_score = float((median_rs * 0.6) + ((breadth_ma50 - 0.5) * 0.4))
-        if np.isnan(momentum_score):
-            momentum_score = 0.0
-        
-        # Determine Sentiment
-        if momentum_score > self.config["thresholds"]["momentum_bullish"]:
+            s = close[sym].dropna()
+            if len(s) < 70:
+                continue
+            ma50 = s.rolling(50).mean().iloc[-1]
+            members.append({
+                "symbol": sym,
+                "rs_20d": rel_return(s, 20),
+                "rs_60d": rel_return(s, 60),
+                "rs_20d_prev": rel_return(s, 20, end_offset=20),
+                "above_ma50": bool(s.iloc[-1] > ma50),
+                "return_20d": float(s.iloc[-1] / s.iloc[-21] - 1),
+            })
+        if len(members) < th.get("min_constituents", 3):
+            continue
+        med = lambda k: float(np.median([m[k] for m in members if m[k] is not None]))
+        rs20, rs60, rs20_prev = med("rs_20d"), med("rs_60d"), med("rs_20d_prev")
+        breadth = sum(m["above_ma50"] for m in members) / len(members)
+        if rs20 > th.get("rs_bullish", 0.02) and breadth >= th.get("breadth_bullish", 0.6):
             sentiment = "Bullish"
-        elif momentum_score < self.config["thresholds"]["momentum_bearish"]:
+        elif rs20 < th.get("rs_bearish", -0.02) and breadth <= th.get("breadth_bearish", 0.4):
             sentiment = "Bearish"
         else:
             sentiment = "Neutral"
 
-        evidence = [
-            f"{above_ma50_count} dari {valid_constituents} saham di atas MA50",
-            f"Median RS 20D vs IHSG {median_rs*100:+.1f}%"
-        ]
+        # Equal-weight sector index, weekly, rebased to 100 over the last 26 weeks.
+        idx = close[[m["symbol"] for m in members]].pct_change().mean(axis=1).fillna(0)
+        level = (1 + idx).cumprod().resample("W-FRI").last().tail(27)
+        level = level / level.iloc[0] * 100
 
-        # Rank top contributors by relative return vs benchmark
-        constituent_ranks = sorted(
-            [u for u in universe if u in constituent_perf and not np.isnan(constituent_perf[u])],
-            key=lambda s: constituent_perf[s],
-            reverse=True
-        )
-        top_contribs = constituent_ranks[:3] if constituent_ranks else universe[:2]
+        members.sort(key=lambda m: m["rs_20d"] if m["rs_20d"] is not None else float("-inf"), reverse=True)
+        rows.append({
+            "sector": key,
+            "label": spec.get("label", key),
+            "n_constituents": len(members),
+            "sentiment": sentiment,
+            "rs_20d": _clean(rs20),
+            "rs_60d": _clean(rs60),
+            "rs_20d_prev": _clean(rs20_prev),
+            "breadth_ma50": _clean(breadth, 3),
+            "constituents": [{**m, "rs_20d": _clean(m["rs_20d"]), "rs_60d": _clean(m["rs_60d"]),
+                              "rs_20d_prev": _clean(m["rs_20d_prev"]), "return_20d": _clean(m["return_20d"])}
+                             for m in members],
+            "index_weekly": [{"date": d.strftime("%Y-%m-%d"), "value": _clean(v, 2)} for d, v in level.items()],
+        })
 
-        # Algorithmic composite opportunity (0 - 100) & risk classification
-        norm_opp = round(max(10.0, min(95.0, 50.0 + (momentum_score * 40.0))), 1)
-        if np.isnan(norm_opp):
-            norm_opp = 50.0
+    # Rotation: rank by 20-session relative strength now vs 20 sessions ago.
+    def by(field):  # missing values rank last; 0.0 is a real value, not missing
+        return lambda r: r[field] if r[field] is not None else float("-inf")
 
-        if breadth_ma50 < 0.35 or median_rs < -0.05:
-            calc_risk = "High"
-        elif breadth_ma50 > 0.65 and median_rs > 0.02:
-            calc_risk = "Low"
-        else:
-            calc_risk = "Medium"
+    now_rank = {r["sector"]: i + 1 for i, r in enumerate(sorted(rows, key=by("rs_20d"), reverse=True))}
+    prev_rank = {r["sector"]: i + 1 for i, r in enumerate(sorted(rows, key=by("rs_20d_prev"), reverse=True))}
+    for r in rows:
+        r["rank"], r["rank_prev"] = now_rank[r["sector"]], prev_rank[r["sector"]]
+        moved = r["rank_prev"] - r["rank"]
+        r["rotation"] = "Menguat" if moved >= 2 else ("Melemah" if moved <= -2 else "Stabil")
+    rows.sort(key=lambda r: r["rank"])
 
-        return {
-            "sector": sector_name,
-            "as_of": str(idx_df.index[-1].date()) if not idx_df.empty else default_response["as_of"],
-            "n_constituents": valid_constituents,
-            "low_confidence": valid_constituents < self.config["thresholds"]["min_constituents"],
-            "momentum_score": float(round(momentum_score, 3)),
-            "sentiment_label": sentiment,
-            "rotation_rank": 0,
-            "rotation_signal": "Stable",
-            "metrics": {
-                "rs_vs_ihsg_20d": float(round(median_rs, 3)),
-                "breadth_ma50": float(round(breadth_ma50, 3)),
-                "avg_opportunity": norm_opp,
-                "avg_risk": calc_risk,
-                "divergence_count": div_count
-            },
-            "evidence": evidence,
-            "top_contributors": top_contribs
-        }
+    last = close.index[-1]
+    return {
+        "as_of": last.strftime("%Y-%m-%d"),
+        "benchmark": "IHSG",
+        "method": "Median return 20/60 sesi vs IHSG, breadth di atas MA50, rotasi = perubahan peringkat 20 sesi",
+        "sectors": rows,
+        "source": "yfinance",
+    }
+
+
+class SectorIntelligenceModel:
+    """Kept for callers that ask for one sector."""
+
+    def __init__(self, data_loader=None):
+        self.data_loader = data_loader
+
+    def analyze_sector(self, sector_name: str, as_of: Optional[str] = None) -> Dict[str, Any]:
+        overview = sector_overview()
+        for row in overview["sectors"]:
+            if row["sector"].lower() == sector_name.lower() or row["label"].lower() == sector_name.lower():
+                return {**row, "as_of": overview["as_of"]}
+        return {"sector": sector_name, "as_of": overview["as_of"], "error": "unknown sector"}

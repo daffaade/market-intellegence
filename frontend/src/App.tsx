@@ -5,6 +5,7 @@ import { SignalIntelligence } from './components/views/SignalIntelligence';
 import { CompanyDashboard } from './components/views/CompanyDashboard';
 import { MarketIntelligence } from './components/views/MarketIntelligence';
 import { PortfolioAndAi } from './components/views/PortfolioAndAi';
+import { SectorsAndConsumer } from './components/views/SectorsAndConsumer';
 import { MarketOverviewView } from './components/views/MarketOverview';
 import { SectorsPipelineInspector } from './components/shared/SectorsPipelineInspector';
 import { EmitenSwitcherModal } from './components/shared/EmitenSwitcherModal';
@@ -23,7 +24,7 @@ import { authEnabled } from './lib/supabase';
 import { useUserData } from './lib/userData';
 import { LoginPage } from './components/views/LoginPage';
 
-const VIEWS: ViewType[] = ['overview', 'signals', 'dashboard', 'market', 'ai-portfolio'];
+const VIEWS: ViewType[] = ['overview', 'signals', 'dashboard', 'market', 'sectors', 'ai-portfolio'];
 
 /** Route lives in the hash as #/<view>/<symbol> so pages can be linked and the back button works. */
 const parseHash = (): { view: ViewType; symbol: string } => {
@@ -146,7 +147,7 @@ function App() {
   // stock-level view it keeps you on the same page.
   const handleSelectSymbol = (sym: string) => {
     setSelectedSymbol(sym);
-    if (currentView === 'overview' || currentView === 'market') {
+    if (currentView === 'overview' || currentView === 'market' || currentView === 'sectors') {
       navigate('signals');
     } else {
       mainRef.current?.scrollTo({ top: 0 });
@@ -244,6 +245,10 @@ function App() {
                       selectedSymbol={selectedSymbol}
                       onSelectSymbol={handleSelectSymbol}
                     />
+                  )}
+
+                  {currentView === 'sectors' && (
+                    <SectorsAndConsumer companies={companies} onSelectSymbol={handleSelectSymbol} />
                   )}
 
                   {currentView === 'ai-portfolio' && (

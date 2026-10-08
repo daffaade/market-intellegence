@@ -45,11 +45,9 @@ func main() {
 	// 3. Database Connection / Fallback Setup
 	var companyRepo domain.CompanyRepository
 	var snapshotRepo domain.SnapshotRepository
-	var analyticsRepo domain.AnalyticsRepository
 
 	// Always instantiate MemoryRepository for analytics data & fallback
 	memRepo := memory.NewMemoryRepository()
-	analyticsRepo = memRepo
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	pool, err := postgres.NewPool(ctx, cfg.DatabaseURL)
@@ -75,10 +73,8 @@ func main() {
 	companyUsecase := usecase.NewCompanyUsecase(companyRepo)
 	intelUsecase := usecase.NewIntelligenceUsecase(snapshotRepo, companyRepo, pyClient, aiClient, cfg)
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, companyRepo)
-	analyticsUsecase := usecase.NewAnalyticsUsecase(analyticsRepo, companyRepo, pyClient)
-	sectorUsecase := usecase.NewSectorUsecase(pyClient)
+	analyticsUsecase := usecase.NewAnalyticsUsecase(companyRepo, pyClient)
 	portfolioUsecase := usecase.NewPortfolioUsecase(pyClient)
-	consumerUsecase := usecase.NewConsumerBehaviorUsecase(pyClient)
 	marketDataUsecase := usecase.NewMarketDataUsecase(pyClient, companyRepo)
 
 	// 6. Initialize Delivery HTTP Handlers & Router
@@ -88,9 +84,7 @@ func main() {
 		Intelligence: handler.NewIntelligenceHandler(intelUsecase),
 		Scanner:      handler.NewScannerHandler(scannerUsecase),
 		Analytics:    handler.NewAnalyticsHandler(analyticsUsecase),
-		Sector:       handler.NewSectorHandler(sectorUsecase),
 		Portfolio:    handler.NewPortfolioHandler(portfolioUsecase),
-		Consumer:     handler.NewConsumerHandler(consumerUsecase),
 		MarketData:   handler.NewMarketDataHandler(marketDataUsecase),
 	}
 

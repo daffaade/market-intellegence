@@ -31,7 +31,7 @@ func setupTestRouter() http.Handler {
 	compUsecase := usecase.NewCompanyUsecase(memRepo)
 	intelUsecase := usecase.NewIntelligenceUsecase(memRepo, memRepo, &mockIntelligenceEngineClient{}, &mockAIExplanationClient{}, cfg)
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, memRepo)
-	analyticsUsecase := usecase.NewAnalyticsUsecase(memRepo, memRepo, &mockFundamentalsClient{})
+	analyticsUsecase := usecase.NewAnalyticsUsecase(memRepo, &mockFundamentalsClient{})
 
 	handlers := deliveryhttp.Handlers{
 		Health:       handler.NewHealthHandler(cfg),
@@ -91,26 +91,6 @@ func Test18EmitenCoverage(t *testing.T) {
 func TestAnalyticsEndpoints(t *testing.T) {
 	router := setupTestRouter()
 
-	// 1. Growth Timeline
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/market/growth-timeline", nil)
-	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("growth timeline returned %d", rec.Code)
-	}
-
-	var timelineResp struct {
-		Status string                             `json:"status"`
-		Data   []domain.MarketGrowthTimelinePoint `json:"data"`
-	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &timelineResp); err != nil {
-		t.Fatalf("unmarshal error: %v", err)
-	}
-	if len(timelineResp.Data) < 12 {
-		t.Errorf("expected at least 12 periods, got %d", len(timelineResp.Data))
-	}
-
 	// 2. Company Fundamentals (BBCA)
 	reqFund := httptest.NewRequest(http.MethodGet, "/api/v1/companies/BBCA/fundamentals", nil)
 	recFund := httptest.NewRecorder()
@@ -134,42 +114,14 @@ func TestAnalyticsEndpoints(t *testing.T) {
 		t.Errorf("expected non-empty growth and dividend data")
 	}
 
-	// 3. Pipeline Telemetry
-	reqTel := httptest.NewRequest(http.MethodGet, "/api/v1/pipeline/telemetry", nil)
-	recTel := httptest.NewRecorder()
-	router.ServeHTTP(recTel, reqTel)
-
-	if recTel.Code != http.StatusOK {
-		t.Fatalf("pipeline telemetry returned %d", recTel.Code)
-	}
-
-	var telResp struct {
-		Status string                   `json:"status"`
-		Data   domain.PipelineTelemetry `json:"data"`
-	}
-	if err := json.Unmarshal(recTel.Body.Bytes(), &telResp); err != nil {
-		t.Fatalf("unmarshal telemetry error: %v", err)
-	}
-	if len(telResp.Data.Stages) != 6 {
-		t.Errorf("expected 6 pipeline stages, got %d", len(telResp.Data.Stages))
-	}
-
-	// 4. Macro Indicators
-	reqMacro := httptest.NewRequest(http.MethodGet, "/api/v1/macro/indicators", nil)
-	recMacro := httptest.NewRecorder()
-	router.ServeHTTP(recMacro, reqMacro)
-
-	if recMacro.Code != http.StatusOK {
-		t.Fatalf("macro indicators returned %d", recMacro.Code)
-	}
-
-	// 5. Disaster Risks
-	reqDis := httptest.NewRequest(http.MethodGet, "/api/v1/macro/disaster-risks", nil)
-	recDis := httptest.NewRecorder()
-	router.ServeHTTP(recDis, reqDis)
-
-	if recDis.Code != http.StatusOK {
-		t.Fatalf("disaster risks returned %d", recDis.Code)
+	// Demo endpoints backed by seeded data were removed; they must not come back.
+	for _, path := range []string{"/api/v1/market/growth-timeline", "/api/v1/pipeline/telemetry",
+		"/api/v1/macro/indicators", "/api/v1/macro/disaster-risks", "/api/v1/portfolio/positions"} {
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("%s should be gone, got %d", path, rec.Code)
+		}
 	}
 }
 
@@ -188,7 +140,7 @@ func (m *mockFundamentalsClient) GetFundamentals(ctx context.Context, symbol str
 func TestFundamentals_UnknownSymbolSkipsUpstream(t *testing.T) {
 	repo := memory.NewMemoryRepository()
 	fc := &mockFundamentalsClient{}
-	u := usecase.NewAnalyticsUsecase(repo, repo, fc)
+	u := usecase.NewAnalyticsUsecase(repo, fc)
 
 	if _, err := u.GetFundamentals(context.Background(), "NONEXISTENT"); err == nil {
 		t.Fatal("expected error for untracked symbol")

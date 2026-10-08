@@ -3,14 +3,8 @@ import type {
   IntelligenceSnapshot,
   MarketOverview,
   CompanyFundamentals,
-  MacroIndicator,
-  EventImpact,
-  DisasterRisk,
-  PortfolioPosition,
   SignalMatrixPoint,
-  PipelineStage,
-  StandardizedSignalOutput,
-  MarketGrowthTimelinePoint
+  StandardizedSignalOutput
 } from '../types/api';
 
 export const MOCK_COMPANIES: Record<string, Company> = {
@@ -938,21 +932,6 @@ export const MOCK_INTELLIGENCE: Record<string, IntelligenceSnapshot> = {
   }
 };
 
-// ─── Top 10 Market Growth Time-Series (12 Bulan Terakhir) ──────
-export const MOCK_TOP10_GROWTH_TIMELINE: MarketGrowthTimelinePoint[] = [
-  { period: "Okt 25", BBCA: 76.5, BBRI: 74.0, BMRI: 71.2, BBNI: 68.5, TLKM: 69.0, AMMN: 62.4, ICBP: 70.1, ASII: 65.8, ADRO: 60.2, KLBF: 64.0 },
-  { period: "Nov 25", BBCA: 78.2, BBRI: 75.8, BMRI: 73.0, BBNI: 70.1, TLKM: 70.5, AMMN: 64.8, ICBP: 71.0, ASII: 66.5, ADRO: 62.5, KLBF: 65.2 },
-  { period: "Des 25", BBCA: 80.0, BBRI: 77.5, BMRI: 74.8, BBNI: 71.9, TLKM: 71.8, AMMN: 67.0, ICBP: 71.5, ASII: 68.0, ADRO: 64.0, KLBF: 66.0 },
-  { period: "Jan 26", BBCA: 82.4, BBRI: 79.2, BMRI: 76.5, BBNI: 73.8, TLKM: 73.2, AMMN: 69.5, ICBP: 72.8, ASII: 69.2, ADRO: 66.1, KLBF: 66.8 },
-  { period: "Feb 26", BBCA: 83.9, BBRI: 80.6, BMRI: 78.1, BBNI: 75.2, TLKM: 74.0, AMMN: 71.0, ICBP: 73.4, ASII: 68.5, ADRO: 67.8, KLBF: 67.5 },
-  { period: "Mar 26", BBCA: 85.1, BBRI: 82.0, BMRI: 79.5, BBNI: 76.9, TLKM: 75.5, AMMN: 72.8, ICBP: 74.0, ASII: 70.1, ADRO: 69.2, KLBF: 68.3 },
-  { period: "Apr 26", BBCA: 84.5, BBRI: 81.2, BMRI: 80.2, BBNI: 77.5, TLKM: 74.8, AMMN: 73.5, ICBP: 73.2, ASII: 69.4, ADRO: 70.0, KLBF: 68.9 },
-  { period: "Mei 26", BBCA: 86.0, BBRI: 83.1, BMRI: 81.4, BBNI: 78.8, TLKM: 76.2, AMMN: 74.2, ICBP: 74.5, ASII: 71.0, ADRO: 68.5, KLBF: 69.4 },
-  { period: "Jun 26", BBCA: 87.2, BBRI: 84.5, BMRI: 82.3, BBNI: 79.9, TLKM: 77.0, AMMN: 75.0, ICBP: 74.8, ASII: 71.8, ADRO: 70.4, KLBF: 69.8 },
-  { period: "Jul 26", BBCA: 86.8, BBRI: 85.0, BMRI: 83.1, BBNI: 80.5, TLKM: 76.5, AMMN: 75.5, ICBP: 75.0, ASII: 72.2, ADRO: 71.0, KLBF: 70.0 },
-  { period: "Ags 26", BBCA: 88.0, BBRI: 85.8, BMRI: 83.8, BBNI: 81.0, TLKM: 77.8, AMMN: 75.8, ICBP: 75.1, ASII: 72.5, ADRO: 71.2, KLBF: 70.1 },
-  { period: "Sep 26", BBCA: 88.5, BBRI: 86.2, BMRI: 84.0, BBNI: 81.5, TLKM: 78.4, AMMN: 76.0, ICBP: 75.2, ASII: 72.8, ADRO: 71.5, KLBF: 70.2 },
-];
 
 export const MOCK_MARKET_OVERVIEW: MarketOverview = {
   top_opportunities: [
@@ -1342,30 +1321,9 @@ export const MOCK_FUNDAMENTALS: Record<string, CompanyFundamentals> = {
   }
 };
 
-export const MOCK_MACRO: MacroIndicator[] = [
-  { name: "BI Rate (Suku Bunga Acuan)", value: "6.00%", trend: "STABLE", correlation_with_market: "Positif untuk marjin perbankan", impact_assessment: "Net Neutral to Positive" },
-  { name: "Inflasi YoY (CPI)", value: "2.45%", trend: "DOWN", correlation_with_market: "Mendukung daya beli konsumer", impact_assessment: "Positive" },
-  { name: "Nilai Tukar USD/IDR", value: "15,820", trend: "STABLE", correlation_with_market: "Stabilitas modal asing", impact_assessment: "Neutral" },
-  { name: "Pertumbuhan PDB Nasional", value: "5.12%", trend: "UP", correlation_with_market: "Pendorong kredit & investasi", impact_assessment: "Highly Positive" }
-];
 
-export const MOCK_EVENTS: EventImpact[] = [
-  { event_name: "Pengumuman Pembagian Dividen Interim BBCA", date: "2026-08-25", category: "Corporate Action", price_reaction_pct: 2.8, market_sentiment: "Very Positive" },
-  { event_name: "Rilis Laporan Keuangan Q2 2026 Perbankan", date: "2026-07-28", category: "Earnings", price_reaction_pct: 3.5, market_sentiment: "Positive" },
-  { event_name: "Keputusan Suku Bunga Federal Reserve (Fed Rate)", date: "2026-09-12", category: "Macroeconomic", price_reaction_pct: -0.4, market_sentiment: "Neutral" }
-];
 
-export const MOCK_DISASTER_RISKS: DisasterRisk[] = [
-  { region: "Pesisir Jawa Barat & Banten", risk_type: "Cuaca Ekstrem & Banjir", severity: "MEDIUM", impacted_operations: "Jaringan Cabang & ATM Retail", mitigation_status: "Mitigasi Aktif (Redundansi Sistem Data Center)" },
-  { region: "Sumatera Bagian Tengah", risk_type: "Kabut Asap Karhutla", severity: "LOW", impacted_operations: "Operasional Logistik & Cabang Regional", mitigation_status: "Sistem Kerja Hybrid Disiapkan" }
-];
 
-export const MOCK_PORTFOLIO: PortfolioPosition[] = [
-  { symbol: "BBCA", name: "Bank Central Asia", allocation_pct: 40.0, sector: "Financials", risk_score: 15.2, opportunity_score: 88.5 },
-  { symbol: "TLKM", name: "Telkom Indonesia", allocation_pct: 25.0, sector: "Telecommunication", risk_score: 28.5, opportunity_score: 74.2 },
-  { symbol: "ASII", name: "Astra International", allocation_pct: 20.0, sector: "Consumer Discretionary", risk_score: 32.0, opportunity_score: 65.0 },
-  { symbol: "GOTO", name: "GoTo Tokopedia", allocation_pct: 15.0, sector: "Technology", risk_score: 68.4, opportunity_score: 42.0 }
-];
 
 // ─── Signal Matrix Points (2D Quadrant Data) ──────────────────
 export const MOCK_SIGNAL_MATRIX: SignalMatrixPoint[] = [
@@ -1381,57 +1339,6 @@ export const MOCK_SIGNAL_MATRIX: SignalMatrixPoint[] = [
   { symbol: "EMTK", name: "Elang Mahkota", sector: "Technology", opportunity_score: 62.0, risk_score: 55.0, direction: "NEUTRAL", is_anomaly: false, quadrant: "HIGH_GROWTH" }
 ];
 
-// ─── Sectors API / MCP Pipeline Stages ─────────────────────────
-export const MOCK_PIPELINE_STAGES: PipelineStage[] = [
-  {
-    id: "RETRIEVAL",
-    label: "Data Retrieval",
-    description: "Mengambil data mentah dari Sectors API/MCP: valuasi, peers, forecast, transaksi institusi, ownership, executives.",
-    status: "COMPLETED",
-    data_type: "Raw Data (JSON)",
-    duration_ms: 245
-  },
-  {
-    id: "VALIDATION",
-    label: "Validation & Cleaning",
-    description: "Memvalidasi kelengkapan field, menghapus duplikasi, dan mendeteksi data outlier atau null values.",
-    status: "COMPLETED",
-    data_type: "Validated Data",
-    duration_ms: 82
-  },
-  {
-    id: "NORMALIZATION",
-    label: "Normalization",
-    description: "Menormalisasi skala metrik ke range 0-100, menyeragamkan satuan mata uang, dan mengonversi timestamp ke zona waktu WIB.",
-    status: "COMPLETED",
-    data_type: "Normalized Data",
-    duration_ms: 45
-  },
-  {
-    id: "TRANSFORMATION",
-    label: "Transformation",
-    description: "Menghitung delta antar-periode (YoY, QoQ), menghitung rasio perbandingan peer median, dan memproduksi perubahan signifikan.",
-    status: "COMPLETED",
-    data_type: "Derived Metrics",
-    duration_ms: 120
-  },
-  {
-    id: "FEATURE_GENERATION",
-    label: "Feature Generation",
-    description: "Membentuk fitur analitis: anomaly score, divergence flag, composite opportunity/risk score, dan peer position ranking.",
-    status: "COMPLETED",
-    data_type: "Intelligence Features",
-    duration_ms: 180
-  },
-  {
-    id: "INTELLIGENCE_ENGINE",
-    label: "Intelligence Engine",
-    description: "Menjalankan engine intelijen untuk menghasilkan sinyal, menentukan direction & confidence, dan menyusun AI research summary.",
-    status: "COMPLETED",
-    data_type: "Intelligence Output + AI Narrative",
-    duration_ms: 310
-  }
-];
 
 // ─── Standardized Signal Outputs ───────────────────────────────
 export const MOCK_SIGNAL_OUTPUTS: Record<string, StandardizedSignalOutput> = {

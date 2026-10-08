@@ -7,7 +7,7 @@ from ai_engine.core.data_loader import UnifiedDataLoader
 from ai_engine.models.consumer_behavior.consumer_behavior_model import ConsumerBehaviorModel
 
 router = APIRouter(prefix="/api/v1/consumer-behavior", tags=["consumer-behavior"])
-_consumer_cache = AIResultCache(ttl_seconds=3600)
+_consumer_cache = AIResultCache(ttl_seconds=6 * 3600)
 
 class ConsumerBehaviorRequest(BaseModel):
     keyword: str
@@ -27,7 +27,7 @@ async def analyze_consumer_behavior(request: ConsumerBehaviorRequest, data_loade
         return {**cached_result, "cached": True}
         
     try:
-        model = ConsumerBehaviorModel(data_loader=data_loader)
+        model = ConsumerBehaviorModel()
         result = model.analyze(keyword=keyword, industry=industry)
         
         # Store result in cache
@@ -35,3 +35,8 @@ async def analyze_consumer_behavior(request: ConsumerBehaviorRequest, data_loade
         return {**result, "cached": False}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/analyze")
+async def analyze_consumer_behavior_get(keyword: str, industry: str):
+    return await analyze_consumer_behavior(ConsumerBehaviorRequest(keyword=keyword, industry=industry), None)

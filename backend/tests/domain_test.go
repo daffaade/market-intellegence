@@ -258,27 +258,9 @@ func TestDomainEntitiesInitialization(t *testing.T) {
 	if snap.Catalysts.CatalystScore != 0.8 {
 		t.Fatalf("expected CatalystScore 0.8, got %f", snap.Catalysts.CatalystScore)
 	}
-
-	sec := domain.SectorIntelligence{
-		Sector:         "Financials",
-		AsOf:           "2026-09-28",
-		NConstituents:  4,
-		MomentumScore:  0.45,
-		SentimentLabel: "Bullish",
-		Metrics: domain.SectorMetrics{
-			RsVsIhsg20d: 0.035,
-			BreadthMa50: 0.75,
-			AvgRisk:     "Low",
-		},
-		Evidence: []string{"3 dari 4 saham di atas MA50"},
-	}
-
-	if sec.SentimentLabel != "Bullish" {
-		t.Fatalf("expected Bullish sentiment, got %s", sec.SentimentLabel)
-	}
 }
 
-func TestPortfolioAndConsumerDomain(t *testing.T) {
+func TestPortfolioDomain(t *testing.T) {
 	portReq := domain.PortfolioRiskRequest{
 		Portfolio: []domain.PortfolioAssetInput{
 			{Ticker: "BBCA", Weight: 0.6},
@@ -318,34 +300,6 @@ func TestPortfolioAndConsumerDomain(t *testing.T) {
 
 	if portReport.Metrics.PortfolioVolatility != 0.25 {
 		t.Fatalf("expected volatility 0.25, got %f", portReport.Metrics.PortfolioVolatility)
-	}
-
-	consumerReq := domain.ConsumerBehaviorRequest{
-		Keyword:  "makanan",
-		Industry: "makanan & minuman",
-	}
-
-	consumerReport := domain.ConsumerBehaviorReport{
-		Keyword:  consumerReq.Keyword,
-		Industry: consumerReq.Industry,
-		ImpactSignal: domain.ConsumerImpactSignal{
-			ImpactScore:     65.0,
-			ImpactDirection: "Bullish",
-			ConfidenceLevel: "High",
-		},
-		Evidence: []domain.ConsumerEvidenceItem{
-			{
-				Source:      "PyTrends",
-				Metric:      "Search Interest",
-				Value:       "Trend UP",
-				Description: "Peningkatan minat konsumen",
-			},
-		},
-		Disclaimer: "Bukan rekomendasi Beli/Jual",
-	}
-
-	if consumerReport.ImpactSignal.ImpactScore != 65.0 {
-		t.Fatalf("expected impact score 65.0, got %f", consumerReport.ImpactSignal.ImpactScore)
 	}
 
 	if domain.ErrInvalidPortfolio == nil || domain.ErrEmptyKeyword == nil {
