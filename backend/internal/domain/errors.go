@@ -11,3 +11,7 @@ var (
 	ErrInvalidPortfolio   = errors.New("invalid portfolio composition")
 	ErrEmptyKeyword       = errors.New("keyword cannot be empty")
 )
+
+var ErrFundamentalsUnavailable = errors.New("fundamentals unavailable from upstream")
+
+var ErrUpstreamUnavailable = errors.New("upstream data source unavailable")

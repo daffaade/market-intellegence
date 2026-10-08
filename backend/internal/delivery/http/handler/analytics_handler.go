@@ -31,6 +31,10 @@ func (h *AnalyticsHandler) GetFundamentals(w http.ResponseWriter, r *http.Reques
 			dto.RenderError(w, http.StatusNotFound, "company fundamentals not found")
 			return
 		}
+		if errors.Is(err, domain.ErrFundamentalsUnavailable) {
+			dto.RenderError(w, http.StatusServiceUnavailable, "fundamentals are temporarily unavailable")
+			return
+		}
 		dto.RenderError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -479,7 +479,15 @@ class SectorsDataMiner:
     def mine_company_report(self, symbol: str) -> Optional[dict]:
         """Fetches complete company report from Sectors API."""
         clean_symbol = symbol.replace(".JK", "").upper()
-        return self._get(f"/company/report/{clean_symbol}/")
+        report = self._get(f"/company/report/{clean_symbol}/")
+        if isinstance(report, dict) and report:
+            # Keep the full report so the fundamentals endpoint can reuse this credit.
+            from data_processing.data_sectors.fundamentals import save_report
+            try:
+                save_report(clean_symbol, report)
+            except OSError:
+                pass
+        return report
 
     def mine_daily_prices(self, symbol: str) -> Optional[List[dict]]:
         """Fetches daily historical price array for the ticker."""

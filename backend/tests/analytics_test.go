@@ -31,7 +31,7 @@ func setupTestRouter() http.Handler {
 	compUsecase := usecase.NewCompanyUsecase(memRepo)
 	intelUsecase := usecase.NewIntelligenceUsecase(memRepo, memRepo, &mockIntelligenceEngineClient{}, &mockAIExplanationClient{}, cfg)
 	scannerUsecase := usecase.NewScannerUsecase(intelUsecase, memRepo)
-	analyticsUsecase := usecase.NewAnalyticsUsecase(memRepo)
+	analyticsUsecase := usecase.NewAnalyticsUsecase(memRepo, memRepo, &mockFundamentalsClient{})
 
 	handlers := deliveryhttp.Handlers{
 		Health:       handler.NewHealthHandler(cfg),
@@ -173,22 +173,36 @@ func TestAnalyticsEndpoints(t *testing.T) {
 	}
 }
 
-func TestMemoryAnalyticsRepository_Direct(t *testing.T) {
-	ctx := context.Background()
+type mockFundamentalsClient struct{ calls int }
+
+func (m *mockFundamentalsClient) GetFundamentals(ctx context.Context, symbol string) (*domain.CompanyFundamentals, error) {
+	m.calls++
+	return &domain.CompanyFundamentals{
+		Symbol:     symbol,
+		GrowthData: []domain.GrowthData{{Year: "2025", Revenue: 100, NetProfit: 40, Margin: 40}},
+		Dividends:  []domain.DividendHistory{{Year: "2025", DividendPerShare: 300, YieldPercent: 3}},
+		Source:     "test",
+	}, nil
+}
+
+func TestFundamentals_UnknownSymbolSkipsUpstream(t *testing.T) {
 	repo := memory.NewMemoryRepository()
+	fc := &mockFundamentalsClient{}
+	u := usecase.NewAnalyticsUsecase(repo, repo, fc)
 
-	// Verify fallback generation for symbol with no bespoke entry
-	fund, err := repo.GetFundamentals(ctx, "ICBP")
-	if err != nil {
-		t.Fatalf("failed to get fundamentals for ICBP: %v", err)
+	if _, err := u.GetFundamentals(context.Background(), "NONEXISTENT"); err == nil {
+		t.Fatal("expected error for untracked symbol")
 	}
-	if fund.Symbol != "ICBP" || len(fund.GrowthData) == 0 {
-		t.Errorf("unexpected ICBP fallback fundamentals: %+v", fund)
+	if fc.calls != 0 {
+		t.Fatalf("untracked symbol must not reach the engine (would spend a Sectors credit), got %d calls", fc.calls)
 	}
 
-	// Verify invalid symbol
-	_, err = repo.GetFundamentals(ctx, "NONEXISTENT")
-	if err == nil {
-		t.Errorf("expected error for non-existent company")
+	for i := 0; i < 2; i++ {
+		if _, err := u.GetFundamentals(context.Background(), "BBCA"); err != nil {
+			t.Fatalf("BBCA fundamentals: %v", err)
+		}
+	}
+	if fc.calls != 1 {
+		t.Fatalf("expected repeated requests to be served from cache, got %d upstream calls", fc.calls)
 	}
 }

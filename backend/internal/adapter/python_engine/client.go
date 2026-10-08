@@ -1093,3 +1093,51 @@ func fallbackConsumerBehaviorReport(req domain.ConsumerBehaviorRequest) *domain.
 	}
 }
 
+
+// GetFundamentals fetches multi-year fundamentals derived from the Sectors company report.
+// There is deliberately no synthetic fallback: a dashboard showing invented financials is
+// worse than one showing that the data is unavailable.
+func (c *Client) GetFundamentals(ctx context.Context, symbol string) (*domain.CompanyFundamentals, error) {
+	reqURL := fmt.Sprintf("%s/api/v1/fundamentals/%s", strings.TrimRight(c.baseURL, "/"), url.PathEscape(symbol))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create fundamentals request: %w", err)
+	}
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", domain.ErrFundamentalsUnavailable, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: engine returned %d", domain.ErrFundamentalsUnavailable, resp.StatusCode)
+	}
+
+	var f domain.CompanyFundamentals
+	if err := json.NewDecoder(resp.Body).Decode(&f); err != nil {
+		return nil, fmt.Errorf("%w: decode: %v", domain.ErrFundamentalsUnavailable, err)
+	}
+	return &f, nil
+}
+
+// GetEngineJSON performs a GET against the engine and returns the body unparsed.
+func (c *Client) GetEngineJSON(ctx context.Context, path string) (json.RawMessage, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(c.baseURL, "/")+path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create engine request: %w", err)
+	}
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", domain.ErrUpstreamUnavailable, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: engine returned %d for %s", domain.ErrUpstreamUnavailable, resp.StatusCode, path)
+	}
+	var raw json.RawMessage
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
+		return nil, fmt.Errorf("%w: decode: %v", domain.ErrUpstreamUnavailable, err)
+	}
+	return raw, nil
+}

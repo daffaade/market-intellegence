@@ -14,7 +14,6 @@ type MemoryRepository struct {
 	companies          map[string]*domain.Company
 	snapshots          map[string]*domain.IntelligenceSnapshot
 	sectorsData        map[string]*domain.FinancialSnapshot
-	fundamentals       map[string]*domain.CompanyFundamentals
 	growthTimeline     []domain.MarketGrowthTimelinePoint
 	pipelineTelemetry  *domain.PipelineTelemetry
 	macroIndicators    []domain.MacroIndicator
@@ -27,7 +26,6 @@ func NewMemoryRepository() *MemoryRepository {
 		companies:          make(map[string]*domain.Company),
 		snapshots:          make(map[string]*domain.IntelligenceSnapshot),
 		sectorsData:        make(map[string]*domain.FinancialSnapshot),
-		fundamentals:       make(map[string]*domain.CompanyFundamentals),
 		growthTimeline:     make([]domain.MarketGrowthTimelinePoint, 0),
 		macroIndicators:    make([]domain.MacroIndicator, 0),
 		disasterRisks:      make([]domain.DisasterRisk, 0),
@@ -193,46 +191,6 @@ func (r *MemoryRepository) GetRecentAnomalies(ctx context.Context, limit int) ([
 // ─────────────────────────────────────────────────────────────────────────────
 // AnalyticsRepository Implementation
 // ─────────────────────────────────────────────────────────────────────────────
-
-func (r *MemoryRepository) GetFundamentals(ctx context.Context, symbol string) (*domain.CompanyFundamentals, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	if f, ok := r.fundamentals[symbol]; ok {
-		return f, nil
-	}
-
-	comp, ok := r.companies[symbol]
-	if !ok {
-		return nil, domain.ErrCompanyNotFound
-	}
-
-	// Dynamic fallback fundamentals generation for emiten without bespoke seed
-	return &domain.CompanyFundamentals{
-		Symbol: symbol,
-		GrowthData: []domain.GrowthData{
-			{Year: "2023", Revenue: float64(comp.MarketCap) / 10000000000 * 0.4, NetProfit: float64(comp.MarketCap) / 10000000000 * 0.08, Margin: 20.0},
-			{Year: "2024", Revenue: float64(comp.MarketCap) / 10000000000 * 0.45, NetProfit: float64(comp.MarketCap) / 10000000000 * 0.09, Margin: 20.0},
-			{Year: "2025", Revenue: float64(comp.MarketCap) / 10000000000 * 0.50, NetProfit: float64(comp.MarketCap) / 10000000000 * 0.11, Margin: 22.0},
-			{Year: "2026 (F)", Revenue: float64(comp.MarketCap) / 10000000000 * 0.56, NetProfit: float64(comp.MarketCap) / 10000000000 * 0.13, Margin: 23.2},
-		},
-		Dividends: []domain.DividendHistory{
-			{Year: "2023", DividendPerShare: 120, YieldPercent: 3.5, PayoutRatio: 50.0},
-			{Year: "2024", DividendPerShare: 145, YieldPercent: 4.1, PayoutRatio: 52.0},
-			{Year: "2025", DividendPerShare: 160, YieldPercent: 4.4, PayoutRatio: 55.0},
-		},
-		Shareholders: []domain.Shareholder{
-			{Name: "Pemegang Saham Pengendali", SharePercentage: 55.0, Category: "INSTITUTIONAL"},
-			{Name: "Publik & Ritel", SharePercentage: 45.0, Category: "RETAIL"},
-		},
-		Executives: []domain.KeyExecutive{
-			{Name: "Direktur Utama " + comp.Name, Position: "Presiden Direktur", Tenure: "4 Tahun", InsiderAction: "HELD"},
-		},
-		SmartMoney: []domain.SmartMoneyTransaction{
-			{Date: "2026-09-18", Institution: "Domestic Pension Fund", Action: "ACCUMULATE", Volume: "2,500,000", ValueIDR: "Rp 15.2 M"},
-		},
-	}, nil
-}
 
 func (r *MemoryRepository) GetMarketGrowthTimeline(ctx context.Context) ([]domain.MarketGrowthTimelinePoint, error) {
 	r.mu.RLock()

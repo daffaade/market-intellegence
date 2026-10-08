@@ -36,7 +36,7 @@ func setupTestApp() http.Handler {
 	compUc := usecase.NewCompanyUsecase(companyRepo)
 	intelUc := usecase.NewIntelligenceUsecase(companyRepo, companyRepo, pyClient, aiClient, cfg)
 	scannerUc := usecase.NewScannerUsecase(intelUc, companyRepo)
-	analyticsUc := usecase.NewAnalyticsUsecase(companyRepo)
+	analyticsUc := usecase.NewAnalyticsUsecase(companyRepo, companyRepo, &mockFundamentalsClient{})
 	sectorUc := usecase.NewSectorUsecase(pyClient)
 
 	handlers := appHttp.Handlers{

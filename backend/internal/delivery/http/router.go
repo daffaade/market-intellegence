@@ -17,6 +17,7 @@ type Handlers struct {
 	Sector       *handler.SectorHandler
 	Portfolio    *handler.PortfolioHandler
 	Consumer     *handler.ConsumerHandler
+	MarketData   *handler.MarketDataHandler
 }
 
 func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
@@ -56,6 +57,13 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/intelligence", handlers.Intelligence.GetCompanyIntelligence)
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/anomalies", handlers.Intelligence.GetCompanyAnomalies)
 	mux.HandleFunc("GET /api/v1/companies/{symbol}/peers", handlers.Intelligence.GetCompanyPeers)
+
+	// Live market series (yfinance via the engine)
+	if handlers.MarketData != nil {
+		mux.HandleFunc("GET /api/v1/market/performance", handlers.MarketData.GetPerformance)
+		mux.HandleFunc("GET /api/v1/macro/snapshot", handlers.MarketData.GetMacroSnapshot)
+		mux.HandleFunc("GET /api/v1/companies/{symbol}/events", handlers.MarketData.GetCorporateEvents)
+	}
 
 	// Pipeline Telemetry & Macro Indicators
 	mux.HandleFunc("GET /api/v1/pipeline/telemetry", handlers.Analytics.GetPipelineTelemetry)

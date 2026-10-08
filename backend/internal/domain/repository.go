@@ -20,7 +20,6 @@ type SnapshotRepository interface {
 }
 
 type AnalyticsRepository interface {
-	GetFundamentals(ctx context.Context, symbol string) (*CompanyFundamentals, error)
 	GetMarketGrowthTimeline(ctx context.Context) ([]MarketGrowthTimelinePoint, error)
 	GetPipelineTelemetry(ctx context.Context) (*PipelineTelemetry, error)
 	GetMacroIndicators(ctx context.Context) ([]MacroIndicator, error)
