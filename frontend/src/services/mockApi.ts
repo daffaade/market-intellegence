@@ -38,7 +38,8 @@ export const setDummyMode = (enabled: boolean): void => {
 };
 
 // API Configuration (defaults to Go backend port 8080 or custom env)
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080').replace(/\/+$/, '');
+// Unset → local dev backend; set to "" → same origin (/api proxied by the host).
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080').replace(/\/+$/, '');
 
 export const getApiBaseUrl = (): string => API_BASE_URL;
 
