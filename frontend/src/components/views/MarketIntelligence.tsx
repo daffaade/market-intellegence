@@ -72,6 +72,7 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
 }) => {
   const macro = useRemote(() => apiService.getMacroSnapshot(), []);
   const events = useRemote(() => apiService.getCorporateEvents(selectedSymbol), [selectedSymbol]);
+  const sensitivity = useRemote(() => apiService.getMacroSensitivity(selectedSymbol), [selectedSymbol]);
 
   const companyBySymbol = useMemo(() => new Map(companies.map(c => [c.symbol, c])), [companies]);
 
@@ -299,7 +300,7 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
           </RemoteBody>
         </Panel>
 
-        <Panel title={`Aksi korporasi · ${selectedSymbol}`} meta="Reaksi harga di tanggal ex" flush>
+        <Panel title={`Aksi korporasi · ${selectedSymbol}`} meta="Return abnormal vs IHSG, H-1 s.d. H+5" flush>
           <RemoteBody remote={events} errorTitle="Riwayat aksi korporasi belum bisa dimuat">
             {data =>
               data.events.length ? (
@@ -308,8 +309,8 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
                     <thead className="border-b border-line">
                       <tr className="text-xs text-ink-3">
                         <th className="px-4 h-9 font-medium text-left">Peristiwa</th>
-                        <th className="px-4 h-9 font-medium text-right">H+1</th>
-                        <th className="px-4 h-9 font-medium text-right">H+5</th>
+                        <th className="px-4 h-9 font-medium text-right">Return abnormal</th>
+                        <th className="px-4 h-9 font-medium text-right">Signifikan</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
@@ -320,23 +321,34 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
                               {e.type === 'DIVIDEND'
                                 ? `Dividen Rp ${e.amount?.toLocaleString('id-ID')}`
                                 : `Stock split ${e.ratio}:1`}
-                              {e.type === 'DIVIDEND' && e.yield_pct !== undefined && (
+                              {e.type === 'DIVIDEND' && e.yield_pct != null && (
                                 <span className="text-ink-3"> · {e.yield_pct.toLocaleString('id-ID')}%</span>
                               )}
                             </div>
                             <div className="num text-xs text-ink-3">{formatDay(e.date)}</div>
                           </td>
-                          {[e.reaction_1d_pct, e.reaction_5d_pct].map((v, i) => (
-                            <td key={i} className={cx('px-4 py-2.5 num text-right', v === null ? 'text-ink-3' : v >= 0 ? 'text-up' : 'text-down')}>
-                              {v === null ? '—' : `${v >= 0 ? '+' : '−'}${Math.abs(v).toLocaleString('id-ID')}%`}
-                            </td>
-                          ))}
+                          <td
+                            className={cx(
+                              'px-4 py-2.5 num text-right',
+                              e.car_pct == null || !e.significant ? 'text-ink-2' : e.car_pct >= 0 ? 'text-up' : 'text-down'
+                            )}
+                          >
+                            {e.car_pct == null ? '—' : `${e.car_pct >= 0 ? '+' : '−'}${Math.abs(e.car_pct).toLocaleString('id-ID')}%`}
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            {e.significant ? (
+                              <Tag tone="warn">Ya</Tag>
+                            ) : (
+                              <span className="text-xs text-ink-3" title={e.p_value != null ? `p = ${e.p_value}` : undefined}>Tidak</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                   <p className="px-4 py-2.5 border-t border-line text-xs text-ink-3 leading-relaxed">
-                    Dibanding harga penutupan sebelum tanggal ex. Penurunan di hari ex dividen sebagian besar adalah dividen itu sendiri.
+                    Event study: return di luar yang dijelaskan pergerakan IHSG (model pasar 250–30 sesi sebelum peristiwa), harga disesuaikan dividen.
+                    "Signifikan" bila p &lt; 0,05.
                   </p>
                 </>
               ) : (
@@ -346,6 +358,56 @@ export const MarketIntelligence: React.FC<MarketIntelligenceProps> = ({
           </RemoteBody>
         </Panel>
       </div>
+
+      <Panel title={`Sensitivitas makro · ${selectedSymbol}`} meta="Return mingguan 2 tahun · korelasional, bukan kausal" flush>
+        <RemoteBody remote={sensitivity} errorTitle="Sensitivitas makro belum bisa dihitung">
+          {data =>
+            data.sensitivities.length ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[13px]">
+                  <thead className="border-b border-line">
+                    <tr className="text-xs text-ink-3">
+                      <th className="px-4 h-9 font-medium text-left">Variabel</th>
+                      <th className="px-4 h-9 font-medium text-right">Beta</th>
+                      <th className="px-4 h-9 font-medium text-right">Korelasi</th>
+                      <th className="px-4 h-9 font-medium text-right">Gerak 1 bln</th>
+                      <th className="px-4 h-9 font-medium text-right">Implikasi</th>
+                      <th className="px-4 h-9 font-medium text-left">Arti</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {data.sensitivities.map(x => (
+                      <tr key={x.key} className={x.significant ? undefined : 'text-ink-3'}>
+                        <td className="px-4 h-11 text-ink whitespace-nowrap">{x.label}</td>
+                        <td className="px-4 h-11 num text-right">{x.beta.toLocaleString('id-ID', { maximumFractionDigits: 2 })}</td>
+                        <td className="px-4 h-11 num text-right">{x.correlation.toLocaleString('id-ID', { maximumFractionDigits: 2 })}</td>
+                        <td className="px-4 h-11 num text-right">
+                          {x.move_1m_pct == null ? '—' : `${x.move_1m_pct >= 0 ? '+' : '−'}${Math.abs(x.move_1m_pct).toLocaleString('id-ID')}%`}
+                        </td>
+                        <td
+                          className={cx(
+                            'px-4 h-11 num text-right',
+                            x.implied_move_1m_pct == null ? '' : x.implied_move_1m_pct >= 0 ? 'text-up' : 'text-down'
+                          )}
+                        >
+                          {x.implied_move_1m_pct == null ? '—' : `${x.implied_move_1m_pct >= 0 ? '+' : '−'}${Math.abs(x.implied_move_1m_pct).toLocaleString('id-ID')}%`}
+                        </td>
+                        <td className="px-4 py-2 text-xs leading-relaxed min-w-[260px]">{x.interpretation}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="px-4 py-2.5 border-t border-line text-xs text-ink-3 leading-relaxed">
+                  Implikasi = beta × pergerakan variabel 1 bulan terakhir, hanya untuk hubungan yang signifikan (p &lt; 0,05).
+                  Baris abu-abu tidak signifikan. Sumber harga: Yahoo Finance.
+                </p>
+              </div>
+            ) : (
+              <EmptyState title="Data harga belum cukup untuk menghitung sensitivitas" />
+            )
+          }
+        </RemoteBody>
+      </Panel>
     </div>
   );
 };

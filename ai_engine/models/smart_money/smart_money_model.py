@@ -156,17 +156,38 @@ class SmartMoneyModel:
                     div_score = -1.0
                     evidence.append("Hidden distribution (harga naik, OBV turun)")
             
-            # 4. Transaction flow (seed/mock handling)
-            trans_df = self._get_transactions(symbol)
-            trans_score = 0.0
-            if not trans_df.empty:
-                # To be implemented fully when data exists
-                pass
+            # 4. Transaction flow: net foreign flow over the medium window, as a share
+            # of the stock's turnover (Sectors foreign-flow, read from cache).
+            trans_score, has_flow = 0.0, False
+            try:
+                from data_processing.data_sectors.market_series import get_foreign_flow
+                ff = get_foreign_flow(symbol.upper().replace(".JK", ""))
+                pts = [p for p in (ff or {}).get("points", []) if p.get("net") is not None]
+                if as_of:
+                    pts = [p for p in pts if p["date"] <= as_of]
+                if len(pts) >= cmf_w:
+                    net = sum(float(p["net"]) for p in pts[-cmf_w:])
+                    close = df['Close'].squeeze() if hasattr(df['Close'], 'squeeze') else df['Close']
+                    vol = df['Volume'].squeeze() if hasattr(df['Volume'], 'squeeze') else df['Volume']
+                    turnover = float((close * vol).iloc[-cmf_w:].sum())
+                    if turnover > 0:
+                        share = net / turnover
+                        trans_score = max(-1.0, min(1.0, share / 0.10))
+                        has_flow = True
+                        evidence.append(
+                            f"Arus bersih asing {cmf_w} sesi Rp {net / 1e9:,.1f} M ({share * 100:+.1f}% nilai transaksi)"
+                            .replace(",", "_").replace(".", ",").replace("_", ".")
+                        )
+            except Exception:
+                default_response["data_quality_flags"].append("foreign_flow_unavailable")
 
-            # Composite Score
-            weights = self.config['weights']['components']
+            # Composite Score. Without flow data its weight is redistributed instead of
+            # counting as a neutral 0 that drags every score toward "Neutral".
+            weights = dict(self.config['weights']['components'])
+            if not has_flow:
+                weights['transaction_flow'] = 0.0
             total_weight = sum(weights.values())
-            
+
             final_score = (
                 (trans_score * weights['transaction_flow']) +
                 (cmf_score * weights['cmf']) +
@@ -193,8 +214,8 @@ class SmartMoneyModel:
                     "obv_trend": float(round(obv_score, 3)),
                     "price_flow_divergence": float(round(div_score, 3))
                 },
-                "confidence": "medium" if len(df) >= 60 else "low",
-                "data_source": "proxy",
+                "confidence": ("high" if has_flow else "medium") if len(df) >= 60 else "low",
+                "data_source": "sectors_foreign_flow+price_volume" if has_flow else "price_volume_proxy",
                 "evidence": evidence,
                 "data_quality_flags": default_response["data_quality_flags"]
             }

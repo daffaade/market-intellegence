@@ -2,6 +2,8 @@ import os
 import sys
 import json
 import re
+import logging
+import time
 import urllib.request
 import urllib.error
 from datetime import datetime
@@ -36,6 +38,9 @@ def load_env(env_path: str = ".env") -> dict:
             env_vars[k] = v
             
     return env_vars
+
+
+_log = logging.getLogger(__name__)
 
 
 # =====================================================================
@@ -467,14 +472,22 @@ class SectorsDataMiner:
             return None
         url = f"{self.BASE_URL}/{endpoint.lstrip('/')}"
         req = urllib.request.Request(url, headers=self.headers)
-        try:
-            with urllib.request.urlopen(req, timeout=20) as response:
-                return json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            # Return None to skip missing/404 endpoints gracefully
-            return None
-        except Exception:
-            return None
+        # 429 is not billed, so it is worth waiting and retrying; other failures are
+        # returned as None (callers fall back) but logged so they are not silent.
+        for attempt, wait in enumerate((2, 5, 10, None)):
+            try:
+                with urllib.request.urlopen(req, timeout=20) as response:
+                    return json.loads(response.read().decode("utf-8"))
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and wait is not None:
+                    time.sleep(wait)
+                    continue
+                _log.warning("Sectors %s -> HTTP %s", endpoint.split("?")[0], e.code)
+                return None
+            except Exception as e:
+                _log.warning("Sectors %s -> %s", endpoint.split("?")[0], type(e).__name__)
+                return None
+        return None
 
     def mine_company_report(self, symbol: str) -> Optional[dict]:
         """Fetches complete company report from Sectors API."""

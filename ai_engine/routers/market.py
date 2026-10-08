@@ -5,6 +5,7 @@ price performance, macro snapshot, and per-emiten corporate-event reactions.
 import math
 import threading
 import time
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List
 
 import pandas as pd
@@ -132,46 +133,106 @@ def macro_snapshot():
 
 @router.get("/events/{symbol}")
 def corporate_events(symbol: str, limit: int = 8):
+    """
+    Dividends and splits with an event study per event: abnormal return vs IHSG
+    from a market model estimated on the 250..30 sessions before the event,
+    cumulated over [-1, +5], with a t-test. Prices are dividend-adjusted, so the
+    mechanical ex-date drop is not counted as a reaction.
+    """
     sym = symbol.strip().upper().replace(".JK", "")
 
     def build():
+        from ai_engine.models.event_study.event_study import _compute_event, _load_config
         tk = yf.Ticker(f"{sym}.JK")
         actions = tk.actions
-        hist = tk.history(period="5y", auto_adjust=False)
-        if actions is None or actions.empty or hist is None or hist.empty:
+        if actions is None or actions.empty:
             return {"symbol": sym, "events": [], "source": "yfinance"}
-        close = hist["Close"].dropna()
-        close.index = close.index.tz_localize(None)
-        actions.index = actions.index.tz_localize(None)
+        actions.index = pd.to_datetime(actions.index).tz_localize(None)
+        closes = _closes([f"{sym}.JK", "^JKSE"], "5y")
+        closes.index = pd.to_datetime(closes.index).tz_localize(None)
+        stock_ret = closes[f"{sym}.JK"].pct_change().dropna()
+        mkt_ret = closes["^JKSE"].pct_change().dropna()
+        # Unadjusted closes for the dividend yield (adjusted ones understate the price).
+        raw_hist = tk.history(period="5y", auto_adjust=False)
+        raw_close = raw_hist["Close"].dropna() if raw_hist is not None and not raw_hist.empty else closes[f"{sym}.JK"]
+        raw_close.index = pd.to_datetime(raw_close.index).tz_localize(None)
+        cfg = dict(_load_config())
+        cfg["event_window"] = {"start": -1, "end": 5}
 
         events = []
         for ts, row in actions.sort_index(ascending=False).iterrows():
             div, split = row.get("Dividends", 0) or 0, row.get("Stock Splits", 0) or 0
             if div <= 0 and split <= 0:
                 continue
-            before = close[close.index < ts]
-            on_after = close[close.index >= ts]
-            if before.empty or on_after.empty:
+            kind = "DIVIDEND" if div > 0 else "SPLIT"
+            date = ts.strftime("%Y-%m-%d")
+            res = _compute_event({"ticker": sym, "date": date, "event_type": kind.lower()}, stock_ret, mkt_ret, cfg)
+            if res.get("car") is None:
                 continue
-            prev = before.iloc[-1]
-            day0 = on_after.iloc[0]
-            day5 = on_after.iloc[min(4, len(on_after) - 1)]
+            before = raw_close[raw_close.index < ts]
             ev = {
-                "date": ts.strftime("%Y-%m-%d"),
-                "type": "DIVIDEND" if div > 0 else "SPLIT",
-                "price_before": _clean(prev, 0),
-                # Ex-date reaction; for dividends the drop includes the dividend itself.
-                "reaction_1d_pct": _clean((day0 / prev - 1) * 100),
-                "reaction_5d_pct": _clean((day5 / prev - 1) * 100),
+                "date": date,
+                "type": kind,
+                "car_pct": _clean(res["car"] * 100),
+                "t_stat": _clean(res["t_stat"]),
+                "p_value": _clean(res["p_value"], 4),
+                "significant": bool(res["significant_at_5pct"]),
+                "beta": _clean(res["beta"], 3),
+                "window": "[-1, +5]",
+                "data_quality": res.get("data_quality"),
             }
             if div > 0:
                 ev["amount"] = _clean(div, 2)
-                ev["yield_pct"] = _clean(div / prev * 100)
+                if not before.empty:
+                    ev["yield_pct"] = _clean(div / float(before.iloc[-1]) * 100)
             else:
                 ev["ratio"] = _clean(split, 4)
             events.append(ev)
             if len(events) >= limit:
                 break
-        return {"symbol": sym, "events": events, "source": "yfinance"}
+        return {"symbol": sym, "events": events, "method": "event study, model pasar vs IHSG", "source": "yfinance"}
 
-    return _cached(f"events:{sym}:{limit}", build)
+    return _cached(f"events2:{sym}:{limit}", build)
+
+
+@router.get("/macro/sensitivity/{symbol}")
+def macro_sensitivity(symbol: str):
+    """Weekly-return betas of the stock on IHSG, USD/IDR, Brent and gold (2 years)."""
+    from ai_engine.models.macro_impact.macro_impact import run_macro_impact
+    sym = symbol.strip().upper().replace(".JK", "")
+    return _cached(f"macro_sens:{sym}", lambda: run_macro_impact(sym))
+
+
+@router.get("/pipeline/sources")
+def pipeline_sources():
+    """Where each kind of data comes from and how fresh the local cache is."""
+    import json as _json
+    from pathlib import Path
+    from data_processing.data_sectors import fundamentals as F, market_series as M
+
+    def scan(folder: Path, pattern: str, ttl: int):
+        stamps = []
+        for f in folder.glob(pattern):
+            try:
+                stamps.append(float(_json.loads(f.read_text(encoding="utf-8")).get("fetched_at", 0)))
+            except (OSError, ValueError):
+                continue
+        if not stamps:
+            return {"items": 0, "newest": None, "oldest": None, "ttl_hours": ttl // 3600}
+        iso = lambda t: datetime.fromtimestamp(t, tz=timezone.utc).isoformat()
+        return {"items": len(stamps), "newest": iso(max(stamps)), "oldest": iso(min(stamps)), "ttl_hours": ttl // 3600}
+
+    return {"sources": [
+        {"key": "sectors_report", "label": "Laporan perusahaan", "provider": "Sectors",
+         "used_for": "Fundamental, valuasi vs peer, kepemilikan, dividen, perubahan tahunan",
+         **scan(F.REPORT_CACHE_DIR, "*.json", F.REPORT_TTL_SECONDS)},
+        {"key": "sectors_foreign_flow", "label": "Arus asing harian", "provider": "Sectors",
+         "used_for": "Faktor arus asing, smart money, katalis",
+         **scan(M.CACHE_DIR, "foreign_flow_*.json", M.FOREIGN_FLOW_TTL)},
+        {"key": "sectors_ihsg", "label": "IHSG harian", "provider": "Sectors",
+         "used_for": "Pembanding kinerja relatif",
+         **scan(M.CACHE_DIR, "index_ihsg.json", M.INDEX_TTL)},
+        {"key": "yfinance_prices", "label": "Riwayat harga panjang & makro", "provider": "Yahoo Finance",
+         "used_for": "Model prediksi, volatilitas, MA200, anomali, sensitivitas makro, USD/IDR, Brent, emas",
+         "items": None, "newest": None, "oldest": None, "ttl_hours": 6},
+    ]}

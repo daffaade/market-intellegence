@@ -63,6 +63,18 @@ export interface IntelligenceSnapshot {
   ai_research_summary: string;
   disclaimer: string;
   is_cached: boolean;
+  /** Price/volume and foreign-flow based accumulation signal. */
+  smart_money?: {
+    state: 'Accumulation' | 'Distribution' | 'Neutral' | string;
+    score: number;
+    confidence: string;
+    evidence: string[] | null;
+  };
+  catalysts?: {
+    catalyst_score: number;
+    net_direction: string;
+    events: Array<{ date: string; type: string; direction: string; strength: number; evidence: string[] }> | null;
+  };
   /** Set by the backend when the AI engine was unreachable and this is heuristic placeholder data. */
   is_fallback?: boolean;
   created_at: string;
@@ -165,15 +177,30 @@ export interface MacroSnapshotItem {
   sparkline: number[];
 }
 
+/** Corporate action with an event study: abnormal return vs IHSG over [-1, +5]. */
 export interface CorporateEvent {
   date: string;
   type: "DIVIDEND" | "SPLIT";
-  price_before: number;
-  reaction_1d_pct: number | null;
-  reaction_5d_pct: number | null;
+  car_pct: number | null;
+  t_stat: number | null;
+  p_value: number | null;
+  significant: boolean;
   amount?: number;
   yield_pct?: number;
   ratio?: number;
+}
+
+export interface MacroSensitivity {
+  key: string;
+  label: string;
+  beta: number;
+  correlation: number;
+  p_value: number;
+  significant: boolean;
+  n_weeks: number;
+  move_1m_pct: number | null;
+  implied_move_1m_pct: number | null;
+  interpretation: string;
 }
 
 export interface PortfolioRiskReport {
@@ -291,4 +318,15 @@ export interface WatchlistItem {
 export interface MarketGrowthTimelinePoint {
   period: string; // e.g. "Okt 2025", "Nov 2025", etc.
   [symbol: string]: number | string;
+}
+
+export interface DataSourceStatus {
+  key: string;
+  label: string;
+  provider: string;
+  used_for: string;
+  items: number | null;
+  newest: string | null;
+  oldest: string | null;
+  ttl_hours: number;
 }

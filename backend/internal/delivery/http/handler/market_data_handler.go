@@ -46,3 +46,12 @@ func (h *MarketDataHandler) GetCorporateEvents(w http.ResponseWriter, r *http.Re
 	symbol := strings.ToUpper(strings.TrimSpace(r.PathValue("symbol")))
 	h.render(w, func() (json.RawMessage, error) { return h.usecase.GetCorporateEvents(r.Context(), symbol) })
 }
+
+func (h *MarketDataHandler) GetMacroSensitivity(w http.ResponseWriter, r *http.Request) {
+	symbol := strings.ToUpper(strings.TrimSpace(r.PathValue("symbol")))
+	h.render(w, func() (json.RawMessage, error) { return h.usecase.GetMacroSensitivity(r.Context(), symbol) })
+}
+
+func (h *MarketDataHandler) GetPipelineSources(w http.ResponseWriter, r *http.Request) {
+	h.render(w, func() (json.RawMessage, error) { return h.usecase.GetPipelineSources(r.Context()) })
+}

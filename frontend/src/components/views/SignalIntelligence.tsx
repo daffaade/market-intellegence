@@ -24,6 +24,12 @@ const impactTag: Record<WhatChangedItem['impact'], { label: string; tone: 'up' |
   HIGH_BEARISH: { label: 'Negatif kuat', tone: 'down' }
 };
 
+const smartMoneyLabel: Record<string, string> = {
+  Accumulation: 'Akumulasi',
+  Distribution: 'Distribusi',
+  Neutral: 'Netral'
+};
+
 const ScoreCell: React.FC<{
   label: string;
   value: number;
@@ -120,6 +126,22 @@ export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
                 {intelligence.divergence_detected ? 'Terdeteksi' : 'Tidak'}
               </span>
             </div>
+            {intelligence.smart_money && (
+              <div className="flex justify-between" title={(intelligence.smart_money.evidence ?? []).join('\n')}>
+                <span className="text-ink-3">Smart money</span>
+                <span
+                  className={
+                    intelligence.smart_money.state === 'Accumulation'
+                      ? 'text-up'
+                      : intelligence.smart_money.state === 'Distribution'
+                        ? 'text-down'
+                        : 'text-ink-2'
+                  }
+                >
+                  {smartMoneyLabel[intelligence.smart_money.state] ?? intelligence.smart_money.state}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-ink-3">Sumber</span>
               <span className="text-ink-2">{intelligence.is_cached ? 'Cache' : 'Hasil baru'}</span>
@@ -132,12 +154,10 @@ export const SignalIntelligence: React.FC<SignalIntelligenceProps> = ({
         <div className="flex gap-3 p-4 rounded-lg border border-warn/30 bg-warn-soft">
           <AlertTriangle className="w-4 h-4 text-warn shrink-0 mt-0.5" />
           <div className="text-[13px] leading-relaxed">
-            <div className="font-medium text-ink">Fundamental dan harga bergerak berlawanan</div>
+            <div className="font-medium text-ink">Laba dan harga bergerak berlawanan</div>
             <p className="text-ink-2 mt-0.5">
-              {intelligence.direction === 'BEARISH'
-                ? `Perbaikan sebagian indikator ${company.symbol} belum diikuti arus dana; tekanan jual tetap dominan. Divergensi negatif seperti ini sering mendahului koreksi lanjutan.`
-                : `Data fundamental ${company.symbol} menguat sementara pergerakan harga jangka pendek tidak mengikuti. Pola ini kerap muncul saat terjadi akumulasi yang belum tercermin di harga.`}{' '}
-              Periksa bukti di bawah sebelum menyimpulkan.
+              Pertumbuhan laba {company.symbol} dan kinerja harganya terhadap IHSG dalam 60 sesi terakhir bergerak ke arah
+              berlawanan. Ini pengamatan korelasional, bukan prediksi; periksa faktor penilaian di bawah sebelum menyimpulkan.
             </p>
           </div>
         </div>

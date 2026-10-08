@@ -134,46 +134,131 @@ def compute_what_changed(
     }
 
 
+def _num(v: Any) -> Optional[float]:
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    return None if math.isnan(f) or math.isinf(f) else f
+
+
+def _by_year(rows: Any, key: str = "year") -> Dict[str, Dict[str, Any]]:
+    if isinstance(rows, dict):
+        rows = [dict(v, **{key: k}) for k, v in rows.items() if isinstance(v, dict)]
+    return {str(r.get(key)): r for r in (rows or []) if isinstance(r, dict) and r.get(key) is not None}
+
+
+def _id(text: str) -> str:
+    return text.replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def changes_from_report(report: Dict[str, Any], threshold_pct: float = 10.0) -> List[Dict[str, Any]]:
+    """
+    Year-over-year changes from the Sectors company report: latest reported year
+    vs the year before, for income, profitability, leverage, valuation and dividend.
+    `favorable` says whether the move is good for the company (None = neutral).
+    """
+    fin = report.get("financials") or {}
+    sector = ((report.get("overview") or {}).get("sector") or "").lower()
+    is_bank = "financ" in sector or "bank" in sector
+    out: List[Dict[str, Any]] = []
+
+    def add(label, prev, curr, period, fmt, higher_is_better, absolute_pp=False):
+        if prev is None or curr is None:
+            return
+        if absolute_pp:
+            delta_pct = (curr - prev) * 100  # percentage points
+            significant = abs(delta_pct) >= 1.0
+            delta_text = _id(f"{delta_pct:+.1f}") + " poin"
+        else:
+            if abs(prev) < 1e-12:
+                return
+            delta_pct = (curr - prev) / abs(prev) * 100
+            significant = abs(delta_pct) >= threshold_pct
+            delta_text = _id(f"{delta_pct:+.1f}") + "%"
+        if not significant:
+            return
+        favorable = None if higher_is_better is None else ((curr > prev) == higher_is_better)
+        out.append({
+            "metric": label,
+            "period": period,
+            "prior_value": prev,
+            "current_value": curr,
+            "prior_text": fmt(prev),
+            "current_text": fmt(curr),
+            "delta_pct": round(delta_pct, 2),
+            "delta_text": delta_text,
+            "shift_detected": True,
+            "favorable": favorable,
+        })
+
+    trillion = lambda v: "Rp " + _id(f"{v / 1e12:,.1f}") + " T"
+    pct = lambda v: _id(f"{v * 100:.1f}") + "%"
+    times = lambda v: _id(f"{v:.1f}") + "x"
+
+    fy = _by_year(fin.get("historical_financials"))
+    years = sorted(fy)
+    if len(years) >= 2:
+        y0, y1 = years[-2], years[-1]
+        per = f"{y0}→{y1}"
+        add("Pendapatan", _num(fy[y0].get("revenue")), _num(fy[y1].get("revenue")), per, trillion, True)
+        add("Laba bersih", _num(fy[y0].get("earnings")), _num(fy[y1].get("earnings")), per, trillion, True)
+
+    ratios = _by_year(fin.get("historical_financial_ratio"))
+    years = sorted(ratios)
+    if len(years) >= 2:
+        r0, r1 = ratios[years[-2]], ratios[years[-1]]
+        per = f"{years[-2]}→{years[-1]}"
+        prof0, prof1 = r0.get("profitability") or {}, r1.get("profitability") or {}
+        add("ROE", _num(prof0.get("roe")), _num(prof1.get("roe")), per, pct, True, absolute_pp=True)
+        add("Marjin laba bersih", _num(prof0.get("net_profit_margin")), _num(prof1.get("net_profit_margin")), per, pct, True, absolute_pp=True)
+        if not is_bank:
+            lev0, lev1 = r0.get("leverage") or {}, r1.get("leverage") or {}
+            add("Utang terhadap ekuitas", _num(lev0.get("debt_to_equity_ratio")), _num(lev1.get("debt_to_equity_ratio")), per, times, False)
+
+    hv = _by_year((report.get("valuation") or {}).get("historical_valuation"))
+    years = sorted(hv)
+    if len(years) >= 2:
+        v0, v1 = hv[years[-2]], hv[years[-1]]
+        per = f"{years[-2]}→{years[-1]}"
+        # Valuation re-rating is neither good nor bad for the company itself.
+        pe0, pe1 = _num(v0.get("pe")), _num(v1.get("pe"))
+        # A PER from losses or near-zero profit is not a valuation; skip it.
+        if pe0 and pe1 and 0 < pe0 <= 200 and 0 < pe1 <= 200:
+            add("PER", pe0, pe1, per, times, None)
+        add("PBV", _num(v0.get("pb")), _num(v1.get("pb")), per, times, None)
+
+    divs = _by_year((report.get("dividend") or {}).get("historical_dividends"), key="year")
+    years = sorted(y for y in divs if y.isdigit() and int(y) < __import__("datetime").date.today().year)
+    if len(years) >= 2:
+        rp = lambda v: "Rp " + _id(f"{v:,.1f}")
+        add("Dividen per saham", _num(divs[years[-2]].get("total_dividend")), _num(divs[years[-1]].get("total_dividend")),
+            f"{years[-2]}→{years[-1]}", rp, True)
+
+    out.sort(key=lambda c: abs(c["delta_pct"]), reverse=True)
+    return out
+
+
 class WhatChangedModel:
     def __init__(self, data_loader=None):
         self.data_loader = data_loader
 
     def analyze(self, symbol: str) -> Dict[str, Any]:
         """
-        Analyzes fundamental shifts for symbol across reporting periods using derived metrics.
+        Year-over-year shifts from the cached Sectors company report (no new fetch:
+        the analysis pipeline keeps that cache warm). The earlier implementation
+        compared two "periods" that the data layer resolved to the same snapshot,
+        so it always reported no change.
         """
         clean_sym = symbol.upper().replace(".JK", "").strip()
-
-        # Initialize snapshots dynamically (no hardcoded mock metrics)
-        now_snap: Dict[str, Any] = {}
-        prev_snap: Dict[str, Any] = {}
-
-        # Dynamic computation using derived metrics when available
-        if HAS_DERIVED_METRICS:
-            try:
-                live_now = fetch_and_compute_derived_metrics(clean_sym, period="current")
-                live_prev = fetch_and_compute_derived_metrics(clean_sym, period="1y")
-
-                if isinstance(live_now, dict) and any(cat in live_now for cat in METRIC_CATEGORIES):
-                    for cat in METRIC_CATEGORIES:
-                        if cat in live_now and isinstance(live_now[cat], dict):
-                            now_snap.setdefault(cat, {}).update({
-                                k: v for k, v in live_now[cat].items() if v is not None
-                            })
-
-                if isinstance(live_prev, dict) and any(cat in live_prev for cat in METRIC_CATEGORIES):
-                    for cat in METRIC_CATEGORIES:
-                        if cat in live_prev and isinstance(live_prev[cat], dict):
-                            prev_snap.setdefault(cat, {}).update({
-                                k: v for k, v in live_prev[cat].items() if v is not None
-                            })
-            except Exception:
-                pass
-
-        diff = compute_what_changed(now_snap, prev_snap)
-        return {
-            "status": "success",
-            "symbol": clean_sym,
-            "significant_changes": diff.get("changes", []),
-            "total_changes": diff.get("total_changes_detected", 0)
-        }
+        try:
+            from data_processing.data_sectors.fundamentals import load_report
+            cached = load_report(clean_sym, max_age=30 * 24 * 3600)
+        except Exception:
+            cached = None
+        if not cached:
+            return {"status": "success", "symbol": clean_sym, "significant_changes": [], "total_changes": 0,
+                    "data_quality": "missing"}
+        changes = changes_from_report(cached["report"])
+        return {"status": "success", "symbol": clean_sym, "significant_changes": changes,
+                "total_changes": len(changes), "source": "sectors"}

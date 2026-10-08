@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, RefreshCw, Check, Loader2, Circle, ChevronRight } from 'lucide-react';
-import type { PipelineStage, HealthStatus } from '../../types/api';
+import { X, RefreshCw } from 'lucide-react';
+import type { HealthStatus } from '../../types/api';
+import { useRemote } from '../../lib/useRemote';
+import { RemoteBody } from './RemoteState';
+import { formatDateTime } from '../../lib/format';
 import { apiService, getApiBaseUrl, type DataOrigin } from '../../services/mockApi';
 import { Button, Segmented, Tag } from '../ui/primitives';
 import { cx } from '../../lib/ui';
 
 interface SectorsPipelineInspectorProps {
-  stages: PipelineStage[];
   isOpen: boolean;
   onClose: () => void;
   useDummyData: boolean;
@@ -14,23 +16,14 @@ interface SectorsPipelineInspectorProps {
   onToggleDummy: (enabled: boolean) => void;
 }
 
-const statusIcon = {
-  COMPLETED: <Check className="w-3.5 h-3.5 text-up" />,
-  PROCESSING: <Loader2 className="w-3.5 h-3.5 text-warn animate-spin" />,
-  PENDING: <Circle className="w-3.5 h-3.5 text-ink-3" />
-};
-
-const statusLabel = { COMPLETED: 'Selesai', PROCESSING: 'Berjalan', PENDING: 'Menunggu' };
-
 export const SectorsPipelineInspector: React.FC<SectorsPipelineInspectorProps> = ({
-  stages,
   isOpen,
   onClose,
   useDummyData,
   dataOrigin,
   onToggleDummy
 }) => {
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const sources = useRemote(() => apiService.getPipelineSources(), [isOpen, useDummyData]);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [checking, setChecking] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -62,7 +55,6 @@ export const SectorsPipelineInspector: React.FC<SectorsPipelineInspectorProps> =
 
   if (!isOpen) return null;
 
-  const totalMs = stages.reduce((a, s) => a + (s.duration_ms || 0), 0);
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[8vh] bg-black/40" onMouseDown={onClose}>
@@ -144,41 +136,37 @@ export const SectorsPipelineInspector: React.FC<SectorsPipelineInspectorProps> =
             )}
           </section>
 
-          {/* Pipeline stages */}
+          {/* Data sources: real cache freshness from the engine */}
           <section className="px-5 py-4">
             <div className="flex items-baseline justify-between mb-2">
-              <div className="text-[13px] font-medium text-ink">Tahapan pipeline</div>
-              <div className="text-xs text-ink-3">
-                {stages.length} tahap · <span className="num">{totalMs} ms</span>
-              </div>
+              <div className="text-[13px] font-medium text-ink">Sumber data</div>
+              <button onClick={sources.reload} className="text-xs text-accent hover:underline">Muat ulang</button>
             </div>
-            <ol className="relative">
-              {stages.map((stage, idx) => {
-                const open = expanded === stage.id;
-                return (
-                  <li key={stage.id} className="relative pl-7">
-                    {idx < stages.length - 1 && <span className="absolute left-[9px] top-7 bottom-0 w-px bg-line" aria-hidden="true" />}
-                    <span className="absolute left-0 top-2 w-[19px] h-[19px] rounded-full bg-surface border border-line flex items-center justify-center">
-                      {statusIcon[stage.status]}
-                    </span>
-                    <button
-                      onClick={() => setExpanded(open ? null : stage.id)}
-                      aria-expanded={open}
-                      className="w-full text-left py-2 flex items-center gap-3 group"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] text-ink">{stage.label}</span>
-                        <span className="block text-xs text-ink-3 truncate">{stage.data_type}</span>
-                      </span>
-                      {stage.duration_ms !== undefined && <span className="num text-xs text-ink-3">{stage.duration_ms} ms</span>}
-                      {stage.status !== 'COMPLETED' && <Tag tone={stage.status === 'PROCESSING' ? 'warn' : 'neutral'}>{statusLabel[stage.status]}</Tag>}
-                      <ChevronRight className={cx('w-3.5 h-3.5 text-ink-3 transition-transform', open && 'rotate-90')} />
-                    </button>
-                    {open && <p className="pb-3 text-[13px] text-ink-2 leading-relaxed">{stage.description}</p>}
-                  </li>
-                );
-              })}
-            </ol>
+            <RemoteBody remote={sources} skeletonClassName="h-32" errorTitle="Status sumber data belum bisa dimuat">
+              {data => (
+                <ul className="divide-y divide-line">
+                  {data.sources.map(src => (
+                    <li key={src.key} className="py-3">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-[13px] text-ink">{src.label}</span>
+                        <Tag tone={src.provider === 'Sectors' ? 'accent' : 'neutral'}>{src.provider}</Tag>
+                      </div>
+                      <p className="text-xs text-ink-3 mt-0.5 leading-relaxed">{src.used_for}</p>
+                      <p className="text-xs text-ink-2 mt-1">
+                        {src.newest
+                          ? <>
+                              {src.items} tersimpan · terbaru {formatDateTime(src.newest)} · diperbarui tiap{' '}
+                              {src.ttl_hours >= 24 ? `${src.ttl_hours / 24} hari` : `${src.ttl_hours} jam`}
+                            </>
+                          : src.items === null
+                            ? `Diambil langsung, cache ${src.ttl_hours} jam, tanpa kuota`
+                            : 'Belum ada data tersimpan'}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </RemoteBody>
           </section>
         </div>
       </div>

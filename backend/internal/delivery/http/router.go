@@ -63,6 +63,8 @@ func NewRouter(handlers Handlers, logger *slog.Logger) http.Handler {
 		mux.HandleFunc("GET /api/v1/market/performance", handlers.MarketData.GetPerformance)
 		mux.HandleFunc("GET /api/v1/macro/snapshot", handlers.MarketData.GetMacroSnapshot)
 		mux.HandleFunc("GET /api/v1/companies/{symbol}/events", handlers.MarketData.GetCorporateEvents)
+		mux.HandleFunc("GET /api/v1/companies/{symbol}/macro-sensitivity", handlers.MarketData.GetMacroSensitivity)
+		mux.HandleFunc("GET /api/v1/pipeline/sources", handlers.MarketData.GetPipelineSources)
 	}
 
 	// Pipeline Telemetry & Macro Indicators

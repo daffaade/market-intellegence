@@ -77,3 +77,20 @@ func (u *MarketDataUsecase) GetCorporateEvents(ctx context.Context, symbol strin
 	}
 	return u.get(ctx, "/api/v1/events/"+url.PathEscape(symbol))
 }
+
+// GetMacroSensitivity returns the stock's weekly-return betas on IHSG and macro variables.
+func (u *MarketDataUsecase) GetMacroSensitivity(ctx context.Context, symbol string) (json.RawMessage, error) {
+	if symbol == "" {
+		return nil, domain.ErrInvalidSymbol
+	}
+	if _, err := u.companyRepo.GetBySymbol(ctx, symbol); err != nil {
+		return nil, err
+	}
+	return u.get(ctx, "/api/v1/macro/sensitivity/"+url.PathEscape(symbol))
+}
+
+// GetPipelineSources reports the data sources and the freshness of their caches.
+// Not cached here: it only reads local files on the engine side.
+func (u *MarketDataUsecase) GetPipelineSources(ctx context.Context) (json.RawMessage, error) {
+	return u.client.GetEngineJSON(ctx, "/api/v1/pipeline/sources")
+}

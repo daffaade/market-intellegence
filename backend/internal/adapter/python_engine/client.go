@@ -87,28 +87,33 @@ type pythonRelativePosition struct {
 
 type pythonSignificantChange struct {
 	Metric        string  `json:"metric"`
+	Period        string  `json:"period"`
 	PriorValue    float64 `json:"prior_value"`
 	CurrentValue  float64 `json:"current_value"`
+	PriorText     string  `json:"prior_text"`
+	CurrentText   string  `json:"current_text"`
 	DeltaPct      float64 `json:"delta_pct"`
+	DeltaText     string  `json:"delta_text"`
 	ShiftDetected bool    `json:"shift_detected"`
+	Favorable     *bool   `json:"favorable"`
 }
 
 type pythonFundamentalDivergence struct {
-	PeersContext       *pythonPeersContext                `json:"peers_context"`
-	DivergenceScore    float64                            `json:"divergence_score"`
-	RelativePositions  map[string]pythonRelativePosition  `json:"relative_positions"`
-	SignificantChanges []pythonSignificantChange          `json:"significant_changes"`
+	PeersContext       *pythonPeersContext               `json:"peers_context"`
+	DivergenceScore    float64                           `json:"divergence_score"`
+	RelativePositions  map[string]pythonRelativePosition `json:"relative_positions"`
+	SignificantChanges []pythonSignificantChange         `json:"significant_changes"`
 }
 
 // pythonPeersContext carries the company reference fields the engine already looked up
 // (via Sectors/yfinance) so the Go side can keep `companies` in sync instead of leaving
 // market_cap at its seeded placeholder forever.
 type pythonPeersContext struct {
-	Symbol      string  `json:"symbol"`
-	CompanyName string  `json:"company_name"`
-	Sector      string  `json:"sector"`
-	Industry    string  `json:"industry"`
-	MarketCap   int64   `json:"market_cap"`
+	Symbol      string `json:"symbol"`
+	CompanyName string `json:"company_name"`
+	Sector      string `json:"sector"`
+	Industry    string `json:"industry"`
+	MarketCap   int64  `json:"market_cap"`
 }
 
 // pythonFactor is one named input of the opportunity/risk scores, with the
@@ -276,13 +281,6 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 			snap.CompanySubSector = pc.Industry
 		}
 
-		// Supporting factors from significant changes
-		for _, sc := range pyResp.FundamentalDivergence.SignificantChanges {
-			if sc.ShiftDetected {
-				snap.SupportingFactors = append(snap.SupportingFactors, fmt.Sprintf("Significant shift detected in %s (delta: %.1f%%)", sc.Metric, sc.DeltaPct))
-			}
-		}
-
 		// Relative positions to EvidenceItem & PeerComparisonItem
 		for metric, pos := range pyResp.FundamentalDivergence.RelativePositions {
 			snap.Evidence = append(snap.Evidence, domain.EvidenceItem{
@@ -299,19 +297,42 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 			})
 		}
 
-		// Significant changes to WhatChanged
+		// Significant changes to WhatChanged. Impact uses the vocabulary the UI renders
+		// (it used to send "Positive"/"Negative", which the UI showed as neutral).
 		for _, sc := range pyResp.FundamentalDivergence.SignificantChanges {
-			impact := "Neutral"
-			if sc.DeltaPct > 0 {
-				impact = "Positive"
-			} else if sc.DeltaPct < 0 {
-				impact = "Negative"
+			impact := "NEUTRAL"
+			if sc.Favorable != nil {
+				strong := math.Abs(sc.DeltaPct) >= 25
+				switch {
+				case *sc.Favorable && strong:
+					impact = "HIGH_BULLISH"
+				case *sc.Favorable:
+					impact = "MODERATE_BULLISH"
+				case strong:
+					impact = "HIGH_BEARISH"
+				default:
+					impact = "MODERATE_BEARISH"
+				}
+			}
+			metric := sc.Metric
+			if sc.Period != "" {
+				metric = fmt.Sprintf("%s (%s)", sc.Metric, sc.Period)
+			}
+			prev, curr, delta := sc.PriorText, sc.CurrentText, sc.DeltaText
+			if prev == "" {
+				prev = fmt.Sprintf("%.2f", sc.PriorValue)
+			}
+			if curr == "" {
+				curr = fmt.Sprintf("%.2f", sc.CurrentValue)
+			}
+			if delta == "" {
+				delta = fmt.Sprintf("%+.1f%%", sc.DeltaPct)
 			}
 			snap.WhatChanged = append(snap.WhatChanged, domain.WhatChangedItem{
-				Metric:   strings.ToUpper(sc.Metric),
-				Previous: fmt.Sprintf("%.2f", sc.PriorValue),
-				Current:  fmt.Sprintf("%.2f", sc.CurrentValue),
-				Delta:    fmt.Sprintf("%+.1f%%", sc.DeltaPct),
+				Metric:   metric,
+				Previous: prev,
+				Current:  curr,
+				Delta:    delta,
 				Impact:   impact,
 			})
 		}
@@ -347,6 +368,12 @@ func (c *Client) Analyze(ctx context.Context, req domain.AnalyzeRequest) (*domai
 			})
 		}
 		snap.Catalysts = catSnap
+		// The "Katalis pendukung" panel renders SupportingFactors.
+		for _, e := range catSnap.Events {
+			for _, ev := range e.Evidence {
+				snap.SupportingFactors = append(snap.SupportingFactors, fmt.Sprintf("%s · %s", e.Date, ev))
+			}
+		}
 	}
 
 	// Evidence comes from the factors the scores were computed from. The peer model's
@@ -1154,7 +1181,6 @@ func fallbackConsumerBehaviorReport(req domain.ConsumerBehaviorRequest) *domain.
 		Disclaimer: "Informasi dan analisis ini merupakan hasil pemrosesan data riset dan bukan merupakan anjuran investasi personal (Bukan rekomendasi Beli/Jual).",
 	}
 }
-
 
 // GetFundamentals fetches multi-year fundamentals derived from the Sectors company report.
 // There is deliberately no synthetic fallback: a dashboard showing invented financials is

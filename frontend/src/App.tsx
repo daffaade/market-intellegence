@@ -16,7 +16,7 @@ import {
   DATA_ORIGIN_EVENT,
   type DataOrigin
 } from './services/mockApi';
-import { MOCK_PIPELINE_STAGES, MOCK_SIGNAL_OUTPUTS } from './services/mockData';
+import { MOCK_SIGNAL_OUTPUTS } from './services/mockData';
 import { ThemeContext, readInitialTheme, applyTheme, type Theme } from './lib/theme';
 import { useAuth } from './lib/auth';
 import { authEnabled } from './lib/supabase';
@@ -277,7 +277,6 @@ function App() {
         )}
 
         <SectorsPipelineInspector
-          stages={MOCK_PIPELINE_STAGES}
           isOpen={isPipelineOpen}
           onClose={() => setIsPipelineOpen(false)}
           useDummyData={useDummyData}

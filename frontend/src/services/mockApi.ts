@@ -11,6 +11,8 @@ import type {
   PricePerformance,
   MacroSnapshotItem,
   CorporateEvent,
+  MacroSensitivity,
+  DataSourceStatus,
   PortfolioRiskReport,
   PipelineTelemetry,
   MacroIndicator,
@@ -484,6 +486,18 @@ export const apiService = {
   async getCorporateEvents(symbol: string): Promise<ResponseWrapper<{ symbol: string; events: CorporateEvent[]; source: string }>> {
     if (useDummyData) return SIMULATION_UNAVAILABLE;
     return fetchApi(`/api/v1/companies/${symbol.toUpperCase().trim()}/events`, undefined, 30000);
+  },
+
+  /** GET /api/v1/companies/{symbol}/macro-sensitivity — beta saham terhadap IHSG, USD/IDR, minyak, emas. */
+  async getMacroSensitivity(symbol: string): Promise<ResponseWrapper<{ ticker: string; sensitivities: MacroSensitivity[]; dominant_macro: string | null; method: string }>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi(`/api/v1/companies/${symbol.toUpperCase().trim()}/macro-sensitivity`, undefined, 30000);
+  },
+
+  /** GET /api/v1/pipeline/sources — sumber data dan kesegaran cache-nya. */
+  async getPipelineSources(): Promise<ResponseWrapper<{ sources: DataSourceStatus[] }>> {
+    if (useDummyData) return SIMULATION_UNAVAILABLE;
+    return fetchApi('/api/v1/pipeline/sources', undefined, 8000);
   },
 
   /** POST /api/v1/portfolio/risk — volatilitas, VaR, drawdown, dan korelasi dari harga historis. */
